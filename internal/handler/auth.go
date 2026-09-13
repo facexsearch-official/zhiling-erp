@@ -27,6 +27,11 @@ type LoginRequest struct {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
+	if h.db == nil {
+		response.ServerError(c, "数据库未连接")
+		return
+	}
+
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "参数错误")
@@ -136,6 +141,11 @@ type SwitchTenantRequest struct {
 }
 
 func (h *AuthHandler) SwitchTenant(c *gin.Context) {
+	if h.db == nil {
+		response.ServerError(c, "数据库未连接")
+		return
+	}
+
 	var req SwitchTenantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "参数错误")
