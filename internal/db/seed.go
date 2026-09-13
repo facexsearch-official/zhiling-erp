@@ -4,6 +4,7 @@ import (
 	"log"
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/snowflake"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -86,15 +87,18 @@ func seedTenants(db *gorm.DB) {
 
 	// Link user to tenant
 	ut := model.UserTenant{
-		ID:        snowflake.GenID(),
 		UserID:    admin.ID,
 		TenantID:  tenant.ID,
 		IsOwner:   1,
 		Role:      1,
 		StaffName: "管理员",
+		JoinedAt:  time.Now(),
 		Status:    1,
 	}
-	db.Create(&ut)
+	if err := db.Create(&ut).Error; err != nil {
+		log.Printf("seed user_tenant error: %v", err)
+		return
+	}
 
 	// Update user default tenant
 	db.Model(&admin).Update("default_tenant_id", tenant.ID)
@@ -104,7 +108,7 @@ func seedTenants(db *gorm.DB) {
 
 func seedShops(db *gorm.DB) {
 	var count int64
-	db.Model(&model.Shop{}).Where("tenant_id = ? AND name = ?", 1, "总店").Count(&count)
+	db.Model(&model.Shop{}).Where("name = ?", "总店").Count(&count)
 	if count > 0 {
 		return
 	}
@@ -116,13 +120,15 @@ func seedShops(db *gorm.DB) {
 	}
 
 	shop := model.Shop{
-		ID:       snowflake.GenID(),
 		TenantID: tenant.ID,
 		Name:     "总店",
 		Address:  "演示地址",
 		IsMain:   1,
 		Status:   1,
 	}
-	db.Create(&shop)
+	if err := db.Create(&shop).Error; err != nil {
+		log.Printf("seed shop error: %v", err)
+		return
+	}
 	log.Printf("seed shop: name=总店, id=%d", shop.ID)
 }

@@ -22,35 +22,62 @@
   --shadow-xs:0 1px 2px rgba(0,0,0,0.05);
   --shadow-sm:0 1px 3px rgba(0,0,0,0.1),0 1px 2px rgba(0,0,0,0.06);
   --shadow-md:0 4px 6px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);
-  --sidebar-width:252px;--topbar-height:60px;
+  --sidebar-width:252px;--sidebar-collapsed:64px;--topbar-height:60px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50);line-height:1.5}
 .app{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:var(--sidebar-width);background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar{width:var(--sidebar-width);background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.sidebar.collapsed{width:var(--sidebar-collapsed)}
+.sidebar.collapsed .sidebar-header{justify-content:center;padding:16px 0}
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .sidebar-brand,
+.sidebar.collapsed .nav-parent > span,
+.sidebar.collapsed .nav-item > span,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .nav-arrow,
+.sidebar.collapsed .sidebar-footer > div:not(.avatar){display:none}
+.sidebar.collapsed .sidebar-toggle{margin-left:0}
+.sidebar.collapsed .nav-sub{display:none !important}
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .nav-parent{justify-content:center;padding:10px 0}
+.sidebar.collapsed .nav-item.active::before{display:none}
+.sidebar.collapsed .sidebar-footer{justify-content:center;padding:12px 0}
 .sidebar-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
 .sidebar-logo{width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
 .sidebar-brand{font-size:15px;font-weight:600;color:var(--gray-800)}
-.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
-.sidebar-footer{border-top:1px solid var(--gray-100);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.sidebar-footer{border-top:1px solid var(--gray-100);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;transition:background .15s}
+.sidebar-footer:hover{background:var(--gray-50)}
 .sidebar-footer .user-name{font-weight:500;color:var(--gray-700)}
 .sidebar-footer .user-role{color:var(--gray-400);font-size:12px}
 .avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
 .nav-group{margin-bottom:2px}
-.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--gray-600);transition:all .15s}
-.nav-item:hover,.nav-parent:hover{background:var(--gray-50);color:var(--gray-800)}
+.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--gray-600);transition:background .15s,color .15s;position:relative}
+.nav-item:hover,.nav-parent:hover{background:var(--gray-100);color:var(--gray-800)}
 .nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
-.nav-parent{font-weight:500;color:var(--gray-700);justify-content:space-between}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 2px 2px 0;background:var(--primary-500)}
+.nav-parent{font-weight:500;color:var(--gray-700)}
+.nav-parent:hover{background:var(--gray-100)}
+.nav-parent.open{color:var(--primary-600)}
+.nav-parent.open .nav-icon{color:var(--primary-500)}
 .nav-icon{width:18px;height:18px;flex-shrink:0}
-.nav-arrow{width:16px;height:16px;flex-shrink:0;transition:transform .2s}
+.nav-arrow{width:14px;height:14px;flex-shrink:0;margin-left:auto;color:var(--gray-400);transition:transform .2s}
 .nav-parent.open .nav-arrow{transform:rotate(90deg)}
 .nav-badge{font-size:11px;background:var(--primary-500);color:#fff;border-radius:var(--radius-full);padding:1px 7px;margin-left:auto}
-.nav-sub{display:none;padding-left:28px}
+.nav-parent .nav-badge{margin-left:auto;margin-right:4px}
+.nav-sub{display:none;margin:2px 0 4px;padding-left:28px;position:relative}
+.nav-sub::before{content:'';position:absolute;left:21px;top:4px;bottom:4px;width:1px;background:var(--gray-200)}
 .nav-sub.open{display:block}
-.nav-sub-title{font-size:11px;color:var(--gray-400);padding:10px 12px 4px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.nav-sub .nav-item{padding:7px 12px;font-size:13px}
+.nav-sub-title{font-size:11px;color:var(--gray-400);padding:10px 12px 4px 12px;font-weight:500;letter-spacing:.5px}
+.nav-sub .nav-item{padding:7px 12px;font-size:13px;color:var(--gray-500)}
+.nav-sub .nav-item:hover{color:var(--gray-800);background:var(--gray-100)}
+.nav-sub .nav-item.active{color:var(--primary-600);background:var(--primary-50)}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .topbar{height:var(--topbar-height);background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.sidebar-toggle{width:28px;height:28px;margin-left:auto;border:none;background:none;border-radius:var(--radius-md);cursor:pointer;color:var(--gray-400);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
+.sidebar-toggle:hover{background:var(--gray-100);color:var(--gray-600)}
 .topbar-title{font-size:17px;font-weight:600;color:var(--gray-800)}
 .topbar-breadcrumb{font-size:12px;color:var(--gray-400);margin-top:1px}
 .topbar-right{display:flex;align-items:center;gap:16px}
@@ -71,7 +98,7 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .tenant-menu-foot{border-top:1px solid var(--gray-100);margin-top:4px;padding:8px 12px;font-size:12px;color:var(--gray-400);cursor:pointer}
 .tenant-menu-foot:hover{color:var(--primary-600)}
 .topbar-search{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);width:240px}
-.topbar-search svg{color:var(--gray-400);flex-shrink:0}
+.topbar-search svg{color:var(--gray-400);flex-shrink:0;width:16px;height:16px}
 .topbar-search input{border:none;background:none;outline:none;font-size:13px;color:var(--gray-700);width:100%}
 .topbar-icon-btn{width:36px;height:36px;border-radius:var(--radius-md);border:none;background:none;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;justify-content:center;transition:background .15s}
 .topbar-icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
@@ -225,6 +252,9 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
     <div class="sidebar-header">
       <div class="sidebar-logo">P</div>
       <span class="sidebar-brand">PISA 进销存</span>
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="收起/展开导航">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg>
+      </button>
     </div>
     <nav class="sidebar-nav" id="sidebarNav"></nav>
     <div class="sidebar-footer">
@@ -238,9 +268,11 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 
   <div class="main">
     <header class="topbar">
-      <div>
-        <div class="topbar-title" id="pageTitle">工作台</div>
-        <div class="topbar-breadcrumb" id="pageBreadcrumb">首页 / 工作台</div>
+      <div class="topbar-left">
+        <div>
+          <div class="topbar-title" id="pageTitle">工作台</div>
+          <div class="topbar-breadcrumb" id="pageBreadcrumb">首页 / 工作台</div>
+        </div>
       </div>
       <div class="topbar-right">
         <div class="tenant-switch" id="tenantSwitch" onclick="toggleTenantMenu(event)">
@@ -250,7 +282,7 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
           <div class="tenant-menu" id="tenantMenu"></div>
         </div>
         <div class="topbar-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" placeholder="搜索商品、客户、单据...">
         </div>
         <button class="topbar-icon-btn" title="消息">
@@ -438,21 +470,35 @@ const GROUPS={};
 
 /* ═══════════ Sidebar render ═══════════ */
 function buildSidebar(){
-  let html='<div class="nav-group"><div class="nav-item active" data-key="home" onclick="showPage(\'home\',this)">'+IC.home+'<span>工作台</span></div></div>';
+  let html='<div class="nav-group"><div class="nav-item active" data-key="home" title="工作台" onclick="showPage(\'home\',this)">'+IC.home+'<span>工作台</span></div></div>';
   NAV.forEach(n=>{
     if(n.key){return;}
-    html+='<div class="nav-group"><div class="nav-parent" onclick="toggleGroup(this)">'+n.icon+'<span>'+n.label+'</span>'
+    html+='<div class="nav-group"><div class="nav-parent" title="'+n.label+'" onclick="toggleGroup(this)">'+n.icon+'<span>'+n.label+'</span>'
       +(n.badge?'<span class="nav-badge">'+n.badge+'</span>':'')+IC.arrow+'</div><div class="nav-sub">';
     n.children.forEach(c=>{
       if(c.title){html+='<div class="nav-sub-title">'+c.title+'</div>';return;}
       LABELS[c.key]=c.label; GROUPS[c.key]=n.label;
-      html+='<div class="nav-item" data-key="'+c.key+'" onclick="showPage(\''+c.key+'\',this)"><span>'+c.label+'</span></div>';
+      html+='<div class="nav-item" data-key="'+c.key+'" title="'+c.label+'" onclick="showPage(\''+c.key+'\',this)"><span>'+c.label+'</span></div>';
     });
     html+='</div></div>';
   });
   document.getElementById('sidebarNav').innerHTML=html;
 }
+function toggleSidebar(){
+  const sidebar=document.querySelector('.sidebar');
+  const collapsed=sidebar.classList.toggle('collapsed');
+  localStorage.setItem('pisa_sidebar_collapsed', collapsed?'1':'0');
+}
 function toggleGroup(el){
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar.classList.contains('collapsed')){
+    sidebar.classList.remove('collapsed');
+    localStorage.setItem('pisa_sidebar_collapsed','0');
+    el.classList.add('open');
+    const sub=el.nextElementSibling;
+    if(sub&&sub.classList.contains('nav-sub'))sub.classList.add('open');
+    return;
+  }
   el.classList.toggle('open');
   const sub=el.nextElementSibling;
   if(sub&&sub.classList.contains('nav-sub'))sub.classList.toggle('open');
@@ -903,6 +949,9 @@ function initUser(){
 }
 
 /* ═══════════ Init ═══════════ */
+if(localStorage.getItem('pisa_sidebar_collapsed')==='1'){
+  document.querySelector('.sidebar').classList.add('collapsed');
+}
 buildSidebar();
 initUser();
 showPage('home');
