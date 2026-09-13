@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PISA 进销存 · 原型</title>
+<style>
+:root{
+  --primary-50:#eff6ff; --primary-100:#dbeafe; --primary-500:#3b82f6; --primary-600:#2563eb;
+  --success-500:#22c55e; --success-600:#16a34a;
+  --warning-500:#f59e0b; --danger-500:#ef4444;
+  --gray-900:#111827; --gray-800:#1f2937; --gray-700:#374151; --gray-600:#4b5563;
+  --gray-500:#6b7280; --gray-400:#9ca3af; --gray-300:#d1d5db; --gray-200:#e5e7eb;
+  --gray-100:#f3f4f6; --gray-50:#f9fafb;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--gray-50);color:var(--gray-800);font-size:14px;-webkit-font-smoothing:antialiased}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ═══ Sidebar ═══ */
+.sidebar{width:252px;background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{height:60px;display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--gray-100)}
+.sidebar-logo{width:34px;height:34px;border-radius:9px;background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+.sidebar-brand{font-size:16px;font-weight:700;color:var(--gray-800)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-group{margin-bottom:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;margin:1px 8px;border-radius:var(--radius-md);
+  cursor:pointer;font-size:14px;color:var(--gray-600);position:relative;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--gray-50);color:var(--gray-800)}
+.nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--primary-500);border-radius:0 3px 3px 0}
+.nav-icon{width:19px;height:19px;opacity:.75;flex-shrink:0}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;background:var(--danger-500);color:#fff;font-size:11px;padding:1px 6px;border-radius:10px;font-weight:600}
+.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 16px;margin:1px 8px;border-radius:var(--radius-md);
+  cursor:pointer;font-size:14px;color:var(--gray-600);user-select:none;transition:background .15s,color .15s}
+.nav-parent:hover{background:var(--gray-50);color:var(--gray-800)}
+.nav-parent.open{color:var(--gray-800);font-weight:500}
+.nav-parent .nav-arrow{margin-left:auto;width:14px;height:14px;opacity:.5;transition:transform .2s}
+.nav-parent.open .nav-arrow{transform:rotate(90deg)}
+.nav-sub{max-height:0;overflow:hidden;transition:max-height .28s ease}
+.nav-sub.open{max-height:1600px}
+.nav-sub .nav-item{padding:7px 12px 7px 44px;font-size:13px;margin:0 8px;color:var(--gray-600)}
+.nav-sub .nav-item::after{content:'';position:absolute;left:28px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--gray-300)}
+.nav-sub .nav-item.active{background:var(--primary-50)}
+.nav-sub .nav-item.active::before{left:26px;height:16px}
+.nav-sub .nav-item.active::after{background:var(--primary-500)}
+.nav-sub-title{padding:9px 16px 3px 32px;font-size:11px;font-weight:600;color:var(--gray-400);letter-spacing:.4px}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--gray-200);display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+.user-name{font-size:13px;font-weight:500;color:var(--gray-700)}
+.user-role{font-size:11px;color:var(--gray-400)}
+
+/* ═══ Main ═══ */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0;position:relative;z-index:50}
+.topbar-title{font-size:17px;font-weight:600;color:var(--gray-800)}
+.topbar-breadcrumb{font-size:12px;color:var(--gray-400);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--gray-100);border-radius:var(--radius-md);padding:7px 12px;width:260px;color:var(--gray-400)}
+.topbar-search input{border:none;background:none;outline:none;font-size:13px;width:100%;color:var(--gray-700)}
+.topbar-icon-btn{width:34px;height:34px;border:none;background:var(--gray-100);border-radius:var(--radius-md);color:var(--gray-500);cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* 切换商户 */
+.tenant-switch{position:relative;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--gray-300);border-radius:var(--radius-md);cursor:pointer;background:#fff;user-select:none}
+.tenant-switch:hover{border-color:var(--primary-500)}
+.tenant-switch .ts-name{font-size:13px;font-weight:500;color:var(--gray-700);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tenant-switch .ts-arrow{width:13px;height:13px;color:var(--gray-400);transition:transform .2s}
+.tenant-switch.open .ts-arrow{transform:rotate(180deg)}
+.tenant-badge{font-size:11px;color:#fff;background:var(--primary-500);border-radius:8px;padding:0 6px;line-height:16px}
+.tenant-menu{display:none;position:absolute;right:0;top:42px;width:240px;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);box-shadow:0 8px 24px rgba(17,24,39,.14);padding:6px;z-index:120}
+.tenant-switch.open .tenant-menu{display:block}
+.tenant-menu-title{font-size:11px;color:var(--gray-400);font-weight:600;padding:8px 10px 4px}
+.tenant-option{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--radius-md);font-size:13px;color:var(--gray-700);cursor:pointer}
+.tenant-option:hover{background:var(--gray-50);color:var(--primary-600)}
+.tenant-option.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
+.tenant-option .role{margin-left:auto;font-size:11px;color:var(--gray-400)}
+.tenant-menu-foot{border-top:1px solid var(--gray-100);margin-top:4px;padding:9px 10px;font-size:12px;color:var(--primary-600);cursor:pointer}
+.toast{position:fixed;left:50%;top:24px;transform:translateX(-50%) translateY(-20px);background:var(--gray-900);color:#fff;font-size:13px;padding:10px 18px;border-radius:var(--radius-md);box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:all .25s;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.usage-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--gray-100)}
+.usage-row:last-child{border-bottom:none}
+.usage-label{width:96px;font-size:13px;color:var(--gray-600);flex-shrink:0}
+.usage-bar{flex:1;height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.usage-bar i{display:block;height:100%;background:linear-gradient(90deg,#93c5fd,#3b82f6);border-radius:4px}
+.usage-bar i.full{background:linear-gradient(90deg,#fca5a5,#ef4444)}
+.usage-val{width:110px;text-align:right;font-size:12px;color:var(--gray-500);font-variant-numeric:tabular-nums}
+.plan-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.plan-card{border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px;position:relative}
+.plan-card.current{border-color:var(--primary-500);box-shadow:0 0 0 2px rgba(59,130,246,.12)}
+.plan-card .pname{font-size:15px;font-weight:600;color:var(--gray-800)}
+.plan-card .pprice{font-size:20px;font-weight:700;color:var(--primary-600);margin:8px 0}
+.plan-card .pprice small{font-size:12px;font-weight:400;color:var(--gray-400)}
+.plan-card ul{list-style:none;font-size:12px;color:var(--gray-500);line-height:2}
+.plan-card .cur-tag{position:absolute;top:-1px;right:-1px;background:var(--primary-500);color:#fff;font-size:11px;padding:2px 10px;border-radius:0 var(--radius-lg) 0 var(--radius-lg)}
+.content{flex:1;overflow:auto;padding:20px 22px}
+.page{display:none}.page.active{display:block}
+
+/* ═══ Cards / tables ═══ */
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.page-title{font-size:18px;font-weight:600;color:var(--gray-800)}
+.card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px}
+.btn{border:none;border-radius:var(--radius-md);padding:8px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary-500);color:#fff}
+.btn-primary:hover{background:var(--primary-600)}
+.btn-secondary{background:#fff;border:1px solid var(--gray-300);color:var(--gray-700)}
+.btn-secondary:hover{border-color:var(--primary-500);color:var(--primary-600)}
+.btn-ghost{background:#fff;border:1px solid var(--gray-300);color:var(--gray-600)}
+.btn-ghost:hover{border-color:var(--primary-500);color:var(--primary-600)}
+.btn-teal{background:#14b8a6;color:#fff}
+.btn-danger{background:var(--danger-500);color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--gray-200);margin-bottom:14px}
+.tab{padding:9px 16px;font-size:13px;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--gray-800)}
+.tab.active{color:var(--primary-600);border-bottom-color:var(--primary-500);font-weight:500}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search-wrapper{display:flex;align-items:center;gap:8px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;height:36px;background:#fff;flex:1;min-width:220px}
+.search-wrapper svg{width:15px;height:15px;color:var(--gray-400)}
+.search-input{border:none;outline:none;font-size:13px;width:100%;color:var(--gray-700)}
+.filter-select{height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;color:var(--gray-700);background:#fff}
+.date-input{height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;color:var(--gray-700)}
+.table-wrapper{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--gray-50);color:var(--gray-500);font-weight:600;font-size:12px;text-align:left;padding:10px 14px;border-bottom:1px solid var(--gray-200);white-space:nowrap}
+thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px}
+tbody tr:hover{background:var(--gray-50)}
+tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;line-height:18px}
+.badge-success{background:#dcfce7;color:#16a34a}
+.badge-warning{background:#fef3c7;color:#d97706}
+.badge-danger{background:#fee2e2;color:#dc2626}
+.badge-info{background:var(--primary-50);color:var(--primary-600)}
+.badge-default{background:var(--gray-100);color:var(--gray-600)}
+.op-btns{display:flex;gap:6px}
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--gray-500);font-size:13px}
+.pagination-btns{display:flex;gap:4px}
+.page-btn{border:1px solid var(--gray-300);background:#fff;border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-size:12px;color:var(--gray-600)}
+.page-btn.active{background:var(--primary-500);color:#fff;border-color:var(--primary-500)}
+.page-btn:disabled{opacity:.5;cursor:default}
+
+/* ═══ Dashboard ═══ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 18px}
+.stat-label{font-size:13px;color:var(--gray-500)}
+.stat-value{font-size:24px;font-weight:700;color:var(--gray-900);margin:6px 0}
+.stat-change{font-size:12px;color:var(--success-600)}
+.stat-change.down{color:var(--danger-500)}
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.card-title{font-size:15px;font-weight:600;color:var(--gray-800);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
+.todo-item:last-child{border-bottom:none}
+.todo-dot{width:7px;height:7px;border-radius:50%;background:var(--danger-500);flex-shrink:0}
+.todo-dot.warn{background:var(--warning-500)}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.quick-action{border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:16px 8px;text-align:center;cursor:pointer;transition:all .15s}
+.quick-action:hover{border-color:var(--primary-500);color:var(--primary-600);box-shadow:0 2px 8px rgba(59,130,246,.12)}
+.quick-action svg{width:22px;height:22px;margin-bottom:6px}
+.quick-action-text{font-size:12px}
+
+/* ═══ Dashboard enriched ═══ */
+.dash-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.dash-hello{font-size:20px;font-weight:700;color:var(--gray-900)}
+.dash-sub{font-size:13px;color:var(--gray-400);margin-top:4px}
+.dash-actions{display:flex;gap:10px}
+.stat-top{display:flex;align-items:flex-start;justify-content:space-between}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon svg{width:20px;height:20px}
+.stat-icon.blue{background:var(--primary-50);color:var(--primary-600)}
+.stat-icon.green{background:#dcfce7;color:#16a34a}
+.stat-icon.orange{background:#fef3c7;color:#d97706}
+.stat-icon.red{background:#fee2e2;color:#dc2626}
+.grid-2b{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.card-title .link{font-size:12px;color:var(--primary-600);font-weight:400;cursor:pointer}
+.chart-bars{display:flex;align-items:flex-end;gap:12px;height:172px;padding-top:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.bar{width:100%;max-width:40px;background:linear-gradient(180deg,#93c5fd,#3b82f6);border-radius:5px 5px 0 0;transition:all .2s}
+.bar:hover{background:linear-gradient(180deg,#60a5fa,#2563eb)}
+.bar-col .bar-val{font-size:11px;color:var(--gray-500)}
+.bar-col .bar-label{font-size:12px;color:var(--gray-400)}
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut{width:128px;height:128px;border-radius:50%;position:relative;flex-shrink:0}
+.donut::after{content:'';position:absolute;inset:24px;background:#fff;border-radius:50%}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}
+.donut-center b{font-size:17px;color:var(--gray-800)}
+.donut-center span{font-size:11px;color:var(--gray-400)}
+.legend{flex:1}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:9px;color:var(--gray-600)}
+.legend-item:last-child{margin-bottom:0}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-item b{margin-left:auto;color:var(--gray-800);font-variant-numeric:tabular-nums}
+.rank-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.rank-no{width:20px;height:20px;border-radius:50%;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rank-no.top{background:var(--primary-500);color:#fff}
+.rank-name{font-size:13px;color:var(--gray-700);width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-bar{flex:1;height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden}
+.rank-bar i{display:block;height:100%;background:linear-gradient(90deg,#93c5fd,#3b82f6);border-radius:3px}
+.rank-val{font-size:12px;color:var(--gray-500);width:66px;text-align:right;font-variant-numeric:tabular-nums}
+.warn-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
+.warn-row:last-child{border-bottom:none}
+.warn-name{flex:1;color:var(--gray-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.warn-qty{font-size:12px;color:var(--gray-500);font-variant-numeric:tabular-nums}
+.doc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
+.doc-row:last-child{border-bottom:none}
+.doc-no{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--primary-600);width:128px;flex-shrink:0}
+.doc-party{flex:1;color:var(--gray-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-amt{width:88px;text-align:right;font-variant-numeric:tabular-nums;color:var(--gray-700)}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.quick-tile{border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:16px 6px;text-align:center;cursor:pointer;transition:all .15s}
+.quick-tile:hover{border-color:var(--primary-500);color:var(--primary-600);box-shadow:0 2px 8px rgba(59,130,246,.12);transform:translateY(-1px)}
+.quick-tile svg{width:22px;height:22px;margin-bottom:6px}
+.quick-tile div{font-size:12px}
+.overview-row{display:flex;align-items:center;gap:12px;padding:9px 0}
+.overview-label{font-size:13px;color:var(--gray-600);width:78px;flex-shrink:0}
+.overview-bar{flex:1;height:8px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.overview-bar i{display:block;height:100%;border-radius:4px}
+.overview-val{font-size:12px;color:var(--gray-500);width:64px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ═══ Modal ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:10px;width:640px;max-width:92vw;max-height:88vh;overflow:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-200)}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1}
+.modal-body{padding:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.form-label{display:block;font-size:13px;color:var(--gray-600);margin-bottom:6px}
+.form-input{width:100%;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;outline:none;color:var(--gray-700)}
+.form-input:focus{border-color:var(--primary-500)}
+.line-tbl{width:100%;border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden}
+.line-tbl th{background:var(--gray-50);font-size:12px;color:var(--gray-500);padding:8px 12px;text-align:left}
+.line-tbl td{padding:8px 12px;font-size:13px;border-top:1px solid var(--gray-100)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--gray-200)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">P</div>
+      <span class="sidebar-brand">PISA 进销存</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="avatar">张</div>
+      <div>
+        <div class="user-name">张三</div>
+        <div class="user-role">管理员</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="pageTitle">工作台</div>
+        <div class="topbar-breadcrumb" id="pageBreadcrumb">首页 / 工作台</div>
+      </div>
+      <div class="topbar-right">
+        <div class="tenant-switch" id="tenantSwitch" onclick="toggleTenantMenu(event)">
+          <span class="tenant-badge" id="tenantBadge">A</span>
+          <span class="ts-name" id="currentTenant">张三五金店</span>
+          <svg class="ts-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          <div class="tenant-menu" id="tenantMenu">
+            <div class="tenant-menu-title">切换商户</div>
+            <div class="tenant-option active" data-tenant="张三五金店" data-role="主账号·管理员" onclick="switchTenant(this,event)">
+              <span class="tenant-badge">A</span>张三五金店<span class="role">主账号</span>
+            </div>
+            <div class="tenant-option" data-tenant="李四便利店" data-role="操作员" onclick="switchTenant(this,event)">
+              <span class="tenant-badge" style="background:#22c55e">B</span>李四便利店<span class="role">操作员</span>
+            </div>
+            <div class="tenant-option" onclick="showTenantModal(event)" style="color:var(--primary-600);font-weight:500">
+              <span style="font-size:16px;line-height:1;width:18px;text-align:center">＋</span>创建新商户
+            </div>
+            <div class="tenant-menu-foot" onclick="openNav('set:商户信息')">商户信息 / 套餐订阅 ›</div>
+          </div>
+        </div>
+        <div class="topbar-search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="搜索商品、客户、单据...">
+        </div>
+        <button class="topbar-icon-btn" title="消息">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        </button>
+        <button class="topbar-icon-btn" title="设置">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">新增单据</span>
+      <button class="modal-close" onclick="hideModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div><label class="form-label">往来单位</label>
+          <select class="form-input"><option>请选择</option><option>华联超市</option><option>深圳华强电子</option><option>零售客户</option></select>
+        </div>
+        <div><label class="form-label">单据日期</label><input type="date" class="form-input" value="2026-09-12"></div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">仓库</label>
+          <select class="form-input"><option>主仓库</option><option>原料仓</option><option>成品仓</option></select>
+        </div>
+        <div><label class="form-label">经办人</label>
+          <select class="form-input"><option>张三</option><option>李四</option></select>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px">
+        <label class="form-label" style="margin:0">商品明细</label>
+        <button class="btn btn-ghost btn-sm">+ 添加商品</button>
+      </div>
+      <table class="line-tbl">
+        <thead><tr><th>商品</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th></tr></thead>
+        <tbody>
+          <tr><td>蓝牙耳机 TWS</td><td style="text-align:right">50</td><td style="text-align:right">¥65.00</td><td style="text-align:right">¥3,250.00</td></tr>
+          <tr><td>USB-C 数据线 1米</td><td style="text-align:right">100</td><td style="text-align:right">¥10.00</td><td style="text-align:right">¥1,000.00</td></tr>
+        </tbody>
+      </table>
+      <div class="form-row" style="margin-top:16px">
+        <div><label class="form-label">本次收/付款</label><input class="form-input" placeholder="0.00"></div>
+        <div><label class="form-label">结算账户</label>
+          <select class="form-input"><option>现金账户</option><option>工商银行</option><option>微信账户</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="hideModal()">取消</button>
+      <button class="btn btn-primary" onclick="hideModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Modal: 创建新商户 ═══ -->
+<div class="modal-overlay" id="tenantModal">
+  <div class="modal" style="width:540px">
+    <div class="modal-header">
+      <span class="modal-title">创建新商户</span>
+      <button class="modal-close" onclick="hideTenantModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div><label class="form-label">商户名称 <span style="color:var(--danger-500)">*</span></label>
+          <input class="form-input" id="newTenantName" placeholder="如：张三五金店"></div>
+        <div><label class="form-label">商户类型</label>
+          <select class="form-input"><option>个体户</option><option>有限公司</option><option>合伙企业</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">联系人</label><input class="form-input" value="张三"></div>
+        <div><label class="form-label">联系电话</label><input class="form-input" value="138-0000-0000"></div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">选择套餐</label>
+          <select class="form-input" id="newTenantPlan"><option>免费版</option><option>开单版</option><option selected>单店版</option><option>多店版</option></select></div>
+        <div><label class="form-label">创建后角色</label><input class="form-input" value="主账号（老板）" disabled></div>
+      </div>
+      <div style="font-size:12px;color:var(--gray-400);margin-top:4px">创建后该账号将成为新商户的主账号，并自动切换到新商户。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="hideTenantModal()">取消</button>
+      <button class="btn btn-primary" onclick="createTenant()">创建并切换</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ Icons ═══════════ */
+const IC = {
+  home:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>',
+  purchase:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.3a2 2 0 0 0 2 1.7h8.5a2 2 0 0 0 2-1.6L21.5 8H6"/></svg>',
+  sales:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.3a2 2 0 0 0 2 1.7h8.5a2 2 0 0 0 2-1.6L21.5 8H6"/><path d="M14 3l2 3 3-3"/></svg>',
+  stock:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></svg>',
+  finance:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 9h8M8 13h8M12 8v9"/></svg>',
+  report:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
+  setting:'<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  arrow:'<svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
+};
+
+/* ═══════════ Nav tree ═══════════ */
+const NAV = [
+  {key:'home', label:'工作台', icon:IC.home},
+  {label:'进货', icon:IC.purchase, children:[
+    {key:'purchase-order', label:'采购订单'},
+    {key:'purchases', label:'购货单'},
+    {key:'purchase-return', label:'退货单'}
+  ]},
+  {label:'销售', icon:IC.sales, badge:'12', children:[
+    {key:'sales-order', label:'客户订单'},
+    {key:'sales', label:'销货单'},
+    {key:'sales-return', label:'销货退货单'}
+  ]},
+  {label:'库存', icon:IC.stock, children:[
+    {key:'stock', label:'库存查询'},
+    {key:'transfer', label:'调拨单'},
+    {key:'other-inbound', label:'其他入库单'},
+    {key:'other-outbound', label:'其他出库单'},
+    {key:'material-outbound', label:'原料出库单'},
+    {key:'finished-inbound', label:'成品入库单'},
+    {key:'disassembly-outbound', label:'拆卸出库单'},
+    {key:'component-inbound', label:'子件入库单'}
+  ]},
+  {label:'财务', icon:IC.finance, children:[
+    {key:'receipt', label:'收款单'},
+    {key:'payment', label:'付款单'},
+    {key:'other-income', label:'其他收入单'},
+    {key:'other-expense', label:'其他支出单'},
+    {key:'fund-transfer', label:'资金转账单'}
+  ]},
+  {label:'报表', icon:IC.report, children:[
+    {title:'采购报表'},
+    {key:'rep:purchase:采购明细表', label:'采购明细表'},
+    {key:'rep:purchase:采购汇总表(按商品)', label:'采购汇总表(按商品)'},
+    {key:'rep:purchase:采购汇总表(按供应商)', label:'采购汇总表(按供应商)'},
+    {key:'rep:purchase:采购汇总表(按采购)', label:'采购汇总表(按采购)'},
+    {title:'销售报表'},
+    {key:'rep:sales:销售明细表', label:'销售明细表'},
+    {key:'rep:sales:销售汇总表(按商品)', label:'销售汇总表(按商品)'},
+    {key:'rep:sales:销售汇总表(按客户)', label:'销售汇总表(按客户)'},
+    {key:'rep:sales:销售汇总表(按销售)', label:'销售汇总表(按销售)'},
+    {key:'rep:sales:销售利润表', label:'销售利润表'},
+    {title:'库存报表'},
+    {key:'rep:stock:商品库存余额表', label:'商品库存余额表'},
+    {key:'rep:stock:商品收发明细表', label:'商品收发明细表'},
+    {key:'rep:stock:商品收发汇总表', label:'商品收发汇总表'},
+    {key:'rep:stock:库存预警表', label:'库存预警表'},
+    {key:'rep:stock:保质期预警表', label:'保质期预警表'},
+    {title:'财务报表'},
+    {key:'rep:finance:往来单位欠款表', label:'往来单位欠款表'},
+    {key:'rep:finance:现金银行报表', label:'现金银行报表'},
+    {key:'rep:finance:应收账款明细表', label:'应收账款明细表'},
+    {key:'rep:finance:应付账款明细表', label:'应付账款明细表'},
+    {key:'rep:finance:客户对账单', label:'客户对账单'},
+    {key:'rep:finance:供应商对账单', label:'供应商对账单'},
+    {key:'rep:finance:其他收支明细表', label:'其他收支明细表'},
+    {key:'rep:finance:总利润表', label:'总利润表'}
+  ]},
+  {label:'设置', icon:IC.setting, children:[
+    {title:'基础资料'},
+    {key:'set:商品管理', label:'商品管理'},
+    {key:'set:客户管理', label:'客户管理'},
+    {key:'set:供应商管理', label:'供应商管理'},
+    {key:'set:仓库管理', label:'仓库管理'},
+    {key:'set:门店管理', label:'门店管理'},
+    {key:'set:职员管理', label:'职员管理'},
+    {title:'辅助资料'},
+    {key:'set:类别管理', label:'类别管理'},
+    {key:'set:辅助属性', label:'辅助属性'},
+    {key:'set:计量单位', label:'计量单位'},
+    {key:'set:结算账户', label:'结算账户'},
+    {title:'系统设置'},
+    {key:'set:商户信息', label:'商户信息'},
+    {key:'set:套餐订阅', label:'套餐订阅'},
+    {key:'set:系统参数', label:'系统参数'},
+    {key:'set:用户管理', label:'用户管理'},
+    {key:'set:操作日志', label:'操作日志'},
+    {key:'set:重新初始化', label:'重新初始化'}
+  ]}
+];
+
+const LABELS={home:'工作台'};
+const GROUPS={};
+
+/* ═══════════ Sidebar render ═══════════ */
+function buildSidebar(){
+  let html='<div class="nav-group"><div class="nav-item active" data-key="home" onclick="showPage(\'home\',this)">'+IC.home+'<span>工作台</span></div></div>';
+  NAV.forEach(n=>{
+    if(n.key){return;}
+    html+='<div class="nav-group"><div class="nav-parent" onclick="toggleGroup(this)">'+n.icon+'<span>'+n.label+'</span>'
+      +(n.badge?'<span class="nav-badge">'+n.badge+'</span>':'')+IC.arrow+'</div><div class="nav-sub">';
+    n.children.forEach(c=>{
+      if(c.title){html+='<div class="nav-sub-title">'+c.title+'</div>';return;}
+      LABELS[c.key]=c.label; GROUPS[c.key]=n.label;
+      html+='<div class="nav-item" data-key="'+c.key+'" onclick="showPage(\''+c.key+'\',this)"><span>'+c.label+'</span></div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('sidebarNav').innerHTML=html;
+}
+function toggleGroup(el){
+  el.classList.toggle('open');
+  const sub=el.nextElementSibling;
+  if(sub&&sub.classList.contains('nav-sub'))sub.classList.toggle('open');
+}
+function setActive(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(!el)return;
+  el.classList.add('active');
+  const group=el.closest('.nav-group');
+  if(group){
+    const p=group.querySelector('.nav-parent'), s=group.querySelector('.nav-sub');
+    if(p)p.classList.add('open');
+    if(s)s.classList.add('open');
+  }
+}
+
+/* ═══════════ Helpers ═══════════ */
+const B=(t)=>{let c='badge-default';
+  if(/已生效|正常|启用|收入|已收|盈利/.test(t))c='badge-success';
+  else if(/待审核|待处理|盘点中|草稿|待收|待付/.test(t))c='badge-warning';
+  else if(/作废|取消|不足|支出|停用|亏损|积压/.test(t))c='badge-danger';
+  else if(/已转|已确认/.test(t))c='badge-info';
+  return '<span class="badge '+c+'">'+t+'</span>';};
+const OPS='<div class="op-btns"><button class="btn btn-ghost btn-sm">查看</button><button class="btn btn-teal btn-sm">修改</button><button class="btn btn-danger btn-sm">删除</button></div>';
+
+/* ═══════════ Page configs (单据) ═══════════ */
+const P = {
+  'purchase-order':{tabs:['全部','草稿','待审核','已生效','已转购货单','已取消'],query:'输入订单编号或供应商查询',
+    cols:[{l:'订单编号'},{l:'供应商'},{l:'订单日期'},{l:'预计到货'},{l:'订单金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['CGDD20260912001','深圳华强电子','2026-09-12','2026-09-15','¥8,600.00','待审核',OPS],['CGDD20260911003','广州元器件','2026-09-11','2026-09-14','¥3,200.00','已转购货单',OPS],['CGDD20260910008','东莞五金','2026-09-10','2026-09-13','¥1,850.00','已生效',OPS]],total:42},
+  'purchases':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或供应商查询',
+    cols:[{l:'单据编号'},{l:'供应商'},{l:'仓库'},{l:'单据日期'},{l:'总金额',a:'right'},{l:'已付金额',a:'right'},{l:'未付金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['GH20260912001','深圳华强电子','主仓库','2026-09-12','¥8,600.00','¥5,000.00','¥3,600.00','已生效',OPS],['GH20260911003','广州元器件','主仓库','2026-09-11','¥3,200.00','¥0.00','¥3,200.00','待审核',OPS],['GH20260910008','东莞五金','原料仓','2026-09-10','¥1,850.00','¥1,850.00','¥0.00','已生效',OPS]],total:56},
+  'purchase-return':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入退货单号或供应商查询',
+    cols:[{l:'退货单号'},{l:'供应商'},{l:'仓库'},{l:'退货日期'},{l:'退货金额',a:'right'},{l:'冲减应付',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['TH20260912001','广州元器件','主仓库','2026-09-12','¥1,200.00','¥1,200.00','已生效',OPS],['TH20260910002','东莞五金','原料仓','2026-09-10','¥600.00','¥600.00','待审核',OPS],['TH20260908001','深圳华强电子','主仓库','2026-09-08','¥2,400.00','¥2,400.00','已生效',OPS]],total:18},
+  'sales-order':{tabs:['全部','草稿','待审核','已生效','已转销货单','已取消'],query:'输入订单编号或客户查询',
+    cols:[{l:'订单编号'},{l:'客户'},{l:'订单日期'},{l:'交货日期'},{l:'订单金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['KHDD20260912001','华联超市','2026-09-12','2026-09-15','¥12,500.00','待审核',OPS],['KHDD20260911002','永辉批发','2026-09-11','2026-09-14','¥6,800.00','已转销货单',OPS],['KHDD20260910005','家家乐便利店','2026-09-10','2026-09-12','¥2,300.00','已生效',OPS]],total:65},
+  'sales':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或客户查询',
+    cols:[{l:'单据编号'},{l:'客户'},{l:'仓库'},{l:'单据日期'},{l:'应收金额',a:'right'},{l:'已收金额',a:'right'},{l:'未收金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['XH20260912001','华联超市','主仓库','2026-09-12','¥12,500.00','¥8,000.00','¥4,500.00','已生效',OPS],['XH20260912002','零售客户','主仓库','2026-09-12','¥120.00','¥120.00','¥0.00','已生效',OPS],['XH20260911001','永辉批发','主仓库','2026-09-11','¥6,800.00','¥3,500.00','¥3,300.00','已生效',OPS]],total:128},
+  'sales-return':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入退货单号或客户查询',
+    cols:[{l:'退货单号'},{l:'客户'},{l:'仓库'},{l:'退货日期'},{l:'退货金额',a:'right'},{l:'冲减应收',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['XHT20260912001','华联超市','主仓库','2026-09-12','¥1,500.00','¥1,500.00','已生效',OPS],['XHT20260911001','永辉批发','主仓库','2026-09-11','¥800.00','¥800.00','待审核',OPS],['XHT20260909002','家家乐便利店','主仓库','2026-09-09','¥320.00','¥320.00','已生效',OPS]],total:23},
+  'stock':{tabs:['当前库存','库存预警','保质期预警','商品收发明细'],query:'输入商品编号或名称或规格',plain:1,
+    cols:[{l:'商品编号'},{l:'商品名称'},{l:'规格'},{l:'仓库'},{l:'当前库存',a:'right'},{l:'成本价',a:'right'},{l:'库存金额',a:'right'},{l:'状态',badge:1}],
+    rows:[['SP001','蓝牙耳机 TWS','黑色','主仓库','2','¥65.00','¥130.00','库存不足'],['SP002','USB-C 数据线','1米','主仓库','5','¥5.00','¥25.00','库存不足'],['SP003','移动电源 20000mAh','白色','主仓库','500','¥90.00','¥45,000.00','库存积压'],['SP004','无线鼠标','2.4G','主仓库','8','¥45.00','¥360.00','库存不足']],total:328},
+  'transfer':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入调拨单号查询',
+    cols:[{l:'调拨单号'},{l:'调出仓库'},{l:'调入仓库'},{l:'调拨日期'},{l:'数量',a:'right'},{l:'金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['DB20260912001','主仓库','原料仓','2026-09-12','100','¥2,500.00','已生效',OPS],['DB20260910002','原料仓','成品仓','2026-09-10','50','¥1,200.00','待审核',OPS]],total:15},
+  'other-inbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'入库原因'},{l:'日期'},{l:'数量',a:'right'},{l:'金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['QTRK20260912001','主仓库','赠品入库','2026-09-12','30','¥900.00','已生效',OPS],['QTRK20260910001','原料仓','盘盈调整','2026-09-10','12','¥240.00','待审核',OPS]],total:20},
+  'other-outbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'出库原因'},{l:'日期'},{l:'数量',a:'right'},{l:'金额',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['QTCK20260911002','主仓库','商品损耗','2026-09-11','5','¥225.00','已生效',OPS],['QTCK20260910001','原料仓','部门领用','2026-09-10','12','¥360.00','待审核',OPS]],total:17},
+  'material-outbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或生产单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'生产单号'},{l:'日期'},{l:'数量',a:'right'},{l:'成本',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['YL20260912001','原料仓','SC20260912001','2026-09-12','200','¥4,000.00','已生效',OPS],['YL20260910002','原料仓','SC20260910002','2026-09-10','150','¥3,000.00','待审核',OPS]],total:9},
+  'finished-inbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或生产单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'生产单号'},{l:'日期'},{l:'数量',a:'right'},{l:'成本',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['CP20260912001','成品仓','SC20260912001','2026-09-12','100','¥6,500.00','已生效',OPS],['CP20260910001','成品仓','SC20260910002','2026-09-10','80','¥5,200.00','待审核',OPS]],total:7},
+  'disassembly-outbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或拆卸单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'拆卸单号'},{l:'日期'},{l:'数量',a:'right'},{l:'成本',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['CX20260912001','主仓库','CXS20260912001','2026-09-12','20','¥1,800.00','已生效',OPS],['CX20260910001','主仓库','CXS20260910001','2026-09-10','10','¥900.00','待审核',OPS]],total:6},
+  'component-inbound':{tabs:['全部','草稿','待审核','已生效','已作废'],query:'输入单号或拆卸单号查询',
+    cols:[{l:'单号'},{l:'仓库'},{l:'拆卸单号'},{l:'日期'},{l:'数量',a:'right'},{l:'成本',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['ZJ20260912001','主仓库','CXS20260912001','2026-09-12','40','¥1,800.00','已生效',OPS],['ZJ20260910001','主仓库','CXS20260910001','2026-09-10','20','¥900.00','待审核',OPS]],total:6},
+  'receipt':{tabs:['全部','草稿','已生效','已作废'],query:'输入收款单号或客户查询',
+    cols:[{l:'收款单号'},{l:'客户'},{l:'收款日期'},{l:'收款金额',a:'right'},{l:'结算账户'},{l:'收款方式'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['SK20260912001','华联超市','2026-09-12','¥8,000.00','工商银行','银行转账','已生效',OPS],['SK20260912002','零售客户','2026-09-12','¥120.00','现金账户','现金','已生效',OPS],['SK20260911001','永辉批发','2026-09-11','¥3,500.00','微信账户','微信','已生效',OPS]],total:96},
+  'payment':{tabs:['全部','草稿','已生效','已作废'],query:'输入付款单号或供应商查询',
+    cols:[{l:'付款单号'},{l:'供应商'},{l:'付款日期'},{l:'付款金额',a:'right'},{l:'结算账户'},{l:'付款方式'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['FK20260912001','深圳华强电子','2026-09-12','¥5,000.00','工商银行','银行转账','已生效',OPS],['FK20260910002','广州元器件','2026-09-10','¥2,200.00','现金账户','现金','已生效',OPS]],total:72},
+  'other-income':{tabs:['全部','草稿','已生效','已作废'],query:'输入单号或项目查询',
+    cols:[{l:'单号'},{l:'收入项目'},{l:'往来单位'},{l:'日期'},{l:'金额',a:'right'},{l:'账户'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['QTSR20260911001','利息收入','工商银行','2026-09-11','¥80.00','工商银行','已生效',OPS],['QTSR20260905001','政府补贴','财政局','2026-09-05','¥5,000.00','工商银行','已生效',OPS]],total:14},
+  'other-expense':{tabs:['全部','草稿','已生效','已作废'],query:'输入单号或项目查询',
+    cols:[{l:'单号'},{l:'支出项目'},{l:'往来单位'},{l:'日期'},{l:'金额',a:'right'},{l:'账户'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['QTZC20260912001','房租','房东王先生','2026-09-12','¥6,000.00','现金账户','已生效',OPS],['QTZC20260910002','运费','顺丰速运','2026-09-10','¥320.00','微信账户','待审核',OPS]],total:31},
+  'fund-transfer':{tabs:['全部','草稿','已生效','已作废'],query:'输入单号查询',
+    cols:[{l:'单号'},{l:'转出账户'},{l:'转入账户'},{l:'日期'},{l:'金额',a:'right'},{l:'手续费',a:'right'},{l:'状态',badge:1},{l:'操作'}],
+    rows:[['ZZ20260912001','现金账户','工商银行','2026-09-12','¥20,000.00','¥0.00','已生效',OPS],['ZZ20260908001','微信账户','工商银行','2026-09-08','¥5,000.00','¥5.00','已生效',OPS]],total:11}
+};
+
+/* ═══════════ Reports ═══════════ */
+const RCOLS = {
+  '采购明细表':['日期','单号','供应商','商品','数量','单价','金额'],
+  '采购汇总表(按商品)':['商品','采购数量','采购金额','平均单价'],
+  '采购汇总表(按供应商)':['供应商','采购单数','采购数量','采购金额'],
+  '采购汇总表(按采购)':['采购员','采购单数','采购数量','采购金额'],
+  '销售明细表':['日期','单号','客户','商品','数量','单价','金额'],
+  '销售汇总表(按商品)':['商品','销售数量','销售金额','毛利'],
+  '销售汇总表(按客户)':['客户','销售单数','销售数量','销售金额'],
+  '销售汇总表(按销售)':['销售员','销售单数','销售数量','销售金额'],
+  '销售利润表':['商品','销售额','成本','毛利','毛利率'],
+  '商品库存余额表':['商品','仓库','数量','成本价','库存金额'],
+  '商品收发明细表':['日期','单号','类型','入库','出库','结存'],
+  '商品收发汇总表':['商品','期初','入库','出库','期末'],
+  '库存预警表':['商品','仓库','当前库存','最低','最高','预警'],
+  '保质期预警表':['商品','批次','到期日','剩余天数','库存'],
+  '往来单位欠款表':['往来单位','类型','应收','应付','净额'],
+  '现金银行报表':['账户','期初余额','本期收入','本期支出','期末余额'],
+  '应收账款明细表':['客户','单据编号','应收','已收','未收'],
+  '应付账款明细表':['供应商','单据编号','应付','已付','未付'],
+  '客户对账单':['日期','单号','类型','金额','余额'],
+  '供应商对账单':['日期','单号','类型','金额','余额'],
+  '其他收支明细表':['日期','单号','方向','项目','金额'],
+  '总利润表':['项目','金额','占比']
+};
+const RROWS = {
+  '采购明细表':[['2026-09-12','GH20260912001','深圳华强电子','蓝牙耳机 TWS','100','¥45.00','¥4,500.00']],
+  '采购汇总表(按商品)':[['蓝牙耳机 TWS','300','¥13,500.00','¥45.00'],['USB-C 数据线','600','¥2,100.00','¥3.50']],
+  '采购汇总表(按供应商)':[['深圳华强电子','18','2,450','¥86,500.00'],['广州元器件','12','1,860','¥42,300.00']],
+  '采购汇总表(按采购)':[['张三','24','3,200','¥98,000.00'],['李四','15','1,110','¥30,800.00']],
+  '销售明细表':[['2026-09-12','XH20260912001','华联超市','蓝牙耳机 TWS','50','¥65.00','¥3,250.00']],
+  '销售汇总表(按商品)':[['蓝牙耳机 TWS','418','¥27,170.00','¥8,360.00'],['USB-C 数据线','1,095','¥10,950.00','¥7,117.50']],
+  '销售汇总表(按客户)':[['华联超市','32','1,280','¥56,800.00'],['永辉批发','21','860','¥34,200.00']],
+  '销售汇总表(按销售)':[['张三','68','2,150','¥86,400.00'],['李四','60','1,420','¥21,200.00']],
+  '销售利润表':[['蓝牙耳机 TWS','¥27,170.00','¥18,810.00','¥8,360.00','30.8%'],['USB-C 数据线','¥10,950.00','¥3,832.50','¥7,117.50','65.0%']],
+  '商品库存余额表':[['蓝牙耳机 TWS','主仓库','2','¥65.00','¥130.00'],['移动电源 20000mAh','主仓库','500','¥90.00','¥45,000.00']],
+  '商品收发明细表':[['2026-09-12','XH20260912001','销售出库','0','50','2']],
+  '商品收发汇总表':[['蓝牙耳机 TWS','120','300','418','2'],['USB-C 数据线','500','600','1,095','5']],
+  '库存预警表':[['蓝牙耳机 TWS','主仓库','2','10','500','库存不足'],['移动电源 20000mAh','主仓库','500','10','300','库存积压']],
+  '保质期预警表':[['牛奶 250ml','B20260801','2026-09-20','8天','120'],['酸奶 100g','B20260715','2026-09-14','2天','36']],
+  '往来单位欠款表':[['华联超市','客户','¥12,500.00','¥0.00','¥12,500.00'],['深圳华强电子','供应商','¥0.00','¥12,500.00','-¥12,500.00']],
+  '现金银行报表':[['现金账户','¥5,000.00','¥3,200.00','¥7,800.00','¥3,420.00'],['工商银行','¥100,000.00','¥28,600.00','¥12,000.00','¥128,600.00']],
+  '应收账款明细表':[['华联超市','XH20260912001','¥12,500.00','¥8,000.00','¥4,500.00']],
+  '应付账款明细表':[['深圳华强电子','GH20260912001','¥8,600.00','¥5,000.00','¥3,600.00']],
+  '客户对账单':[['2026-09-12','XH20260912001','销售','¥12,500.00','¥12,500.00'],['2026-09-12','SK20260912001','收款','-¥8,000.00','¥4,500.00']],
+  '供应商对账单':[['2026-09-12','GH20260912001','购货','¥8,600.00','¥8,600.00'],['2026-09-12','FK20260912001','付款','-¥5,000.00','¥3,600.00']],
+  '其他收支明细表':[['2026-09-12','QTZC20260912001','支出','房租','¥6,000.00'],['2026-09-11','QTSR20260911001','收入','利息收入','¥80.00']],
+  '总利润表':[['营业收入','¥103,400.00','100.0%'],['营业成本','¥72,380.00','70.0%'],['毛利','¥31,020.00','30.0%'],['其他收入','¥5,080.00','4.9%'],['期间费用','¥12,600.00','12.2%'],['净利润','¥23,500.00','22.7%']]
+};
+
+/* ═══════════ Settings ═══════════ */
+const SET = {
+  '商品管理':{query:'输入商品编号或名称或规格',cols:['商品编号','商品名称','规格','类别','单位','库存','零售价','操作'],
+    rows:[['SP001','蓝牙耳机 TWS','黑色','数码配件','个','2','¥99.00'],['SP002','USB-C 数据线','1米','数码配件','条','5','¥15.00'],['SP003','移动电源 20000mAh','白色','数码配件','个','500','¥159.00']]},
+  '客户管理':{query:'输入客户编号或客户名称查询',cols:['客户类别','客户编号','客户名称','联系人','联系电话','联系地址','操作'],
+    rows:[['批发客户','KH001','华联超市','张三','15264847...','深圳'],['批发客户','KH002','永辉批发','李四','19981268...','广州'],['零售客户','KH003','零售客户','-','-','-']]},
+  '供应商管理':{query:'输入供应商编号或名称查询',cols:['供应商编号','供应商名称','联系人','联系电话','应付账款','操作'],
+    rows:[['GYS001','深圳华强电子','陈经理','138-0000-1234','¥12,500.00'],['GYS002','广州元器件','李经理','139-0000-5678','¥8,600.00'],['GYS003','东莞五金','王经理','137-0000-9012','¥3,200.00']]},
+  '仓库管理':{query:'输入仓库名称查询',cols:['仓库名称','仓库类型','仓管员','地址','状态','操作'],
+    rows:[['主仓库','普通仓','张三','深圳市宝安区西乡街道','启用'],['原料仓','原料仓','李四','深圳市宝安区西乡街道','启用'],['成品仓','成品仓','王五','深圳市宝安区西乡街道','启用']]},
+  '职员管理':{query:'输入职员编号或职员名称查询',newLabel:'邀请职员',cols:['职员编号','职员名称','联系电话','角色','权限','状态','操作'],
+    rows:[['001','张三','15264847...','主账号','全部权限','启用'],['002','喜羊羊','19981268...','管理员','销售/库存/报表','启用'],['01','雨','13800000000','操作员','仅开单','停用']]},
+  '门店管理':{query:'输入门店名称查询',cols:['门店名称','地址','电话','是否主店','状态','操作'],
+    rows:[['张三五金店(总店)','深圳市宝安区西乡街道','0755-12345678','是','启用'],['张三五金店(南山分店)','深圳市南山区科技园','0755-87654321','否','启用']]},
+  '类别管理':{query:'输入类别名称查询',cols:['类别名称','上级类别','商品数量','排序','操作'],
+    rows:[['数码配件','-','12','1'],['食品饮料','-','8','2'],['耳机','数码配件','5','1']]},
+  '辅助属性':{query:'输入属性名称查询',cols:['属性名称','属性值','排序','状态','操作'],
+    rows:[['颜色','黑,白,蓝,红','1','启用'],['尺码','S,M,L,XL','2','启用']]},
+  '计量单位':{query:'输入单位名称查询',cols:['单位名称','操作'],rows:[['个'],['箱'],['件'],['公斤']]},
+  '结算账户':{query:'输入账户名称查询',cols:['账户名称','账户类型','当前余额','排序','状态','操作'],
+    rows:[['现金账户','现金','¥3,420.00','1','启用'],['工商银行','银行','¥128,600.00','2','启用'],['微信账户','在线支付','¥15,180.00','3','启用']]},
+  '商户信息':{query:'',cols:['项目','内容'],rows:[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']]},
+  '套餐订阅':{query:'',cols:['项目','套餐限额','已使用','状态'],rows:[['商品数','2,000','128','正常'],['员工账号','10','3','正常'],['门店数','1','1','已满'],['本月单据','不限','1,240','正常']]},
+  '系统参数':{query:'',cols:['参数项','当前值','说明','操作'],
+    rows:[['店铺名称','PISA 进销存体验店','显示在单据与系统标题'],['金额小数位数','2','金额保留两位小数'],['允许负库存','否','否：库存不足时禁止出库'],['单据审核','开启','开启后单据需审核才生效'],['成本核算方法','加权平均','可切换为先进先出']]},
+  '用户管理':{query:'输入用户名或姓名查询',cols:['登录账号','姓名','角色','状态','操作'],
+    rows:[['admin','张三','超级管理员','启用'],['user01','喜羊羊','操作员','启用'],['user02','雨','操作员','停用']]},
+  '操作日志':{query:'输入操作人或对象查询',cols:['操作时间','操作人','操作类型','操作对象','IP'],
+    rows:[['2026-09-12 14:32','张三','新增','销货单 XH20260912001','192.168.1.10'],['2026-09-12 11:05','李四','修改','商品 SP001','192.168.1.22'],['2026-09-11 18:20','张三','删除','草稿购货单','192.168.1.10']]},
+  '重新初始化':{query:'',cols:['项目','说明','操作'],
+    rows:[['清空业务单据','删除全部采购/销售/库存/财务单据（保留基础资料）','执行'],['清空全部数据','删除所有数据（含基础资料），不可恢复','执行']]}
+};
+
+/* ═══════════ Render ═══════════ */
+let active='home';
+function showPage(key, el){
+  active=key;
+  setActive(el);
+  const label=LABELS[key]||key;
+  document.getElementById('pageTitle').textContent=label;
+  document.getElementById('pageBreadcrumb').textContent=(GROUPS[key]?GROUPS[key]+' / ':'首页 / ')+label;
+  const c=document.getElementById('content');
+  if(key==='home'){c.innerHTML=homeHTML();return;}
+  c.innerHTML=pageHTML(key,label);
+}
+
+function pageHTML(key,label){
+  if(key==='set:商户信息')return tenantInfoHTML();
+  if(key==='set:套餐订阅')return planHTML();
+  let cfg=null, showNew=false, showExport=false, tabList=null, query='', newLabel='新增';
+
+  if(key.indexOf('rep:')===0){
+    const parts=key.split(':'); const name=parts.slice(2).join(':');
+    const cols=(RCOLS[name]||[]).map((l,i)=>({l,a:i>=1?'right':''}));
+    cfg={cols, rows:(RROWS[name]||[]).map(r=>r.slice()), total:(RROWS[name]||[]).length};
+    tabList=reportTabs(parts[1]);
+    showExport=true; query='输入查询条件';
+  }else if(key.indexOf('set:')===0){
+    const name=key.slice(4), s=SET[name];
+    cfg={cols:s.cols.map((l,i)=>({l,a:(/价|库存|余额|账款|数量/.test(l)&&i>0)?'right':''})), rows:s.rows.map(r=>{const x=r.slice(); if(x.length===s.cols.length-1)x.push(OPS); return x;}), total:s.rows.length};
+    query=s.query; showExport=true; newLabel=s.newLabel||'新增';
+    if(name!=='系统参数'&&name!=='操作日志'&&name!=='重新初始化')showNew=true;
+  }else{
+    cfg=P[key];
+    if(cfg){tabList=cfg.tabs; query=cfg.query; showNew=!cfg.plain; showExport=true;}
+  }
+  if(!cfg)return '<div class="card">页面建设中</div>';
+
+  let h='<div class="page-head"><div class="page-title">'+label+'</div><div>';
+  if(showExport)h+='<button class="btn btn-secondary">导出</button> ';
+  if(showNew)h+='<button class="btn btn-primary" onclick="showModal(\''+label+'\')">+ '+newLabel+'</button>';
+  h+='</div></div>';
+
+  if(tabList&&tabList.length)h+='<div class="tabs">'+tabList.map((t,i)=>'<div class="tab'+(i===0?' active':'')+'" onclick="pickTab(this)">'+t+'</div>').join('')+'</div>';
+
+  if(query!==null&&query!=='')h+='<div class="filter-bar"><div class="search-wrapper">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
+    '<input class="search-input" placeholder="'+query+'"></div>'+
+    '<select class="filter-select"><option>全部仓库</option><option>主仓库</option><option>原料仓</option><option>成品仓</option></select>'+
+    '<input type="date" class="date-input" value="2026-09-01"><span style="color:var(--gray-400)">至</span><input type="date" class="date-input" value="2026-09-12"></div>';
+
+  h+='<div class="table-wrapper"><table><thead><tr><th style="width:36px"><input type="checkbox"></th>'+
+    cfg.cols.map(col=>'<th class="'+(col.a==='right'?'num':'')+'">'+col.l+'</th>').join('')+'</tr></thead><tbody>';
+  cfg.rows.forEach(row=>{
+    h+='<tr><td><input type="checkbox"></td>'+row.map((cell,i)=>{const col=cfg.cols[i]||{};let v=col.badge?B(cell):cell;
+      return '<td class="'+(col.a==='right'?'num':'')+'">'+v+'</td>';}).join('')+'</tr>';
+  });
+  h+='</tbody></table><div class="pagination"><span>共 '+(cfg.total||cfg.rows.length)+' 条记录，第 1 / 1 页</span>'+
+    '<div class="pagination-btns"><button class="page-btn" disabled>上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页</button></div></div></div>';
+  return h;
+}
+
+function tenantInfoHTML(){
+  const rows=[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号（老板）','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']];
+  return '<div class="page-head"><div class="page-title">商户信息</div><div><button class="btn btn-secondary">编辑</button></div></div>'+
+    '<div class="card" style="max-width:640px"><div style="display:grid;grid-template-columns:130px 1fr">'+
+    rows.map(r=>'<div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-500)">'+r[0]+'</div><div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-800)">'+r[1]+'</div>').join('')+
+    '</div></div>';
+}
+
+function planHTML(){
+  const usage=[['商品数','2,000','128',6],['员工账号','10','3',30],['门店数','1','1',100],['本月单据','不限','1,240',8]];
+  const usageHtml=usage.map(u=>'<div class="usage-row"><span class="usage-label">'+u[0]+'</span><span class="usage-bar"><i class="'+(u[3]>=100?'full':'')+'" style="width:'+(u[3]||8)+'%"></i></span><span class="usage-val">'+u[2]+' / '+u[1]+'</span></div>').join('');
+  const plans=[['免费版','¥0','100 商品 · 1 员工 · 1 门店 · 100 单/月',0],['开单版','¥398','500 商品 · 3 员工 · 1 门店 · 不限单据',0],['单店版','¥998','2000 商品 · 10 员工 · 1 门店 · 不限单据',1],['多店版','¥1998','商品/员工/门店不限 · 不限单据',0]];
+  const planHtml=plans.map(p=>'<div class="plan-card'+(p[3]?' current':'')+'">'+(p[3]?'<span class="cur-tag">当前套餐</span>':'')+'<div class="pname">'+p[0]+'</div><div class="pprice">'+p[1]+'<small> /年</small></div><ul><li>'+p[2].split(' · ').join('</li><li>')+'</li></ul><button class="btn '+(p[3]?'btn-secondary':'btn-primary')+'" style="width:100%;justify-content:center;margin-top:10px">'+(p[3]?'续费':'升级')+'</button></div>').join('');
+  return '<div class="page-head"><div class="page-title">套餐订阅</div><div style="font-size:13px;color:var(--gray-400)">当前套餐：单店版 · 到期 2026-12-31</div></div>'+
+    '<div class="card"><div class="card-title">套餐用量</div>'+usageHtml+'</div>'+
+    '<div class="card"><div class="card-title">套餐选择</div><div class="plan-cards">'+planHtml+'</div></div>';
+}
+
+function reportTabs(group){
+  const map={purchase:'采购报表',sales:'销售报表',stock:'库存报表',finance:'财务报表'};
+  const nav=NAV.find(n=>n.label==='报表');
+  const items=nav.children.filter(c=>c.key&&c.key.indexOf('rep:'+group+':')===0).map(c=>c.label);
+  return items.length?items:[map[group]||'报表'];
+}
+function pickTab(el){
+  el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function homeHTML(){
+  const sales=[['周一',8200],['周二',9600],['周三',7400],['周四',11200],['周五',10500],['周六',12580],['周日',6800]];
+  const max=Math.max.apply(null,sales.map(s=>s[1]));
+  const bars=sales.map(s=>'<div class="bar-col"><span class="bar-val">'+(s[1]/1000).toFixed(1)+'k</span><div class="bar" style="height:'+Math.round(s[1]/max*100)+'%"></div><span class="bar-label">'+s[0]+'</span></div>').join('');
+  const ranks=[['蓝牙耳机 TWS',27170,100],['USB-C 数据线',10950,40],['移动电源 20000mAh',8600,32],['无线鼠标',5400,20],['蓝牙音箱',3200,12]];
+  const rankHtml=ranks.map((r,i)=>'<div class="rank-row"><span class="rank-no'+(i<3?' top':'')+'">'+(i+1)+'</span><span class="rank-name">'+r[0]+'</span><span class="rank-bar"><i style="width:'+r[2]+'%"></i></span><span class="rank-val">¥'+r[1].toLocaleString()+'</span></div>').join('');
+  const warns=[['蓝牙耳机 TWS','主仓库','2','10','不足'],['USB-C 数据线','主仓库','5','20','不足'],['无线鼠标','主仓库','8','15','不足'],['移动电源 20000mAh','主仓库','500','300','积压']];
+  const warnHtml=warns.map(w=>'<div class="warn-row"><span class="warn-name">'+w[0]+'</span><span class="warn-qty">'+w[1]+' · '+w[2]+'/'+w[3]+'</span>'+B(w[4])+'</div>').join('');
+  const docs=[['XH20260912001','销货单','华联超市','¥12,500.00','已生效'],['GH20260912001','购货单','深圳华强电子','¥8,600.00','已生效'],['SK20260912001','收款单','华联超市','¥8,000.00','已生效'],['KHDD20260912001','客户订单','华联超市','¥12,500.00','待审核'],['FK20260912001','付款单','深圳华强电子','¥5,000.00','已生效']];
+  const docHtml=docs.map(d=>'<div class="doc-row"><span class="doc-no">'+d[0]+'</span><span class="doc-party">'+d[1]+' · '+d[2]+'</span><span class="doc-amt">'+d[3]+'</span>'+B(d[4])+'</div>').join('');
+  const todos=[['','客户「华联超市」欠款 ¥12,500 已逾期 15 天'],['warn','销货单 XH20260912001 待审核'],['','蓝牙耳机 TWS 等 3 个商品库存低于安全库存'],['warn','采购订单 CGDD20260912001 待转购货单'],['','牛奶 250ml 批次 B20260801 距到期仅 8 天'],['warn','今日有 2 张销货单待打印']];
+  const todoHtml=todos.map(t=>'<div class="todo-item"><span class="todo-dot '+(t[0]||'')+'"></span><span>'+t[1]+'</span></div>').join('');
+  const overview=[['销售目标','¥86,400','86%','#3b82f6',86],['收款完成','92%','92%','#22c55e',92],['采购到货','78%','78%','#f59e0b',78],['库存周转','64%','64%','#8b5cf6',64]];
+  const overviewHtml=overview.map(o=>'<div class="overview-row"><span class="overview-label">'+o[0]+'</span><span class="overview-bar"><i style="width:'+o[4]+'%;background:'+o[3]+'"></i></span><span class="overview-val">'+o[2]+'</span></div>').join('');
+  const donut='conic-gradient(#3b82f6 0 45%,#22c55e 45% 70%,#f59e0b 70% 85%,#ef4444 85% 95%,#9ca3af 95% 100%)';
+  return `
+  <div class="dash-head">
+    <div>
+      <div class="dash-hello">早上好，张三 👋</div>
+      <div class="dash-sub">今天是 2026-09-12 星期六，祝您生意兴隆！</div>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-secondary" onclick="openNav('sales-order')">+ 客户订单</button>
+      <button class="btn btn-secondary" onclick="openNav('purchases')">+ 购货单</button>
+      <button class="btn btn-primary" onclick="openNav('sales')">+ 新增销货单</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-top"><div><div class="stat-label">今日销售额</div><div class="stat-value">¥12,580</div><div class="stat-change">+12.5% 较昨日</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div></div>
+    <div class="stat-card"><div class="stat-top"><div><div class="stat-label">今日订单数</div><div class="stat-value">38</div><div class="stat-change">+6 较昨日</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg></div></div></div>
+    <div class="stat-card"><div class="stat-top"><div><div class="stat-label">本月毛利</div><div class="stat-value">¥31,020</div><div class="stat-change">毛利率 30.0%</div></div><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div></div></div>
+    <div class="stat-card"><div class="stat-top"><div><div class="stat-label">库存总价值</div><div class="stat-value">¥186,400</div><div class="stat-change down">3 项库存不足</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></svg></div></div></div>
+  </div>
+
+  <div class="grid-2b">
+    <div class="card">
+      <div class="card-title">近 7 日销售趋势 <span class="link" onclick="openNav('rep:sales:销售汇总表(按商品)')">销售报表 ›</span></div>
+      <div class="chart-bars">${bars}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">支付方式占比</div>
+      <div class="donut-wrap">
+        <div class="donut" style="background:${donut}"><div class="donut-center"><b>¥103,400</b><span>本月收款</span></div></div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>银行转账<b>45%</b></div>
+          <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>微信<b>25%</b></div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>现金<b>15%</b></div>
+          <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>支付宝<b>10%</b></div>
+          <div class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span>其他<b>5%</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">待办事项 <span class="badge badge-danger">6</span></div>
+      ${todoHtml}
+    </div>
+    <div class="card">
+      <div class="card-title">库存预警 <span class="link" onclick="openNav('rep:stock:库存预警表')">更多 ›</span></div>
+      ${warnHtml}
+    </div>
+    <div class="card">
+      <div class="card-title">热销商品 Top5 <span class="link" onclick="openNav('rep:sales:销售汇总表(按商品)')">更多 ›</span></div>
+      ${rankHtml}
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">最近单据 <span class="link" onclick="openNav('sales')">查看全部 ›</span></div>
+      ${docHtml}
+    </div>
+    <div class="card">
+      <div class="card-title">快捷功能</div>
+      <div class="quick-grid">
+        <div class="quick-tile" onclick="openNav('sales')">${IC.sales}<div>新增销货单</div></div>
+        <div class="quick-tile" onclick="openNav('purchases')">${IC.purchase}<div>新增购货单</div></div>
+        <div class="quick-tile" onclick="openNav('sales-order')">${IC.report}<div>客户订单</div></div>
+        <div class="quick-tile" onclick="openNav('purchase-order')">${IC.purchase}<div>采购订单</div></div>
+        <div class="quick-tile" onclick="openNav('receipt')">${IC.finance}<div>收款单</div></div>
+        <div class="quick-tile" onclick="openNav('set:商品管理')">${IC.stock}<div>商品管理</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">本月经营概览</div>
+      ${overviewHtml}
+    </div>
+  </div>`;
+}
+function openNav(key){
+  const el=document.querySelector('.nav-item[data-key="'+key+'"]');
+  showPage(key,el);
+}
+
+/* ═══════════ Modal ═══════════ */
+function showModal(title){document.getElementById('modalTitle').textContent='新增'+(title||'单据');document.getElementById('modal').classList.add('show');}
+function hideModal(){document.getElementById('modal').classList.remove('show');}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)hideModal();});
+
+/* ═══════════ 切换商户 ═══════════ */
+function toggleTenantMenu(e){
+  e.stopPropagation();
+  document.getElementById('tenantSwitch').classList.toggle('open');
+}
+document.addEventListener('click',function(){
+  var t=document.getElementById('tenantSwitch');
+  if(t)t.classList.remove('open');
+});
+function switchTenant(el,e){
+  e.stopPropagation();
+  var name=el.getAttribute('data-tenant');
+  var role=el.getAttribute('data-role');
+  document.querySelectorAll('.tenant-option').forEach(function(o){o.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('currentTenant').textContent=name;
+  var b=el.querySelector('.tenant-badge');
+  document.getElementById('tenantBadge').textContent=(b&&b.textContent)?b.textContent:name.charAt(0);
+  document.getElementById('tenantSwitch').classList.remove('open');
+  showToast('已切换到「'+name+'」（'+role+'），Token 已重新签发');
+  var home=document.querySelector('.nav-item[data-key="home"]');
+  showPage('home',home);
+}
+/* 创建新商户 */
+function showTenantModal(e){
+  if(e)e.stopPropagation();
+  document.getElementById('tenantSwitch').classList.remove('open');
+  document.getElementById('tenantModal').classList.add('show');
+}
+function hideTenantModal(){document.getElementById('tenantModal').classList.remove('show');}
+document.getElementById('tenantModal').addEventListener('click',function(e){if(e.target===this)hideTenantModal();});
+function createTenant(){
+  var name=(document.getElementById('newTenantName').value||'').trim();
+  if(!name){showToast('请输入商户名称');return;}
+  var plan=document.getElementById('newTenantPlan').value;
+  var menu=document.getElementById('tenantMenu');
+  var opt=document.createElement('div');
+  opt.className='tenant-option';
+  opt.setAttribute('data-tenant',name);
+  opt.setAttribute('data-role','主账号');
+  opt.setAttribute('onclick','switchTenant(this,event)');
+  opt.innerHTML='<span class="tenant-badge" style="background:#8b5cf6">'+name.charAt(0)+'</span>'+name+'<span class="role">主账号</span>';
+  var createOpt=menu.querySelector('[onclick="showTenantModal(event)"]');
+  if(createOpt)menu.insertBefore(opt,createOpt);else menu.appendChild(opt);
+  hideTenantModal();
+  document.getElementById('newTenantName').value='';
+  switchTenant(opt,{stopPropagation:function(){}});
+  showToast('已创建商户「'+name+'」（'+plan+'），成为主账号并切换');
+}
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+/* ═══════════ Init ═══════════ */
+buildSidebar();
+showPage('home');
+</script>
+</body>
+</html>

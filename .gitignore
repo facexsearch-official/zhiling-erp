@@ -1,0 +1,36 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+server
+
+# Test
+*.test
+*.out
+coverage.html
+
+# Dependency
+vendor/
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Config (contains secrets)
+config.yaml
+
+# Logs
+*.log
+logs/

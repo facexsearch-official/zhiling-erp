@@ -1,0 +1,37 @@
+/* Dashboard */
+.dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-xs)}
+.stat-card .stat-icon{width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.stat-card .stat-icon svg{width:20px;height:20px}
+.stat-card .stat-value{font-size:24px;font-weight:700;color:var(--gray-900);font-variant-numeric:tabular-nums}
+.stat-card .stat-label{font-size:13px;color:var(--gray-500);margin-top:2px}
+.stat-card .stat-change{font-size:12px;margin-top:8px}
+.dashboard-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.chart-container{position:relative;height:300px}
+
+/* Page header */
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:600;color:var(--gray-800)}
+.page-desc{font-size:13px;color:var(--gray-500)}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar .form-input,.filter-bar .form-select{height:36px;width:auto;min-width:160px}
+.filter-bar label{font-size:13px;color:var(--gray-500);margin-right:4px}
+
+/* Detail page */
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100)}
+.detail-section{margin-bottom:24px}
+.detail-section-title{font-size:14px;font-weight:600;color:var(--gray-700);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-100)}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.detail-item{display:flex;flex-direction:column;gap:2px}
+.detail-item .label{font-size:12px;color:var(--gray-400)}
+.detail-item .value{font-size:14px;color:var(--gray-800)}
+.detail-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-100)}
+
+/* Tree view */
+.tree-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;color:var(--gray-700)}
+.tree-item:hover{background:var(--gray-50)}
+.tree-item.active{background:var(--primary-50);color:var(--primary-600)}
+.tree-indent{padding-left:24px}
+.tree-toggle{width:16px;height:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-400)}
