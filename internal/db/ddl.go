@@ -184,6 +184,36 @@ var ShardedTables = map[string]string{
   INDEX idx_tenant_created (tenant_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+	"purchase_return_items": `CREATE TABLE IF NOT EXISTS %s (
+  id BIGINT NOT NULL,
+  tenant_id BIGINT NOT NULL,
+  purchase_return_id BIGINT NOT NULL,
+  goods_id BIGINT NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10,2) DEFAULT 0,
+  amount DECIMAL(10,2) DEFAULT 0,
+  remark VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_tenant_return (tenant_id, purchase_return_id),
+  INDEX idx_tenant_goods (tenant_id, goods_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+	"purchase_items": `CREATE TABLE IF NOT EXISTS %s (
+  id BIGINT NOT NULL,
+  tenant_id BIGINT NOT NULL,
+  purchase_id BIGINT NOT NULL,
+  goods_id BIGINT NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10,2) DEFAULT 0,
+  amount DECIMAL(10,2) DEFAULT 0,
+  remark VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_tenant_purchase (tenant_id, purchase_id),
+  INDEX idx_tenant_goods (tenant_id, goods_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
 	"operation_logs": `CREATE TABLE IF NOT EXISTS %s (
   id BIGINT NOT NULL,
   tenant_id BIGINT NOT NULL,

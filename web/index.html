@@ -678,6 +678,9 @@ function showPage(key, el){
   document.getElementById('pageBreadcrumb').textContent=(GROUPS[key]?GROUPS[key]+' / ':'首页 / ')+label;
   const c=document.getElementById('content');
   if(key==='home'){c.innerHTML=homeHTML();return;}
+  // API-backed pages
+  const dynamic=dynamicPageHTML(key);
+  if(dynamic!==null){c.innerHTML=dynamic;return;}
   c.innerHTML=pageHTML(key,label);
 }
 
@@ -744,6 +747,396 @@ function planHTML(){
     '<div class="card"><div class="card-title">套餐用量</div>'+usageHtml+'</div>'+
     '<div class="card"><div class="card-title">套餐选择</div><div class="plan-cards">'+planHtml+'</div></div>';
 }
+
+/* ═══════════ Dynamic pages (API-backed) ═══════════ */
+const API_PAGES=['purchases','purchase-order','purchase-return'];
+const SET_API_PAGES={'供应商管理':'supplier','客户管理':'customer','仓库管理':'warehouse','商品管理':'goods','结算账户':'account'};
+
+function dynamicPageHTML(key){
+  if(API_PAGES.indexOf(key)>=0) return purchasePageHTML(key);
+  if(key.indexOf('set:')===0){
+    var name=key.slice(4);
+    if(SET_API_PAGES[name]) return settingPageHTML(name,SET_API_PAGES[name]);
+  }
+  return null;
+}
+
+/* ─── Purchase pages ─── */
+function purchasePageHTML(key){
+  var title={purchases:'进货管理','purchase-order':'采购订单','purchase-return':'进货退货'}[key]||key;
+  var h='<div class="page-head"><div class="page-title">'+title+'</div><div>'+
+    '<button class="btn btn-secondary" onclick="exportTable(\''+key+'\')">导出</button> '+
+    '<button class="btn btn-primary" onclick="showPurchaseCreate(\''+key+'\')">+ 新增</button></div></div>';
+  h+='<div class="tabs" id="purchaseTabs">';
+  var tabs=['全部','草稿','待审核','已生效'];
+  tabs.forEach(function(t,i){h+='<div class="tab'+(i===0?' active':'')+'" onclick="filterPurchase(\''+key+'\',\''+t+'\',this)">'+t+'</div>';});
+  h+='</div>';
+  h+='<div class="filter-bar"><div class="search-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
+    '<input class="search-input" id="purchaseSearch" placeholder="输入单号或供应商查询" onkeyup="searchPurchase(\''+key+'\',this.value)"></div></div>';
+  h+='<div id="purchaseTableWrap" class="table-wrapper"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
+  setTimeout(function(){loadPurchaseData(key,1,'');},0);
+  return h;
+}
+
+async function loadPurchaseData(key,page,keyword){
+  var wrap=document.getElementById('purchaseTableWrap');
+  if(!wrap) return;
+  var path='/shop/'+{purchases:'purchase','purchase-order':'purchase-order','purchase-return':'purchase-return'}[key]+'/list?page='+page+'&page_size=10';
+  if(keyword) path+='&keyword='+encodeURIComponent(keyword);
+  var res=await apiGet(path);
+  if(!res||res.code!==0){wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>';return;}
+  var list=res.data.list||[];
+  var total=res.data.total||0;
+  var cols=getPurchaseCols(key);
+  var h='<table><thead><tr>';
+  cols.forEach(function(c){h+='<th'+(c.a==='right'?' class="num"':'')+'>'+c.l+'</th>';});
+  h+='<th style="width:140px">操作</th></tr></thead><tbody>';
+  if(list.length===0){
+    h+='<tr><td colspan="'+(cols.length+1)+'" style="text-align:center;padding:40px;color:var(--gray-400)">暂无数据</td></tr>';
+  }else{
+    list.forEach(function(row){
+      h+='<tr>';
+      cols.forEach(function(c){
+        var v=row[c.key]||'-';
+        if(c.format) v=c.format(v,row);
+        if(c.badge) v=B(v);
+        h+='<td'+(c.a==='right'?' class="num"':'')+'>'+v+'</td>';
+      });
+      h+='<td class="table-actions">';
+      if(row.status===1) h+='<button class="btn btn-ghost btn-sm" onclick="showToast(\'编辑功能开发中\')">编辑</button><button class="btn btn-teal btn-sm" onclick="purchaseAudit(\''+key+'\','+row.id+')">审核</button><button class="btn btn-danger btn-sm" onclick="purchaseDelete(\''+key+'\','+row.id+')">删除</button>';
+      else if(row.status===3) h+='<button class="btn btn-ghost btn-sm" onclick="showToast(\'查看功能开发中\')">查看</button><button class="btn btn-ghost btn-sm" onclick="purchaseUnaudit(\''+key+'\','+row.id+')">反审核</button>';
+      else h+='<button class="btn btn-ghost btn-sm" onclick="showToast(\'查看功能开发中\')">查看</button>';
+      h+='</td></tr>';
+    });
+  }
+  h+='</tbody></table>';
+  h+='<div class="pagination"><span>共 '+total+' 条</span><div class="pagination-btns">';
+  var pages=Math.ceil(total/10)||1;
+  h+='<button class="page-btn" '+(page<=1?'disabled':'')+" onclick=\"loadPurchaseData('"+key+"',"+(page-1)+",'')\">上一页</button>";
+  for(var i=1;i<=Math.min(pages,5);i++){
+    h+='<button class="page-btn'+(i===page?' active':'')+"\" onclick=\"loadPurchaseData('"+key+"',"+i+",'')\">"+i+'</button>';
+  }
+  h+='<button class="page-btn" '+(page>=pages?'disabled':'')+" onclick=\"loadPurchaseData('"+key+"',"+(page+1)+",'')\">下一页</button>";
+  h+='</div></div>';
+  wrap.innerHTML=h;
+}
+
+function getPurchaseCols(key){
+  if(key==='purchases') return [
+    {key:'order_no',l:'单据编号'},{key:'supplier_name',l:'供应商'},{key:'bill_date',l:'单据日期'},
+    {key:'total_amount',l:'总金额',a:'right',format:function(v){return '¥'+Number(v).toLocaleString();}},
+    {key:'paid_amount',l:'已付金额',a:'right',format:function(v){return '¥'+Number(v).toLocaleString();}},
+    {key:'unpaid_amount',l:'未付金额',a:'right',format:function(v){return '¥'+Number(v).toLocaleString();}},
+    {key:'status',l:'状态',badge:1,format:function(v){return {1:'草稿',2:'待审核',3:'已生效',4:'已作废'}[v]||'未知';}}
+  ];
+  if(key==='purchase-order') return [
+    {key:'order_no',l:'订单编号'},{key:'supplier_name',l:'供应商'},{key:'order_date',l:'订单日期'},
+    {key:'total_amount',l:'订单金额',a:'right',format:function(v){return '¥'+Number(v).toLocaleString();}},
+    {key:'status',l:'状态',badge:1,format:function(v){return {1:'草稿',2:'待审核',3:'已生效',4:'已转换',5:'已取消'}[v]||'未知';}}
+  ];
+  return [
+    {key:'order_no',l:'退货单号'},{key:'supplier_name',l:'供应商'},{key:'bill_date',l:'退货日期'},
+    {key:'total_amount',l:'退货金额',a:'right',format:function(v){return '¥'+Number(v).toLocaleString();}},
+    {key:'status',l:'状态',badge:1,format:function(v){return {1:'草稿',2:'待审核',3:'已生效',4:'已作废'}[v]||'未知';}}
+  ];
+}
+
+function searchPurchase(key,keyword){
+  clearTimeout(window._purchaseSearchTimer);
+  window._purchaseSearchTimer=setTimeout(function(){loadPurchaseData(key,1,keyword);},300);
+}
+function filterPurchase(key,tab,el){
+  el.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  loadPurchaseData(key,1,'');
+}
+
+async function purchaseAudit(key,id){
+  var path='/shop/'+{purchases:'purchase','purchase-order':'purchase-order','purchase-return':'purchase-return'}[key]+'/'+id+'/audit';
+  var res=await apiPost(path,{});
+  if(res&&res.code===0){showToast('审核成功');loadPurchaseData(key,1,'');}
+  else showToast(res?res.message:'审核失败','error');
+}
+async function purchaseUnaudit(key,id){
+  var path='/shop/'+{purchases:'purchase','purchase-return':'purchase-return'}[key]+'/'+id+'/unaudit';
+  var res=await apiPost(path,{});
+  if(res&&res.code===0){showToast('反审核成功');loadPurchaseData(key,1,'');}
+  else showToast(res?res.message:'操作失败','error');
+}
+async function purchaseDelete(key,id){
+  if(!confirm('确定删除？')) return;
+  var path='/shop/'+{purchases:'purchase','purchase-order':'purchase-order','purchase-return':'purchase-return'}[key]+'/'+id;
+  var res=await apiGet(path); // just check exists
+  // use DELETE method
+  var token=localStorage.getItem('pisa_token');
+  var r=await fetch(API_BASE+path,{method:'DELETE',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}});
+  var d=await r.json();
+  if(d.code===0){showToast('删除成功');loadPurchaseData(key,1,'');}
+  else showToast(d.message||'删除失败','error');
+}
+
+/* ─── Purchase create form ─── */
+var _suppliers=[],_warehouses=[],_goods=[];
+async function loadDropdowns(){
+  var [s,w,g]=await Promise.all([apiGet('/shop/supplier/all'),apiGet('/shop/warehouse/all'),apiGet('/shop/goods/all')]);
+  _suppliers=(s&&s.code===0)?(s.data||[]):[];
+  _warehouses=(w&&w.code===0)?(w.data||[]):[];
+  _goods=(g&&g.code===0)?(g.data||[]):[];
+}
+
+function showPurchaseCreate(key){
+  loadDropdowns().then(function(){
+    var title={purchases:'新增进货单','purchase-order':'新增采购订单','purchase-return':'新增退货单'}[key]||'新增';
+    var isReturn=key==='purchase-return';
+    var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+    // supplier
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 供应商</label><select class="form-input form-select" id="poSupplier">';
+    _suppliers.forEach(function(s){h+='<option value="'+s.id+'">'+s.name+'</option>';});
+    h+='</select></div>';
+    // date
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 日期</label><input class="form-input" type="date" id="poDate" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    if(!isReturn){
+      // warehouse
+      h+='<div class="form-group"><label class="form-label">仓库</label><select class="form-input form-select" id="poWarehouse">';
+      _warehouses.forEach(function(w){h+='<option value="'+w.id+'">'+w.name+'</option>';});
+      h+='</select></div>';
+      // remark
+      h+='<div class="form-group"><label class="form-label">备注</label><input class="form-input" id="poRemark" placeholder="选填"></div>';
+    }else{
+      h+='<div class="form-group"><label class="form-label">仓库</label><select class="form-input form-select" id="poWarehouse">';
+      _warehouses.forEach(function(w){h+='<option value="'+w.id+'">'+w.name+'</option>';});
+      h+='</select></div>';
+      h+='<div class="form-group"><label class="form-label">备注</label><input class="form-input" id="poRemark" placeholder="选填"></div>';
+    }
+    h+='</div>';
+    // items table
+    h+='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:500">明细</span>'+
+      '<button class="btn btn-ghost btn-sm" onclick="addPurchaseItem()">+ 添加货品</button></div>';
+    h+='<table id="poItemsTable"><thead><tr><th>货品</th><th style="width:80px">数量</th><th style="width:100px">单价</th><th style="width:100px">金额</th><th style="width:60px">操作</th></tr></thead><tbody id="poItemsBody">';
+    h+='<tr id="poEmptyRow"><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px">点击"添加货品"增加明细行</td></tr>';
+    h+='</tbody></table></div>';
+    h+='<div style="margin-top:12px;text-align:right;font-weight:500">合计：<span id="poTotal" style="color:var(--primary-500)">¥0.00</span></div>';
+
+    document.getElementById('modalTitle').textContent=title;
+    document.getElementById('modalBody').innerHTML=h;
+    document.getElementById('modal').classList.add('show');
+    document.getElementById('modalConfirm').onclick=function(){submitPurchase(key);};
+    window._poItemCount=0;
+  });
+}
+
+function addPurchaseItem(){
+  var tbody=document.getElementById('poItemsBody');
+  var empty=document.getElementById('poEmptyRow');
+  if(empty) empty.remove();
+  var idx=window._poItemCount++;
+  var h='<tr data-idx="'+idx+'"><td><select class="form-input form-select" style="min-width:160px" id="poItemGoods'+idx+'" onchange="poItemPrice('+idx+')">';
+  _goods.forEach(function(g){h+='<option value="'+g.id+'" data-price="'+g.purchase_price+'">'+g.name+'</option>';});
+  h+='</select></td><td><input class="form-input" type="number" min="1" value="1" id="poItemQty'+idx+'" onchange="poCalc('+idx+')"></td>'+
+    '<td><input class="form-input" type="number" step="0.01" value="0" id="poItemPrice'+idx+'" onchange="poCalc('+idx+')"></td>'+
+    '<td id="poItemAmt'+idx+'" style="text-align:right">¥0.00</td>'+
+    '<td><button class="btn btn-ghost btn-sm text-danger" onclick="removePoItem('+idx+')">删</button></td></tr>';
+  tbody.insertAdjacentHTML('beforeend',h);
+  poItemPrice(idx);
+}
+function poItemPrice(idx){
+  var sel=document.getElementById('poItemGoods'+idx);
+  if(!sel) return;
+  var opt=sel.options[sel.selectedIndex];
+  var price=opt?parseFloat(opt.getAttribute('data-price'))||0:0;
+  document.getElementById('poItemPrice'+idx).value=price;
+  poCalc(idx);
+}
+function poCalc(idx){
+  var qty=parseFloat(document.getElementById('poItemQty'+idx).value)||0;
+  var price=parseFloat(document.getElementById('poItemPrice'+idx).value)||0;
+  var amt=qty*price;
+  document.getElementById('poItemAmt'+idx).textContent='¥'+amt.toFixed(2);
+  poTotalCalc();
+}
+function poTotalCalc(){
+  var total=0;
+  for(var i=0;i<window._poItemCount;i++){
+    var el=document.getElementById('poItemAmt'+i);
+    if(el) total+=parseFloat(el.textContent.replace('¥',''))||0;
+  }
+  var t=document.getElementById('poTotal');
+  if(t) t.textContent='¥'+total.toFixed(2);
+}
+function removePoItem(idx){
+  var tr=document.querySelector('#poItemsTable tr[data-idx="'+idx+'"]');
+  if(tr) tr.remove();
+  poTotalCalc();
+  if(!document.querySelector('#poItemsTable tbody tr')){
+    document.getElementById('poItemsBody').innerHTML='<tr id="poEmptyRow"><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px">点击"添加货品"增加明细行</td></tr>';
+  }
+}
+
+async function submitPurchase(key){
+  var supplier_id=parseInt(document.getElementById('poSupplier').value)||0;
+  var bill_date=document.getElementById('poDate').value;
+  var warehouse_id=parseInt(document.getElementById('poWarehouse').value)||0;
+  var remark=document.getElementById('poRemark').value;
+  if(!supplier_id){showToast('请选择供应商','error');return;}
+  if(!bill_date){showToast('请选择日期','error');return;}
+  var items=[];
+  for(var i=0;i<window._poItemCount;i++){
+    var goodsEl=document.getElementById('poItemGoods'+i);
+    var qtyEl=document.getElementById('poItemQty'+i);
+    var priceEl=document.getElementById('poItemPrice'+i);
+    if(!goodsEl) continue;
+    items.push({goods_id:parseInt(goodsEl.value),quantity:parseInt(qtyEl.value)||1,unit_price:parseFloat(priceEl.value)||0});
+  }
+  if(items.length===0){showToast('请添加明细','error');return;}
+  var body={supplier_id:supplier_id,bill_date:bill_date,warehouse_id:warehouse_id,remark:remark,items:items};
+  var path='/shop/'+{purchases:'purchase','purchase-order':'purchase-order','purchase-return':'purchase-return'}[key];
+  var res=await apiPost(path,body);
+  if(res&&res.code===0){showToast('创建成功');hideModal();loadPurchaseData(key,1,'');}
+  else showToast(res?res.message:'创建失败','error');
+}
+
+/* ─── Settings pages (API-backed) ─── */
+function settingPageHTML(name,apiKey){
+  var h='<div class="page-head"><div class="page-title">'+name+'</div><div>'+
+    '<button class="btn btn-secondary">导出</button> '+
+    '<button class="btn btn-primary" onclick="showSettingCreate(\''+name+'\',\''+apiKey+'\')">+ 新增</button></div></div>';
+  h+='<div class="filter-bar"><div class="search-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'+
+    '<input class="search-input" id="settingSearch" placeholder="输入关键字查询" onkeyup="searchSetting(\''+apiKey+'\',this.value)"></div></div>';
+  h+='<div id="settingTableWrap" class="table-wrapper"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
+  setTimeout(function(){loadSettingData(apiKey,1,'');},0);
+  return h;
+}
+
+async function loadSettingData(apiKey,page,keyword){
+  var wrap=document.getElementById('settingTableWrap');
+  if(!wrap) return;
+  var path='/shop/'+apiKey+'/list?page='+page+'&page_size=10';
+  if(keyword) path+='&keyword='+encodeURIComponent(keyword);
+  var res=await apiGet(path);
+  if(!res||res.code!==0){wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>';return;}
+  var list=res.data.list||[];
+  var total=res.data.total||0;
+  var cols=getSettingCols(apiKey);
+  var h='<table><thead><tr>';
+  cols.forEach(function(c){h+='<th'+(c.a==='right'?' class="num"':'')+'>'+c.l+'</th>';});
+  h+='<th style="width:120px">操作</th></tr></thead><tbody>';
+  if(list.length===0){
+    h+='<tr><td colspan="'+(cols.length+1)+'" style="text-align:center;padding:40px;color:var(--gray-400)">暂无数据</td></tr>';
+  }else{
+    list.forEach(function(row){
+      h+='<tr>';
+      cols.forEach(function(c){
+        var v=row[c.key]!==undefined?row[c.key]:'-';
+        if(c.format) v=c.format(v,row);
+        h+='<td'+(c.a==='right'?' class="num"':'')+'>'+v+'</td>';
+      });
+      h+='<td class="table-actions"><button class="btn btn-ghost btn-sm" onclick="showSettingEdit(\''+apiKey+'\','+row.id+')">编辑</button><button class="btn btn-danger btn-sm" onclick="settingDelete(\''+apiKey+'\','+row.id+')">删除</button></td></tr>';
+    });
+  }
+  h+='</tbody></table>';
+  h+='<div class="pagination"><span>共 '+total+' 条</span><div class="pagination-btns">';
+  var pages=Math.ceil(total/10)||1;
+  h+='<button class="page-btn" '+(page<=1?'disabled':'')+" onclick=\"loadSettingData('"+apiKey+"',"+(page-1)+",'')\">上一页</button>";
+  for(var i=1;i<=Math.min(pages,5);i++){
+    h+='<button class="page-btn'+(i===page?' active':'')+"\" onclick=\"loadSettingData('"+apiKey+"',"+i+",'')\">"+i+'</button>';
+  }
+  h+='<button class="page-btn" '+(page>=pages?'disabled':'')+" onclick=\"loadSettingData('"+apiKey+"',"+(page+1)+",'')\">下一页</button>";
+  h+='</div></div>';
+  wrap.innerHTML=h;
+}
+
+function getSettingCols(apiKey){
+  if(apiKey==='supplier') return [{key:'code',l:'编码'},{key:'name',l:'供应商名称'},{key:'contact',l:'联系人'},{key:'phone',l:'电话'},{key:'total_payable',l:'应付余额',a:'right',format:function(v){return '¥'+Number(v||0).toLocaleString();}}];
+  if(apiKey==='customer') return [{key:'code',l:'编码'},{key:'name',l:'客户名称'},{key:'contact',l:'联系人'},{key:'phone',l:'电话'},{key:'balance',l:'应收余额',a:'right',format:function(v){return '¥'+Number(v||0).toLocaleString();}}];
+  if(apiKey==='warehouse') return [{key:'name',l:'仓库名称'},{key:'type',l:'类型',format:function(v){return {1:'普通仓',2:'原料仓',3:'成品仓'}[v]||'未知';}},{key:'address',l:'地址'},{key:'keeper',l:'负责人'}];
+  if(apiKey==='goods') return [{key:'code',l:'编码'},{key:'name',l:'货品名称'},{key:'barcode',l:'条码'},{key:'purchase_price',l:'进货价',a:'right',format:function(v){return '¥'+Number(v||0).toFixed(2);}},{key:'retail_price',l:'零售价',a:'right',format:function(v){return '¥'+Number(v||0).toFixed(2);}}];
+  if(apiKey==='account') return [{key:'name',l:'账户名称'},{key:'type',l:'类型',format:function(v){return {1:'现金',2:'银行',3:'在线'}[v]||'未知';}},{key:'balance',l:'余额',a:'right',format:function(v){return '¥'+Number(v||0).toLocaleString();}}];
+  return [];
+}
+
+function searchSetting(apiKey,keyword){
+  clearTimeout(window._settingSearchTimer);
+  window._settingSearchTimer=setTimeout(function(){loadSettingData(apiKey,1,keyword);},300);
+}
+
+function showSettingCreate(name,apiKey){
+  var h=getSettingForm(apiKey,{});
+  document.getElementById('modalTitle').textContent='新增'+name;
+  document.getElementById('modalBody').innerHTML=h;
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalConfirm').onclick=function(){submitSetting(apiKey,null);};
+}
+async function showSettingEdit(apiKey,id){
+  var res=await apiGet('/shop/'+apiKey+'/'+id);
+  if(!res||res.code!==0){showToast('加载失败','error');return;}
+  var h=getSettingForm(apiKey,res.data);
+  document.getElementById('modalTitle').textContent='编辑';
+  document.getElementById('modalBody').innerHTML=h;
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalConfirm').onclick=function(){submitSetting(apiKey,id);};
+}
+
+function getSettingForm(apiKey,data){
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  if(apiKey==='supplier'||apiKey==='customer'){
+    h+='<div class="form-group"><label class="form-label">编码</label><input class="form-input" id="sf_code" value="'+(data.code||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 名称</label><input class="form-input" id="sf_name" value="'+(data.name||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">联系人</label><input class="form-input" id="sf_contact" value="'+(data.contact||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">电话</label><input class="form-input" id="sf_phone" value="'+(data.phone||'')+'"></div>';
+    h+='<div class="form-group" style="grid-column:span 2"><label class="form-label">地址</label><input class="form-input" id="sf_address" value="'+(data.address||'')+'"></div>';
+    h+='<div class="form-group" style="grid-column:span 2"><label class="form-label">备注</label><input class="form-input" id="sf_remark" value="'+(data.remark||'')+'"></div>';
+  }else if(apiKey==='warehouse'){
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 名称</label><input class="form-input" id="sf_name" value="'+(data.name||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">类型</label><select class="form-input form-select" id="sf_type"><option value="1"'+(data.type===1?' selected':'')+'>普通仓</option><option value="2"'+(data.type===2?' selected':'')+'>原料仓</option><option value="3"'+(data.type===3?' selected':'')+'>成品仓</option></select></div>';
+    h+='<div class="form-group"><label class="form-label">地址</label><input class="form-input" id="sf_address" value="'+(data.address||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">负责人</label><input class="form-input" id="sf_keeper" value="'+(data.keeper||'')+'"></div>';
+  }else if(apiKey==='goods'){
+    h+='<div class="form-group"><label class="form-label">编码</label><input class="form-input" id="sf_code" value="'+(data.code||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 名称</label><input class="form-input" id="sf_name" value="'+(data.name||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">条码</label><input class="form-input" id="sf_barcode" value="'+(data.barcode||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">进货价</label><input class="form-input" type="number" step="0.01" id="sf_purchase_price" value="'+(data.purchase_price||0)+'"></div>';
+    h+='<div class="form-group"><label class="form-label">零售价</label><input class="form-input" type="number" step="0.01" id="sf_retail_price" value="'+(data.retail_price||0)+'"></div>';
+    h+='<div class="form-group"><label class="form-label">批发价</label><input class="form-input" type="number" step="0.01" id="sf_wholesale_price" value="'+(data.wholesale_price||0)+'"></div>';
+  }else if(apiKey==='account'){
+    h+='<div class="form-group"><label class="form-label"><span class="required">*</span> 名称</label><input class="form-input" id="sf_name" value="'+(data.name||'')+'"></div>';
+    h+='<div class="form-group"><label class="form-label">类型</label><select class="form-input form-select" id="sf_type"><option value="1"'+(data.type===1?' selected':'')+'>现金</option><option value="2"'+(data.type===2?' selected':'')+'>银行</option><option value="3"'+(data.type===3?' selected':'')+'>在线</option></select></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+async function submitSetting(apiKey,id){
+  var body={};
+  if(apiKey==='supplier'||apiKey==='customer'){
+    body={code:gv('sf_code'),name:gv('sf_name'),contact:gv('sf_contact'),phone:gv('sf_phone'),address:gv('sf_address'),remark:gv('sf_remark')};
+  }else if(apiKey==='warehouse'){
+    body={name:gv('sf_name'),type:parseInt(gv('sf_type'))||1,address:gv('sf_address'),keeper:gv('sf_keeper')};
+  }else if(apiKey==='goods'){
+    body={code:gv('sf_code'),name:gv('sf_name'),barcode:gv('sf_barcode'),purchase_price:parseFloat(gv('sf_purchase_price'))||0,retail_price:parseFloat(gv('sf_retail_price'))||0,wholesale_price:parseFloat(gv('sf_wholesale_price'))||0};
+  }else if(apiKey==='account'){
+    body={name:gv('sf_name'),type:parseInt(gv('sf_type'))||1};
+  }
+  if(!body.name){showToast('请填写名称','error');return;}
+  var res;
+  if(id) res=await apiPut('/shop/'+apiKey+'/'+id,body);
+  else res=await apiPost('/shop/'+apiKey,body);
+  if(res&&res.code===0){showToast(id?'更新成功':'创建成功');hideModal();loadSettingData(apiKey,1,'');}
+  else showToast(res?res.message:'操作失败','error');
+}
+
+async function settingDelete(apiKey,id){
+  if(!confirm('确定删除？')) return;
+  var token=localStorage.getItem('pisa_token');
+  var r=await fetch(API_BASE+'/shop/'+apiKey+'/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}});
+  var d=await r.json();
+  if(d.code===0){showToast('删除成功');loadSettingData(apiKey,1,'');}
+  else showToast(d.message||'删除失败','error');
+}
+
+function gv(id){var el=document.getElementById(id);return el?el.value:'';}
+function apiPut(path,body){return api(path,{method:'PUT',body:JSON.stringify(body)});}
+
+function exportTable(key){showToast('导出功能开发中');}
 
 function reportTabs(group){
   const map={purchase:'采购报表',sales:'销售报表',stock:'库存报表',finance:'财务报表'};
