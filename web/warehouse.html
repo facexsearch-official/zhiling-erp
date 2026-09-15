@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仓库管理 - PISA 进销存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary-50:#EFF6FF;--primary-100:#DBEAFE;--primary-200:#BFDBFE;--primary-300:#93C5FD;
+  --primary-400:#60A5FA;--primary-500:#3B82F6;--primary-600:#2563EB;--primary-700:#1D4ED8;
+  --primary-800:#1E40AF;--primary-900:#1E3A8A;
+  --success-50:#F0FDF4;--success-500:#22C55E;--success-600:#16A34A;
+  --warning-50:#FFFBEB;--warning-500:#F59E0B;--warning-600:#D97706;
+  --danger-50:#FEF2F2;--danger-500:#EF4444;--danger-600:#DC2626;
+  --info-50:#ECFEFF;--info-500:#06B6D4;
+  --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;
+  --gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;
+  --gray-800:#1F2937;--gray-900:#111827;
+  --radius-sm:4px;--radius-md:6px;--radius-lg:8px;--radius-xl:12px;--radius-full:9999px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.1),0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:0 10px 15px rgba(0,0,0,0.1),0 4px 6px rgba(0,0,0,0.05);
+  --sidebar-width:252px;--sidebar-collapsed:64px;--topbar-height:60px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50);line-height:1.5}
+.app{display:flex;height:100vh;overflow:hidden}
+
+.sidebar{width:var(--sidebar-width);background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s ease}
+.sidebar.collapsed{width:var(--sidebar-collapsed)}
+.sidebar.collapsed .sidebar-header{justify-content:center;padding:16px 0}
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .sidebar-brand,
+.sidebar.collapsed .nav-parent > span,
+.sidebar.collapsed .nav-item > span,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .nav-arrow,
+.sidebar.collapsed .sidebar-footer > div:not(.avatar){display:none}
+.sidebar.collapsed .sidebar-toggle{margin-left:0}
+.sidebar.collapsed .nav-sub{display:none !important}
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .nav-parent{justify-content:center;padding:10px 0}
+.sidebar.collapsed .nav-item.active::before{display:none}
+.sidebar.collapsed .sidebar-footer{justify-content:center;padding:12px 0}
+.sidebar-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
+.sidebar-logo{width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.sidebar-brand{font-size:15px;font-weight:600;color:var(--gray-800)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.sidebar-footer{border-top:1px solid var(--gray-100);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;transition:background .15s}
+.sidebar-footer:hover{background:var(--gray-50)}
+.sidebar-footer .user-name{font-weight:500;color:var(--gray-700)}
+.sidebar-footer .user-role{color:var(--gray-400);font-size:12px}
+.avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.nav-group{margin-bottom:2px}
+.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--gray-600);transition:background .15s,color .15s;position:relative}
+.nav-item:hover,.nav-parent:hover{background:var(--gray-100);color:var(--gray-800)}
+.nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 2px 2px 0;background:var(--primary-500)}
+.nav-parent{font-weight:500;color:var(--gray-700)}
+.nav-parent:hover{background:var(--gray-100)}
+.nav-parent.open{color:var(--primary-600)}
+.nav-parent.open .nav-icon{color:var(--primary-500)}
+.nav-icon{width:18px;height:18px;flex-shrink:0}
+.nav-arrow{width:14px;height:14px;flex-shrink:0;margin-left:auto;color:var(--gray-400);transition:transform .2s}
+.nav-parent.open .nav-arrow{transform:rotate(90deg)}
+.nav-badge{font-size:11px;background:var(--primary-500);color:#fff;border-radius:var(--radius-full);padding:1px 7px;margin-left:auto}
+.nav-parent .nav-badge{margin-left:auto;margin-right:4px}
+.nav-sub{display:none;margin:2px 0 4px;padding-left:28px;position:relative}
+.nav-sub::before{content:'';position:absolute;left:21px;top:4px;bottom:4px;width:1px;background:var(--gray-200)}
+.nav-sub.open{display:block}
+.nav-sub-title{font-size:11px;color:var(--gray-400);padding:10px 12px 4px 12px;font-weight:500;letter-spacing:.5px}
+.nav-sub .nav-item{padding:7px 12px;font-size:13px;color:var(--gray-500)}
+.nav-sub .nav-item:hover{color:var(--gray-800);background:var(--gray-100)}
+.nav-sub .nav-item.active{color:var(--primary-600);background:var(--primary-50)}
+.sidebar-nav::-webkit-scrollbar,.content::-webkit-scrollbar{width:4px}
+.sidebar-nav::-webkit-scrollbar-thumb,.content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:2px}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--topbar-height);background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.sidebar-toggle{width:28px;height:28px;margin-left:auto;border:none;background:none;border-radius:var(--radius-md);cursor:pointer;color:var(--gray-400);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
+.sidebar-toggle:hover{background:var(--gray-100);color:var(--gray-600)}
+.topbar-title{font-size:17px;font-weight:600;color:var(--gray-800)}
+.topbar-breadcrumb{font-size:12px;color:var(--gray-400);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-search{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);width:240px}
+.topbar-search svg{color:var(--gray-400);flex-shrink:0;width:16px;height:16px}
+.topbar-search input{border:none;background:none;outline:none;font-size:13px;color:var(--gray-700);width:100%}
+.topbar-icon-btn{width:36px;height:36px;border-radius:var(--radius-md);border:none;background:none;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.topbar-icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
+
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-title{font-size:18px;font-weight:600;color:var(--gray-800)}
+.filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.search-wrapper{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:#fff;width:260px}
+.search-wrapper svg{color:var(--gray-400);width:16px;height:16px;flex-shrink:0}
+.search-input{border:none;outline:none;font-size:13px;color:var(--gray-700);width:100%;background:none}
+.table-wrapper{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden}
+.table-wrapper table{width:100%;border-collapse:collapse}
+.table-wrapper th{background:var(--gray-50);font-size:12px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200)}
+.table-wrapper td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.table-wrapper tr:last-child td{border-bottom:none}
+.table-wrapper tr:hover td{background:var(--gray-50)}
+.table-wrapper .num{text-align:right;font-variant-numeric:tabular-nums}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-size:12px;color:var(--gray-500)}
+.pagination-btns{display:flex;gap:4px}
+.page-btn{padding:4px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:12px;cursor:pointer;color:var(--gray-600)}
+.page-btn:hover{border-color:var(--gray-300)}
+.page-btn.active{background:var(--primary-500);color:#fff;border-color:var(--primary-500)}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+.badge{display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:12px;font-weight:500;white-space:nowrap}
+.badge-default{background:var(--gray-100);color:var(--gray-600)}
+.badge-success{background:var(--success-50);color:var(--success-600)}
+.badge-info{background:var(--info-50);color:var(--info-500)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--primary-500);color:#fff}.btn-primary:hover{background:var(--primary-600)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-ghost{background:none;color:var(--gray-600);padding:6px 10px}.btn-ghost:hover{background:var(--gray-100)}
+.btn-danger{background:#fff;color:var(--danger-500);border:1px solid var(--danger-500)}.btn-danger:hover{background:var(--danger-50)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.op-btns{display:flex;gap:4px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:10px;width:640px;max-width:92vw;max-height:88vh;overflow:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-200)}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1}
+.modal-body{padding:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.form-label{display:block;font-size:13px;color:var(--gray-600);margin-bottom:6px}
+.form-input{width:100%;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;outline:none;color:var(--gray-700)}
+.form-input:focus{border-color:var(--primary-500)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--gray-200)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--gray-800);color:#fff;padding:10px 24px;border-radius:var(--radius-md);font-size:13px;z-index:300;transition:transform .25s ease;pointer-events:none;transform:translateY(80px)}
+.toast.show{transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">PI</div>
+      <span class="sidebar-brand">PISA 进销存</span>
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="收起/展开导航">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/></svg>
+      </button>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="avatar" id="footerAvatar">U</div>
+      <div>
+        <div class="user-name" id="footerName">用户</div>
+        <div class="user-role" id="footerRole">用户</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="topbar-title">仓库管理</div>
+          <div class="topbar-breadcrumb">基础资料 / 仓库管理</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="搜索商品、客户、单据...">
+        </div>
+        <button class="topbar-icon-btn" title="消息">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        </button>
+        <button class="topbar-icon-btn" title="设置">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="content" id="content">
+      <div class="page-head">
+        <div class="page-title">仓库管理</div>
+        <div>
+          <button class="btn btn-secondary" onclick="exportTable()">导出</button>
+          <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="searchInput" placeholder="输入仓库名称查询" oninput="searchDebounce()">
+        </div>
+      </div>
+      <div id="tableWrap" class="table-wrapper">
+        <div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">新增仓库</span>
+      <button class="modal-close" onclick="hideModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="hideModal()">取消</button>
+      <button class="btn btn-primary" id="modalConfirm">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var API_BASE = '/api';
+var token = localStorage.getItem('pisa_token') || '';
+if (!token) { window.location.href = '/login.html'; }
+
+function authHeaders() {
+  var h = { 'Content-Type': 'application/json' };
+  if (token) h['Authorization'] = 'Bearer ' + token;
+  return h;
+}
+
+async function apiFetch(path, opts) {
+  opts = opts || {};
+  opts.headers = authHeaders();
+  var res = await fetch(API_BASE + path, opts);
+  if (res.status === 401) { window.location.href = '/login.html'; return null; }
+  return await res.json();
+}
+
+function apiGet(path) { return apiFetch(path); }
+function apiPost(path, body) {
+  return apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
+}
+function apiPut(path, body) {
+  return apiFetch(path, { method: 'PUT', body: JSON.stringify(body) });
+}
+function apiDelete(path) {
+  return apiFetch(path, { method: 'DELETE' });
+}
+
+/* ═══════════ Icons ═══════════ */
+var IC = {
+  home: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>',
+  purchase: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.3a2 2 0 0 0 2 1.7h8.5a2 2 0 0 0 2-1.6L21.5 8H6"/></svg>',
+  sales: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 12.3a2 2 0 0 0 2 1.7h8.5a2 2 0 0 0 2-1.6L21.5 8H6"/><path d="M14 3l2 3 3-3"/></svg>',
+  stock: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></svg>',
+  finance: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 9h8M8 13h8M12 8v9"/></svg>',
+  report: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
+  setting: '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  arrow: '<svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
+};
+
+/* ═══════════ Nav tree ═══════════ */
+var NAV = [
+  { key: 'home', label: '工作台', href: '/index.html', icon: IC.home },
+  { label: '进货', icon: IC.purchase, children: [
+    { key: 'purchase-order', label: '采购订单', href: '/purchase-order.html' },
+    { key: 'purchases', label: '购货单', href: '/purchases.html' },
+    { key: 'purchase-return', label: '退货单', href: '/purchase-return.html' }
+  ]},
+  { label: '销售', icon: IC.sales, children: [
+    { key: 'sales-order', label: '客户订单', href: '/sales-order.html' },
+    { key: 'sales', label: '销货单', href: '/sales.html' },
+    { key: 'sales-return', label: '销货退货单', href: '/sales-return.html' }
+  ]},
+  { label: '库存', icon: IC.stock, children: [
+    { key: 'stock', label: '库存查询', href: '/stock.html' },
+    { key: 'transfer', label: '调拨单', href: '/transfer.html' }
+  ]},
+  { label: '财务', icon: IC.finance, children: [
+    { key: 'receipt', label: '收款单', href: '/receipt.html' },
+    { key: 'payment', label: '付款单', href: '/payment.html' }
+  ]},
+  { label: '报表', icon: IC.report, href: '/report.html' },
+  { label: '设置', icon: IC.setting, children: [
+    { key: 'set:商品管理', label: '商品管理', href: '/goods.html' },
+    { key: 'set:客户管理', label: '客户管理', href: '/customer.html' },
+    { key: 'set:供应商管理', label: '供应商管理', href: '/supplier.html' },
+    { key: 'set:仓库管理', label: '仓库管理', href: '/warehouse.html' },
+    { key: 'set:结算账户', label: '结算账户', href: '/account.html' }
+  ]}
+];
+
+function buildSidebar() {
+  var html = '';
+  NAV.forEach(function(n) {
+    var isActive = false;
+    var groupHtml = '';
+    if (n.key) {
+      if (n.key === 'set:仓库管理') isActive = true;
+      groupHtml = '<div class="nav-group"><div class="nav-item' + (isActive ? ' active' : '') + '" data-key="' + n.key + '" title="' + n.label + '" onclick="location.href=\'' + (n.href || '#') + '\'">' + n.icon + '<span>' + n.label + '</span></div></div>';
+    } else {
+      var subItems = '';
+      var subOpen = false;
+      if (n.children) {
+        n.children.forEach(function(c) {
+          if (c.key === 'set:仓库管理') { isActive = true; subOpen = true; }
+          if (c.key && c.key === 'set:仓库管理') {
+            subItems += '<div class="nav-item active" data-key="' + c.key + '" title="' + c.label + '" onclick="location.href=\'' + (c.href || '#') + '\'"><span>' + c.label + '</span></div>';
+          } else if (c.key) {
+            subItems += '<div class="nav-item" data-key="' + c.key + '" title="' + c.label + '" onclick="location.href=\'' + (c.href || '#') + '\'"><span>' + c.label + '</span></div>';
+          }
+        });
+      }
+      groupHtml = '<div class="nav-group"><div class="nav-parent' + (subOpen ? ' open' : '') + '" title="' + n.label + '" onclick="toggleGroup(this)">' + n.icon + '<span>' + n.label + '</span>' + IC.arrow + '</div><div class="nav-sub' + (subOpen ? ' open' : '') + '">' + subItems + '</div></div>';
+    }
+    html += groupHtml;
+  });
+  document.getElementById('sidebarNav').innerHTML = html;
+}
+
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+}
+
+function toggleGroup(el) {
+  var sidebar = document.getElementById('sidebar');
+  if (sidebar.classList.contains('collapsed')) {
+    sidebar.classList.remove('collapsed');
+    el.classList.add('open');
+    var sub = el.nextElementSibling;
+    if (sub && sub.classList.contains('nav-sub')) sub.classList.add('open');
+    return;
+  }
+  el.classList.toggle('open');
+  var sub = el.nextElementSibling;
+  if (sub && sub.classList.contains('nav-sub')) sub.classList.toggle('open');
+}
+
+/* ═══════════ User init ═══════════ */
+function initUser() {
+  var user = JSON.parse(localStorage.getItem('pisa_user') || '{}');
+  if (!user.id) { window.location.href = '/login.html'; return; }
+  document.getElementById('footerAvatar').textContent = (user.name || user.phone || 'U').charAt(0);
+  document.getElementById('footerName').textContent = user.name || user.phone || '用户';
+  document.getElementById('footerRole').textContent = user.role || '用户';
+}
+
+/* ═══════════ State ═══════════ */
+var currentPage = 1;
+var currentKeyword = '';
+var totalPages = 1;
+var totalCount = 0;
+
+/* ═══════════ Load data ═══════════ */
+async function loadData(page, keyword) {
+  currentPage = page || 1;
+  currentKeyword = keyword || '';
+  var wrap = document.getElementById('tableWrap');
+  var path = '/shop/warehouse/list?page=' + currentPage + '&page_size=10';
+  if (currentKeyword) path += '&keyword=' + encodeURIComponent(currentKeyword);
+  var res = await apiGet(path);
+  if (!res || res.code !== 0) {
+    wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>';
+    return;
+  }
+  var list = res.data.list || [];
+  totalCount = res.data.total || 0;
+  totalPages = Math.ceil(totalCount / 10) || 1;
+  renderTable(list);
+}
+
+function renderTypeBadge(type) {
+  var map = { 1: '普通仓', 2: '原料仓', 3: '成品仓' };
+  var cls = 'badge-default';
+  if (type === 2) cls = 'badge-info';
+  if (type === 3) cls = 'badge-success';
+  return '<span class="badge ' + cls + '">' + (map[type] || '未知') + '</span>';
+}
+
+function renderTable(list) {
+  var wrap = document.getElementById('tableWrap');
+  var h = '<table><thead><tr>';
+  h += '<th>仓库名称</th>';
+  h += '<th style="width:100px">类型</th>';
+  h += '<th>地址</th>';
+  h += '<th style="width:100px">负责人</th>';
+  h += '<th style="width:140px">操作</th>';
+  h += '</tr></thead><tbody>';
+  if (list.length === 0) {
+    h += '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray-400)">暂无数据</td></tr>';
+  } else {
+    list.forEach(function(row) {
+      h += '<tr>';
+      h += '<td>' + (row.name || '-') + '</td>';
+      h += '<td>' + renderTypeBadge(row.type) + '</td>';
+      h += '<td>' + (row.address || '-') + '</td>';
+      h += '<td>' + (row.keeper || '-') + '</td>';
+      h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
+      h += '</tr>';
+    });
+  }
+  h += '</tbody></table>';
+  h += '<div class="pagination"><span>共 ' + totalCount + ' 条</span><div class="pagination-btns">';
+  h += '<button class="page-btn"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="loadData(' + (currentPage - 1) + ',currentKeyword)">上一页</button>';
+  var start = Math.max(1, currentPage - 2);
+  var end = Math.min(totalPages, start + 4);
+  start = Math.max(1, end - 4);
+  for (var i = start; i <= end; i++) {
+    h += '<button class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="loadData(' + i + ',currentKeyword)">' + i + '</button>';
+  }
+  h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
+  h += '</div></div>';
+  wrap.innerHTML = h;
+}
+
+/* ═══════════ Search debounce ═══════════ */
+var searchTimer = null;
+function searchDebounce() {
+  clearTimeout(searchTimer);
+  var val = document.getElementById('searchInput').value;
+  searchTimer = setTimeout(function() {
+    loadData(1, val);
+  }, 300);
+}
+
+/* ═══════════ Modal ═══════════ */
+function hideModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) hideModal();
+});
+
+function showCreate() {
+  document.getElementById('modalTitle').textContent = '新增仓库';
+  document.getElementById('modalBody').innerHTML = getFormHtml({});
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalConfirm').onclick = function() { submitForm(null); };
+}
+
+async function showEdit(id) {
+  var res = await apiGet('/shop/warehouse/' + id);
+  if (!res || res.code !== 0) { showToast('加载失败'); return; }
+  document.getElementById('modalTitle').textContent = '编辑仓库';
+  document.getElementById('modalBody').innerHTML = getFormHtml(res.data);
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalConfirm').onclick = function() { submitForm(id); };
+}
+
+function getFormHtml(data) {
+  var h = '<div class="form-row">';
+  h += '<div><label class="form-label">名称 <span style="color:var(--danger-500)">*</span></label><input class="form-input" id="sf_name" value="' + (data.name || '') + '"></div>';
+  h += '<div><label class="form-label">类型</label><select class="form-input" id="sf_type"><option value="1"' + (data.type === 1 ? ' selected' : '') + '>普通仓</option><option value="2"' + (data.type === 2 ? ' selected' : '') + '>原料仓</option><option value="3"' + (data.type === 3 ? ' selected' : '') + '>成品仓</option></select></div>';
+  h += '</div>';
+  h += '<div class="form-row">';
+  h += '<div><label class="form-label">地址</label><input class="form-input" id="sf_address" value="' + (data.address || '') + '"></div>';
+  h += '<div><label class="form-label">负责人</label><input class="form-input" id="sf_keeper" value="' + (data.keeper || '') + '"></div>';
+  h += '</div>';
+  return h;
+}
+
+function gv(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+
+async function submitForm(id) {
+  var body = {
+    name: gv('sf_name'),
+    type: parseInt(gv('sf_type'), 10) || 1,
+    address: gv('sf_address'),
+    keeper: gv('sf_keeper')
+  };
+  if (!body.name) { showToast('请填写仓库名称'); return; }
+  var res;
+  if (id) {
+    res = await apiPut('/shop/warehouse/' + id, body);
+  } else {
+    res = await apiPost('/shop/warehouse', body);
+  }
+  if (res && res.code === 0) {
+    showToast(id ? '更新成功' : '创建成功');
+    hideModal();
+    loadData(currentPage, currentKeyword);
+  } else {
+    showToast((res && res.message) || '操作失败');
+  }
+}
+
+/* ═══════════ Delete ═══════════ */
+async function deleteItem(id) {
+  if (!confirm('确定删除该仓库？')) return;
+  var res = await apiDelete('/shop/warehouse/' + id);
+  if (res && res.code === 0) {
+    showToast('删除成功');
+    loadData(currentPage, currentKeyword);
+  } else {
+    showToast((res && res.message) || '删除失败');
+  }
+}
+
+/* ═══════════ Export ═══════════ */
+function exportTable() { showToast('导出功能开发中'); }
+
+/* ═══════════ Toast ═══════════ */
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+/* ═══════════ Init ═══════════ */
+if (localStorage.getItem('pisa_sidebar_collapsed') === '1') {
+  document.getElementById('sidebar').classList.add('collapsed');
+}
+buildSidebar();
+initUser();
+loadData(1, '');
+</script>
+</body>
+</html>

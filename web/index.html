@@ -444,17 +444,17 @@ const NAV = [
   ]},
   {label:'设置', icon:IC.setting, children:[
     {title:'基础资料'},
-    {key:'set:商品管理', label:'商品管理'},
-    {key:'set:客户管理', label:'客户管理'},
-    {key:'set:供应商管理', label:'供应商管理'},
-    {key:'set:仓库管理', label:'仓库管理'},
+    {key:'set:商品管理', label:'商品管理', href:'/goods.html'},
+    {key:'set:客户管理', label:'客户管理', href:'/customer.html'},
+    {key:'set:供应商管理', label:'供应商管理', href:'/supplier.html'},
+    {key:'set:仓库管理', label:'仓库管理', href:'/warehouse.html'},
     {key:'set:门店管理', label:'门店管理'},
     {key:'set:职员管理', label:'职员管理'},
     {title:'辅助资料'},
     {key:'set:类别管理', label:'类别管理'},
     {key:'set:辅助属性', label:'辅助属性'},
     {key:'set:计量单位', label:'计量单位'},
-    {key:'set:结算账户', label:'结算账户'},
+    {key:'set:结算账户', label:'结算账户', href:'/account.html'},
     {title:'系统设置'},
     {key:'set:商户信息', label:'商户信息'},
     {key:'set:套餐订阅', label:'套餐订阅'},
@@ -478,7 +478,8 @@ function buildSidebar(){
     n.children.forEach(c=>{
       if(c.title){html+='<div class="nav-sub-title">'+c.title+'</div>';return;}
       LABELS[c.key]=c.label; GROUPS[c.key]=n.label;
-      html+='<div class="nav-item" data-key="'+c.key+'" title="'+c.label+'" onclick="showPage(\''+c.key+'\',this)"><span>'+c.label+'</span></div>';
+      var clickHandler=c.href?"location.href='"+c.href+"'":"showPage('"+c.key+"',this)";
+      html+='<div class="nav-item" data-key="'+c.key+'" title="'+c.label+'" onclick="'+clickHandler+'"><span>'+c.label+'</span></div>';
     });
     html+='</div></div>';
   });
