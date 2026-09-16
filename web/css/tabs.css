@@ -1,0 +1,66 @@
+/* ============================================================
+   PISA 多标签页 (Page Tabs) — 浏览器式，位于 .main 顶部
+   ============================================================ */
+.tabbar{
+  height:44px;flex-shrink:0;display:flex;align-items:flex-end;gap:2px;
+  background:var(--gray-50);border-bottom:1px solid var(--gray-200);
+  padding:0 8px;overflow:hidden;
+}
+.tabbar-inner{
+  display:flex;align-items:flex-end;gap:2px;flex:1;min-width:0;height:100%;
+  overflow-x:auto;overflow-y:hidden;padding-top:6px;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.tabbar-inner::-webkit-scrollbar{display:none}
+
+.ptab{
+  display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;
+  font-size:13px;color:var(--gray-500);cursor:pointer;white-space:nowrap;
+  border:1px solid transparent;border-bottom:none;
+  border-radius:8px 8px 0 0;flex-shrink:0;position:relative;
+  transition:background .15s,color .15s;
+}
+.ptab:hover{background:var(--gray-200);color:var(--gray-700)}
+.ptab.active{
+  background:#fff;color:var(--gray-900);font-weight:500;
+  border-color:var(--gray-200);
+}
+.ptab.active::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#fff;
+}
+.ptab.active::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:2px;
+  background:var(--accent-600);border-radius:8px 8px 0 0;
+}
+.ptab-home-icon{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.7}
+.ptab-label{max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.ptab-close{
+  width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;flex-shrink:0;opacity:.5;transition:background .15s,opacity .15s;
+}
+.ptab-close:hover{background:var(--gray-300);opacity:1}
+.ptab.active .ptab-close:hover{background:var(--gray-200)}
+.ptab-close svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5}
+
+.tabbar-tools{
+  display:flex;align-items:center;height:100%;padding-bottom:6px;flex-shrink:0;
+}
+.tabbar-tool{
+  width:30px;height:30px;border-radius:var(--radius-md);border:none;background:none;
+  color:var(--gray-400);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;
+}
+.tabbar-tool:hover{background:var(--gray-200);color:var(--gray-600)}
+.tabbar-tool svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+.ptab-ctxmenu{
+  position:fixed;background:#fff;border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);padding:4px;
+  z-index:1500;min-width:136px;font-size:13px;
+}
+.ptab-ctxmenu-item{
+  padding:7px 14px;border-radius:var(--radius-md);cursor:pointer;
+  color:var(--gray-600);transition:background .15s,color .15s;white-space:nowrap;
+}
+.ptab-ctxmenu-item:hover{background:var(--gray-100);color:var(--gray-800)}
+.ptab-ctxmenu-item.disabled{color:var(--gray-300);pointer-events:none}
