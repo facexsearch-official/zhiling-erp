@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>商品管理 - PISA 进销存</title>
+<title>货品管理 - PISA 进销存</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,7 +50,9 @@ input{font:inherit}
 .filter-bar .search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2}
 
 /* Table */
-.table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow:hidden}
+.table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow-x:auto}
+.table-wrap table{min-width:920px}
+.table-wrap td,.table-wrap th{white-space:nowrap}
 table{width:100%;border-collapse:collapse}
 thead{background:var(--gray-50)}
 th{padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap}
@@ -114,8 +116,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260916b">
-<link rel="stylesheet" href="/css/tabs.css?v=20260916b">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260925">
+<link rel="stylesheet" href="/css/tabs.css?v=20260925">
 </head>
 <body>
 
@@ -126,10 +128,12 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     </aside>
     <div class="main">
 <div class="content">
+  <!-- 列表视图 -->
+  <div id="listView">
   <div class="split">
     <aside class="cat-panel">
       <div class="cat-head">
-        <span>商品分类</span>
+        <span>货品分类</span>
         <div class="cat-actions">
           <button title="搜索分类" onclick="catSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
           <button title="新增分类" onclick="catAdd()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>
@@ -145,7 +149,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     </aside>
     <div class="split-main">
     <div class="page-head">
-      <div class="page-title">商品管理</div>
+      <div class="page-title">货品管理</div>
       <div>
         <button class="btn btn-secondary" onclick="exportData()">导出</button>
         <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
@@ -164,7 +168,9 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
         <thead>
           <tr>
             <th>编码</th>
-            <th>货品名称</th>
+            <th style="min-width:160px">货品名称</th>
+            <th>类别</th>
+            <th>单位</th>
             <th>条码</th>
             <th style="text-align:right">进货价</th>
             <th style="text-align:right">零售价</th>
@@ -182,59 +188,159 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     </div>
   </div>
   </div>
-  </div>
+    </div><!-- /listView -->
+
+  <!-- 表单视图 -->
+  <div id="formView" style="display:none">
+    <div class="page-head">
+      <div class="page-title" id="formTitle">新增货品</div>
+      <div>
+        <span class="fhint" id="drawerHint" style="margin-right:10px"></span>
+        <button class="btn btn-secondary" onclick="closeDrawer()">取消</button>
+        <button class="btn btn-secondary" id="saveMoreBtn" onclick="submitForm(true)">保存并继续</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="submitForm(false)">保存</button>
+      </div>
+    </div>
+    <div class="form-card">
+    <!-- 主信息 -->
+    <div class="fsection">
+      <div class="frow">
+        <div class="fitem">
+          <label class="flabel">货品名称<span class="req">*</span></label>
+          <input class="finput" id="fName" placeholder="请输入货品名称" autocomplete="off">
+          <div class="fhint">扫码枪扫描条码可自动带入</div>
+        </div>
+        <div class="fitem">
+          <label class="flabel">货品图片</label>
+          <div class="imggrid" id="imgGrid"></div>
+          <div class="fhint">JPG / PNG / GIF / WEBP，最多 5 张，支持拖拽与粘贴</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 基础信息 -->
+    <div class="fsection">
+      <div class="fsection-title">基础信息</div>
+      <div class="frow">
+        <div class="fitem">
+          <label class="flabel">编号/货号</label>
+          <div class="finline">
+            <input class="finput" id="fCode" placeholder="编号/货号/款号等">
+            <span class="flink" onclick="genCode()">自动生成</span>
+          </div>
+        </div>
+        <div class="fitem">
+          <label class="flabel">条形码</label>
+          <div class="finline">
+            <input class="finput" id="fBarcode" placeholder="扫码或手动输入">
+            <span class="flink" onclick="genBarcode()">自动生成</span>
+          </div>
+        </div>
+        <div class="fitem">
+          <label class="flabel">货品类别</label>
+          <div class="finline">
+            <select class="finput" id="fCategory"></select>
+            <span class="flink" onclick="addCategory()">新增类别</span>
+          </div>
+        </div>
+        <div class="fitem">
+          <label class="flabel">供货商</label>
+          <select class="finput" id="fSupplier"></select>
+        </div>
+        <div class="fitem full">
+          <label class="flabel">备注</label>
+          <textarea class="finput" id="fRemark" placeholder="请输入备注"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 单位与规格 -->
+    <div class="fsection">
+      <div class="fsection-title">单位与规格</div>
+      <div class="frow">
+        <div class="fitem">
+          <label class="flabel">主单位</label>
+          <div class="finline">
+            <select class="finput" id="fUnit"></select>
+            <span class="flink" onclick="addUnit()">新增单位</span>
+          </div>
+        </div>
+        <div class="fitem" style="justify-content:flex-end">
+          <label class="fswitch"><input type="checkbox" id="fMultiUnit" onchange="toggleMultiUnit()"> 启用多单位</label>
+        </div>
+        <div class="fitem full">
+          <label class="flabel">规格</label>
+          <div class="finline">
+            <input class="finput" id="fSpec" placeholder="如 300ml、XL、红色">
+            <label class="fswitch"><input type="checkbox" id="fMultiSpec" onchange="toggleMultiSpec()"> 启用多规格</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="subtbl-wrap" id="unitWrap" style="display:none">
+        <table class="subtbl">
+          <thead><tr>
+            <th style="width:34px"></th><th style="width:120px">单位</th><th style="width:90px">换算率</th>
+            <th style="width:130px">条码</th><th>进货价</th><th>零售价</th><th>批发价</th><th style="width:34px"></th>
+          </tr></thead>
+          <tbody id="unitBody"></tbody>
+        </table>
+        <div style="margin-top:8px"><span class="flink" onclick="addUnitRow()">+ 添加单位</span></div>
+      </div>
+
+      <div class="subtbl-wrap" id="specWrap" style="display:none">
+        <table class="subtbl">
+          <thead><tr>
+            <th style="width:34px"></th><th style="width:120px">规格</th><th style="width:110px">编码</th>
+            <th style="width:120px">条码</th><th>进货价</th><th>零售价</th><th>批发价</th><th style="width:80px">库存</th><th style="width:34px"></th>
+          </tr></thead>
+          <tbody id="specBody"></tbody>
+        </table>
+        <div style="margin-top:8px"><span class="flink" onclick="addSpecRow()">+ 添加规格</span></div>
+      </div>
+    </div>
+
+    <!-- 价格 -->
+    <div class="fsection">
+      <div class="fsection-title">价格</div>
+      <div class="frow three">
+        <div class="fitem"><label class="flabel">进货价</label><input class="finput" type="number" step="0.01" min="0" id="fPurchasePrice" placeholder="0.00"></div>
+        <div class="fitem"><label class="flabel">零售价</label><input class="finput" type="number" step="0.01" min="0" id="fRetailPrice" placeholder="0.00"></div>
+        <div class="fitem"><label class="flabel">批发价</label><input class="finput" type="number" step="0.01" min="0" id="fWholesalePrice" placeholder="0.00"></div>
+      </div>
+    </div>
+
+    <!-- 库存 -->
+    <div class="fsection">
+      <div class="fsection-title">库存</div>
+      <div class="frow three">
+        <div class="fitem"><label class="flabel">初始库存</label><input class="finput" type="number" min="0" id="fStock" placeholder="0"></div>
+        <div class="fitem"><label class="flabel">初始成本</label><input class="finput" type="number" step="0.01" min="0" id="fInitCost" placeholder="0.00"></div>
+        <div class="fitem" style="justify-content:flex-end">
+          <label class="fswitch"><input type="checkbox" id="fAlert" onchange="toggleAlert()"> 启用库存预警</label>
+        </div>
+      </div>
+      <div class="frow" id="alertRow" style="display:none;margin-top:14px">
+        <div class="fitem"><label class="flabel">预警下限</label><input class="finput" type="number" min="0" id="fMinStock" placeholder="0"></div>
+        <div class="fitem"><label class="flabel">预警上限</label><input class="finput" type="number" min="0" id="fMaxStock" placeholder="0"></div>
+      </div>
+    </div>
+  
+    </div>
+  </div><!-- /formView -->
+</div>
 </div>
     <aside class="help-panel" id="helpPanel"></aside>
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="onOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="modalTitle">新增商品</h2>
-      <button class="modal-close" onclick="closeModal()">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form id="goodsForm" class="form-grid" onsubmit="return false">
-        <div class="form-group">
-          <label class="form-label">编码</label>
-          <input class="form-input" type="text" id="fCode" placeholder="请输入编码">
-        </div>
-        <div class="form-group">
-          <label class="form-label">名称<span class="req">*</span></label>
-          <input class="form-input" type="text" id="fName" placeholder="请输入名称" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">条码</label>
-          <input class="form-input" type="text" id="fBarcode" placeholder="请输入条码">
-        </div>
-        <div class="form-group">
-          <label class="form-label">进货价</label>
-          <input class="form-input" type="number" id="fPurchasePrice" step="0.01" min="0" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label class="form-label">零售价</label>
-          <input class="form-input" type="number" id="fRetailPrice" step="0.01" min="0" placeholder="0.00">
-        </div>
-        <div class="form-group">
-          <label class="form-label">批发价</label>
-          <input class="form-input" type="number" id="fWholesalePrice" step="0.01" min="0" placeholder="0.00">
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">保存</button>
-    </div>
-  </div>
-</div>
+<!-- 新增/编辑货品 抽屉 -->
+
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<input type="file" id="imgPicker" accept="image/*" multiple style="display:none">
 <script>
 (function(){
   var token = localStorage.getItem('pisa_token');
@@ -295,17 +401,28 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     });
   };
 
+  function nameOf(list, id){
+    if(!id) return '-';
+    var x = list.filter(function(i){ return String(i.id) === String(id); })[0];
+    return x ? x.name : '-';
+  }
+
   function renderTable(){
     var tbody = document.getElementById('tableBody');
     if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无商品数据</p></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
       return;
     }
     var html = '';
     state.list.forEach(function(item){
+      var tags = '';
+      if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
+      if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
       html += '<tr>'
         + '<td>' + esc(item.code || '') + '</td>'
-        + '<td>' + esc(item.name || '') + '</td>'
+        + '<td>' + esc(item.name || '') + tags + '</td>'
+        + '<td>' + esc(nameOf(meta.categories, item.category_id)) + '</td>'
+        + '<td>' + esc(nameOf(meta.units, item.unit_id)) + '</td>'
         + '<td>' + esc(item.barcode || '') + '</td>'
         + '<td class="text-right"><span class="yen">¥</span>' + fmtPrice(item.purchase_price) + '</td>'
         + '<td class="text-right"><span class="yen">¥</span>' + fmtPrice(item.retail_price) + '</td>'
@@ -352,84 +469,480 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     }, 300);
   };
 
-  // --- Modal ---
+  // ═══════════ 抽屉表单 ═══════════
+  var meta = { categories: [], units: [], suppliers: [], loaded: false };
+  var form = { images: [], units: [], specs: [], editId: null };
+
+  function el(id){ return document.getElementById(id); }
+  function num(id){ return parseFloat(el(id).value) || 0; }
+  function int(id){ return parseInt(el(id).value, 10) || 0; }
+  function checked(id){ return el(id).checked; }
+
+  // --- 元数据（分类 / 单位 / 供货商）---
+  function fillSelect(id, list, placeholder, selected){
+    var e = el(id); if(!e) return;
+    var h = '<option value="">' + placeholder + '</option>';
+    list.forEach(function(x){
+      h += '<option value="' + x.id + '"' + (String(selected) === String(x.id) ? ' selected' : '') + '>'
+         + (x.name || '') + '</option>';
+    });
+    e.innerHTML = h;
+  }
+
+  function loadMeta(force){
+    if(meta.loaded && !force) return Promise.resolve();
+    return Promise.all([
+      apiFetch('/api/shop/category/all'),
+      apiFetch('/api/shop/unit/all'),
+      apiFetch('/api/shop/supplier/all')
+    ]).then(function(r){
+      meta.categories = (r[0] && r[0].data) || [];
+      meta.units      = (r[1] && r[1].data) || [];
+      meta.suppliers  = (r[2] && r[2].data) || [];
+      meta.loaded = true;
+      fillSelect('fCategory', meta.categories, '未分类', el('fCategory').value);
+      fillSelect('fUnit', meta.units, '请选择', el('fUnit').value);
+      fillSelect('fSupplier', meta.suppliers, '不指定', el('fSupplier').value);
+    }).catch(function(e){
+      if(e.message !== 'Unauthorized') showToast('基础资料加载失败', 'error');
+    });
+  }
+
+  // --- 抽屉开关 ---
+  var ADD_KEY = 'goods:add';
+  var LIST_KEY = 'goods:list';
+
+  function addFormTab(){
+    if(!window.PisaTabs) return;
+    PisaTabs.touch(ADD_KEY, '添加货品', '/goods.html#goods:add');
+  }
+  function removeFormTab(){
+    if(!window.PisaTabs) return;
+    // 先把激活标签切回「货品」，再关掉新增标签（避免关闭时整页跳转）
+    PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
+    PisaTabs.close(ADD_KEY);
+    if(location.hash === '#goods:add'){
+      try{ history.replaceState(null, '', '/goods.html'); }catch(e){}
+    }
+  }
+
+  function openDrawer(){
+    el('listView').style.display = 'none';
+    el('formView').style.display = '';
+    var c = document.querySelector('.content');
+    if(c) c.scrollTop = 0;
+    setTimeout(function(){ el('fName').focus(); }, 120);
+  }
+  window.closeDrawer = function(){
+    el('formView').style.display = 'none';
+    el('listView').style.display = '';
+    if(form.editId == null) removeFormTab();
+  };
+
   window.showCreate = function(){
+    form.editId = null;
     state.editId = null;
-    document.getElementById('modalTitle').textContent = '新增商品';
-    document.getElementById('submitBtn').textContent = '保存';
+    el('formTitle').textContent = '新增货品';
+    el('saveMoreBtn').style.display = '';
     resetForm();
-    openModal();
+    loadMeta().then(function(){
+      openDrawer();
+      addFormTab();
+    });
   };
 
   window.showEdit = function(id){
-    apiFetch('/api/shop/goods/' + id).then(function(res){
-      if(res.code !== 0){ showToast(res.message || '获取失败', 'error'); return; }
-      state.editId = id;
-      document.getElementById('modalTitle').textContent = '编辑商品';
-      document.getElementById('submitBtn').textContent = '保存';
+    loadMeta().then(function(){
+      return apiFetch('/api/shop/goods/' + id);
+    }).then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
       var d = res.data;
-      document.getElementById('fCode').value = d.code || '';
-      document.getElementById('fName').value = d.name || '';
-      document.getElementById('fBarcode').value = d.barcode || '';
-      document.getElementById('fPurchasePrice').value = d.purchase_price != null ? d.purchase_price : '';
-      document.getElementById('fRetailPrice').value = d.retail_price != null ? d.retail_price : '';
-      document.getElementById('fWholesalePrice').value = d.wholesale_price != null ? d.wholesale_price : '';
-      openModal();
+      form.editId = id;
+      state.editId = id;
+      el('formTitle').textContent = '编辑货品';
+      el('saveMoreBtn').style.display = 'none';
+      resetForm();
+
+      el('fName').value        = d.name || '';
+      el('fCode').value        = d.code || '';
+      el('fBarcode').value     = d.barcode || '';
+      el('fRemark').value      = d.remark || '';
+      el('fSpec').value        = d.spec || '';
+      el('fPurchasePrice').value  = d.purchase_price || '';
+      el('fRetailPrice').value    = d.retail_price || '';
+      el('fWholesalePrice').value = d.wholesale_price || '';
+      el('fStock').value       = d.current_stock || '';
+      el('fInitCost').value    = d.init_cost || '';
+      el('fCategory').value    = d.category_id || '';
+      el('fUnit').value        = d.unit_id || '';
+      el('fSupplier').value    = d.supplier_id || '';
+
+      el('fMultiUnit').checked = !!d.has_multi_unit;
+      el('fMultiSpec').checked = !!d.has_multi_spec;
+      el('fAlert').checked     = !!d.enable_stock_alert;
+      el('fMinStock').value    = d.min_stock || '';
+      el('fMaxStock').value    = d.max_stock || '';
+      toggleMultiUnit();
+      toggleMultiSpec();
+      toggleAlert();
+
+      form.units = (d.units || []).map(function(u){
+        return { unit_id: u.unit_id, unit_name: u.unit_name || '', factor: u.factor || 1,
+                 barcode: u.barcode || '', purchase_price: u.purchase_price || '',
+                 retail_price: u.retail_price || '', wholesale_price: u.wholesale_price || '',
+                 is_main: !!u.is_main };
+      });
+      form.specs = (d.specs || []).map(function(s){
+        return { name: s.name || '', code: s.code || '', barcode: s.barcode || '',
+                 purchase_price: s.purchase_price || '', retail_price: s.retail_price || '',
+                 wholesale_price: s.wholesale_price || '', stock: s.stock || 0 };
+      });
+      try{ form.images = JSON.parse(d.images || '[]') || []; }catch(e){ form.images = []; }
+      if(!form.images.length && d.image_url) form.images = [d.image_url];
+      renderImages(); renderUnits(); renderSpecs();
+      openDrawer();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
     });
   };
 
-  function openModal(){
-    document.getElementById('modalOverlay').classList.add('show');
-    setTimeout(function(){ document.getElementById('fName').focus(); }, 100);
-  }
-
-  window.closeModal = function(){
-    document.getElementById('modalOverlay').classList.remove('show');
-  };
-
-  window.onOverlayClick = function(e){
-    if(e.target === e.currentTarget) closeModal();
-  };
-
   function resetForm(){
-    document.getElementById('fCode').value = '';
-    document.getElementById('fName').value = '';
-    document.getElementById('fBarcode').value = '';
-    document.getElementById('fPurchasePrice').value = '';
-    document.getElementById('fRetailPrice').value = '';
-    document.getElementById('fWholesalePrice').value = '';
+    ['fName','fCode','fBarcode','fRemark','fSpec','fPurchasePrice','fRetailPrice',
+     'fWholesalePrice','fStock','fInitCost','fMinStock','fMaxStock'].forEach(function(id){
+      var e = el(id); if(e) e.value = '';
+    });
+    ['fMultiUnit','fMultiSpec','fAlert'].forEach(function(id){ el(id).checked = false; });
+    el('fCategory').value = ''; el('fUnit').value = ''; el('fSupplier').value = '';
+    form.images = []; form.units = []; form.specs = [];
+    renderImages(); renderUnits(); renderSpecs();
+    toggleMultiUnit(); toggleMultiSpec(); toggleAlert();
+    el('drawerHint').textContent = '';
   }
 
-  // --- Submit ---
-  window.submitForm = function(){
-    var name = document.getElementById('fName').value.trim();
-    if(!name){ showToast('请输入名称', 'error'); document.getElementById('fName').focus(); return; }
+  // --- 开关联动 ---
+  window.toggleMultiUnit = function(){
+    var on = checked('fMultiUnit');
+    el('unitWrap').style.display = on ? '' : 'none';
+    if(on && !form.units.length){
+      form.units = [{ unit_name: (el('fUnit').selectedOptions[0] || {}).text || '', factor: 1, is_main: true }];
+      renderUnits();
+    }
+  };
+  window.toggleMultiSpec = function(){
+    var on = checked('fMultiSpec');
+    el('specWrap').style.display = on ? '' : 'none';
+    if(on && !form.specs.length){ form.specs = [{}]; renderSpecs(); }
+  };
+  window.toggleAlert = function(){
+    el('alertRow').style.display = checked('fAlert') ? '' : 'none';
+  };
+
+  // --- 自动生成 ---
+  function ean13(){
+    var d = '69';
+    for(var i=0;i<10;i++) d += Math.floor(Math.random()*10);
+    var sum = 0;
+    for(var j=0;j<12;j++) sum += parseInt(d.charAt(j),10) * (j%2===0?1:3);
+    return d + ((10 - (sum%10)) % 10);
+  }
+  window.genCode = function(){
+    apiFetch('/api/shop/goods/next-code').then(function(res){
+      if(res.code === 0 && res.data && res.data.code) el('fCode').value = res.data.code;
+      else el('fCode').value = 'SP' + Date.now().toString().slice(-10);
+    }).catch(function(){ el('fCode').value = 'SP' + Date.now().toString().slice(-10); });
+  };
+  window.genBarcode = function(){ el('fBarcode').value = ean13(); };
+
+  // --- 新增类别 / 单位 ---
+  window.addCategory = function(){
+    var name = (prompt('请输入类别名称') || '').trim();
+    if(!name) return;
+    apiFetch('/api/shop/category', { method:'POST', body:{ name:name } }).then(function(res){
+      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+      meta.loaded = false;
+      loadMeta(true).then(function(){ el('fCategory').value = res.data.id; });
+      showToast('类别已新增', 'success');
+    });
+  };
+  window.addUnit = function(){
+    var name = (prompt('请输入单位名称，如 个 / 箱') || '').trim();
+    if(!name) return;
+    apiFetch('/api/shop/unit', { method:'POST', body:{ name:name } }).then(function(res){
+      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+      meta.loaded = false;
+      loadMeta(true).then(function(){ el('fUnit').value = res.data.id; });
+      showToast('单位已新增', 'success');
+    });
+  };
+
+  // --- 图片 ---
+  window.pickImages = function(){ el('imgPicker').click(); };
+
+  var _ip = el('imgPicker');
+  if(_ip) _ip.addEventListener('change', function(){
+    addImageFiles(this.files);
+    this.value = '';
+  });
+
+  function addImageFiles(files){
+    if(!files || !files.length) return;
+    var room = 5 - form.images.length;
+    if(room <= 0){ showToast('最多 5 张图片', 'error'); return; }
+    var list = Array.prototype.slice.call(files).slice(0, room);
+    var pending = list.length;
+    list.forEach(function(f){
+      if(!/^image\//.test(f.type)){ pending--; return; }
+      var fd = new FormData();
+      fd.append('file', f);
+      apiFetch('/api/shop/upload', { method:'POST', body: fd }).then(function(res){
+        if(res.code === 0 && res.data && res.data.url){
+          form.images.push(res.data.url);
+          renderImages();
+        }else{
+          showToast(res.message || '上传失败', 'error');
+        }
+      }).catch(function(){ showToast('上传失败', 'error'); })
+        .then(function(){ pending--; });
+    });
+  }
+
+  window.removeImage = function(i){
+    form.images.splice(i, 1);
+    renderImages();
+  };
+  window.setCover = function(i){
+    var u = form.images.splice(i, 1)[0];
+    form.images.unshift(u);
+    renderImages();
+  };
+
+  function renderImages(){
+    var h = '';
+    form.images.forEach(function(url, i){
+      h += '<div class="imgcell">'
+        +  '<img src="' + url + '" alt="">'
+        +  (i === 0 ? '<span class="cover">主图</span>' : '<span class="del" onclick="setCover(' + i + ')" title="设为主图" style="right:24px">★</span>')
+        +  '<span class="del" onclick="removeImage(' + i + ')" title="删除">×</span>'
+        +  '</div>';
+    });
+    if(form.images.length < 5){
+      h += '<div class="imgadd" id="imgAdd" onclick="pickImages()">'
+        +  '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+        +  '<span>上传图片</span></div>';
+    }
+    el('imgGrid').innerHTML = h;
+  }
+
+  // 拖拽 / 粘贴上传
+  (function bindImageDnD(){
+    var grid = el('imgGrid');
+    ['dragenter','dragover'].forEach(function(t){
+      grid.addEventListener(t, function(e){ e.preventDefault(); e.stopPropagation();
+        var a = el('imgAdd'); if(a) a.classList.add('dragover'); });
+    });
+    ['dragleave','drop'].forEach(function(t){
+      grid.addEventListener(t, function(e){ e.preventDefault(); e.stopPropagation();
+        var a = el('imgAdd'); if(a) a.classList.remove('dragover'); });
+    });
+    grid.addEventListener('drop', function(e){
+      if(e.dataTransfer && e.dataTransfer.files) addImageFiles(e.dataTransfer.files);
+    });
+    document.addEventListener('paste', function(e){
+      if(el('formView').style.display === 'none') return;
+      var items = (e.clipboardData && e.clipboardData.items) || [];
+      var files = [];
+      for(var i=0;i<items.length;i++){
+        if(items[i].type && items[i].type.indexOf('image/') === 0){
+          var f = items[i].getAsFile(); if(f) files.push(f);
+        }
+      }
+      if(files.length) addImageFiles(files);
+    });
+  })();
+
+  // --- 多单位表格 ---
+  function unitOptions(sel){
+    var h = '<option value="">请选择</option>';
+    meta.units.forEach(function(u){
+      h += '<option value="' + u.id + '"' + (String(sel)===String(u.id)?' selected':'') + '>' + u.name + '</option>';
+    });
+    return h;
+  }
+  function renderUnits(){
+    var b = el('unitBody');
+    if(!form.units.length){ b.innerHTML = ''; return; }
+    var h = '';
+    form.units.forEach(function(u, i){
+      h += '<tr>'
+        + '<td class="rownum"><input type="radio" name="mainUnit" ' + (u.is_main?'checked':'')
+        +   ' onchange="setMainUnit(' + i + ')" title="设为主单位"></td>'
+        + '<td><select class="finput" data-k="unit_name" onchange="syncUnitName(' + i + ',this.value)">'
+        +   '<option value="">请选择</option>'
+        +   meta.units.map(function(x){ return '<option value="' + x.name + '"' + (x.name===u.unit_name?' selected':'') + '>' + x.name + '</option>'; }).join('')
+        +   (u.unit_name && !meta.units.some(function(x){return x.name===u.unit_name;}) ? '<option selected>' + u.unit_name + '</option>' : '')
+        + '</select></td>'
+        + '<td><input class="finput" type="number" step="0.0001" min="0" value="' + (u.factor||1) + '" data-k="factor"></td>'
+        + '<td><input class="finput" value="' + (u.barcode||'') + '" data-k="barcode"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.purchase_price||'') + '" data-k="purchase_price"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.retail_price||'') + '" data-k="retail_price"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.wholesale_price||'') + '" data-k="wholesale_price"></td>'
+        + '<td><span class="delrow" onclick="removeUnitRow(' + i + ')">×</span></td>'
+        + '</tr>';
+    });
+    b.innerHTML = h;
+  }
+  window.syncUnitName = function(i, v){
+    form.units[i].unit_name = v;
+    var u = meta.units.filter(function(x){ return x.name === v; })[0];
+    form.units[i].unit_id = u ? u.id : null;
+  };
+  window.setMainUnit = function(i){
+    form.units.forEach(function(u, j){ u.is_main = (i === j); });
+  };
+  window.addUnitRow = function(){
+    if(form.units.length >= 5){ showToast('最多 5 个单位', 'error'); return; }
+    readUnits();
+    form.units.push({ unit_name:'', factor:1, is_main: form.units.length === 0 });
+    renderUnits();
+  };
+  window.removeUnitRow = function(i){
+    readUnits();
+    var wasMain = form.units[i].is_main;
+    form.units.splice(i, 1);
+    if(wasMain && form.units.length) form.units[0].is_main = true;
+    renderUnits();
+  };
+  function readUnits(){
+    var rows = el('unitBody').querySelectorAll('tr');
+    rows.forEach(function(tr, i){
+      if(!form.units[i]) return;
+      tr.querySelectorAll('[data-k]').forEach(function(inp){
+        var k = inp.getAttribute('data-k');
+        form.units[i][k] = inp.type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
+      });
+      if(form.units[i].unit_name){
+        var u = meta.units.filter(function(x){ return x.name === form.units[i].unit_name; })[0];
+        form.units[i].unit_id = u ? u.id : null;
+      }
+    });
+  }
+
+  // --- 多规格表格 ---
+  function renderSpecs(){
+    var b = el('specBody');
+    if(!form.specs.length){ b.innerHTML = ''; return; }
+    var h = '';
+    form.specs.forEach(function(s, i){
+      h += '<tr>'
+        + '<td class="rownum">' + (i+1) + '</td>'
+        + '<td><input class="finput" value="' + (s.name||'') + '" data-k="name" placeholder="规格"></td>'
+        + '<td><input class="finput" value="' + (s.code||'') + '" data-k="code"></td>'
+        + '<td><input class="finput" value="' + (s.barcode||'') + '" data-k="barcode"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.purchase_price||'') + '" data-k="purchase_price"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.retail_price||'') + '" data-k="retail_price"></td>'
+        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.wholesale_price||'') + '" data-k="wholesale_price"></td>'
+        + '<td><input class="finput" type="number" min="0" value="' + (s.stock||0) + '" data-k="stock"></td>'
+        + '<td><span class="delrow" onclick="removeSpecRow(' + i + ')">×</span></td>'
+        + '</tr>';
+    });
+    b.innerHTML = h;
+  }
+  window.addSpecRow = function(){
+    if(form.specs.length >= 50){ showToast('最多 50 个规格', 'error'); return; }
+    readSpecs();
+    form.specs.push({});
+    renderSpecs();
+  };
+  window.removeSpecRow = function(i){
+    readSpecs();
+    form.specs.splice(i, 1);
+    renderSpecs();
+  };
+  function readSpecs(){
+    var rows = el('specBody').querySelectorAll('tr');
+    rows.forEach(function(tr, i){
+      if(!form.specs[i]) return;
+      tr.querySelectorAll('[data-k]').forEach(function(inp){
+        var k = inp.getAttribute('data-k');
+        form.specs[i][k] = inp.type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
+      });
+    });
+  }
+
+  // --- 提交 ---
+  window.submitForm = function(saveMore){
+    var name = el('fName').value.trim();
+    if(!name){ showToast('请输入货品名称', 'error'); el('fName').focus(); return; }
+
+    readUnits(); readSpecs();
+    if(checked('fMultiSpec')){
+      form.specs = form.specs.filter(function(s){ return (s.name||'').trim() !== ''; });
+      if(!form.specs.length){ showToast('启用多规格时至少填写 1 行规格', 'error'); return; }
+    }
+
     var body = {
-      code: document.getElementById('fCode').value.trim(),
       name: name,
-      barcode: document.getElementById('fBarcode').value.trim(),
-      purchase_price: parseFloat(document.getElementById('fPurchasePrice').value) || 0,
-      retail_price: parseFloat(document.getElementById('fRetailPrice').value) || 0,
-      wholesale_price: parseFloat(document.getElementById('fWholesalePrice').value) || 0
+      code: el('fCode').value.trim(),
+      barcode: el('fBarcode').value.trim(),
+      remark: el('fRemark').value.trim(),
+      spec: el('fSpec').value.trim(),
+      category_id: el('fCategory').value ? parseInt(el('fCategory').value,10) : null,
+      unit_id: el('fUnit').value ? parseInt(el('fUnit').value,10) : null,
+      supplier_id: el('fSupplier').value ? parseInt(el('fSupplier').value,10) : null,
+      has_multi_unit: checked('fMultiUnit') ? 1 : 0,
+      has_multi_spec: checked('fMultiSpec') ? 1 : 0,
+      enable_stock_alert: checked('fAlert') ? 1 : 0,
+      init_cost: num('fInitCost'),
+      current_stock: int('fStock'),
+      min_stock: checked('fAlert') ? int('fMinStock') : 0,
+      max_stock: checked('fAlert') ? int('fMaxStock') : 0,
+      purchase_price: num('fPurchasePrice'),
+      retail_price: num('fRetailPrice'),
+      wholesale_price: num('fWholesalePrice'),
+      images: JSON.stringify(form.images),
+      image_url: form.images[0] || '',
+      units: checked('fMultiUnit') ? form.units.map(function(u){
+        return {
+          unit_id: u.unit_id || null,
+          unit_name: u.unit_name || '',
+          factor: u.factor || 1,
+          barcode: u.barcode || '',
+          purchase_price: u.purchase_price || 0,
+          retail_price: u.retail_price || 0,
+          wholesale_price: u.wholesale_price || 0,
+          is_main: u.is_main ? 1 : 0
+        };
+      }) : [],
+      specs: checked('fMultiSpec') ? form.specs : []
     };
-    var isEdit = state.editId != null;
-    var url = isEdit ? '/api/shop/goods/' + state.editId : '/api/shop/goods';
+
+    var isEdit = form.editId != null;
+    var url = isEdit ? '/api/shop/goods/' + form.editId : '/api/shop/goods';
     var method = isEdit ? 'PUT' : 'POST';
+    el('saveBtn').disabled = true; el('saveMoreBtn').disabled = true;
+    el('drawerHint').textContent = '保存中…';
+
     apiFetch(url, { method: method, body: body }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '保存失败', 'error'); return; }
-      closeModal();
       showToast(isEdit ? '修改成功' : '新增成功', 'success');
+      if(saveMore && !isEdit){
+        resetForm();
+        el('fName').focus();
+      }else{
+        closeDrawer();
+      }
       loadData(state.page);
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
+    }).then(function(){
+      el('saveBtn').disabled = false; el('saveMoreBtn').disabled = false;
+      el('drawerHint').textContent = '';
     });
   };
 
   // --- Delete ---
   window.deleteItem = function(id){
-    if(!confirm('确定要删除该商品吗？')) return;
+    if(!confirm('确定要删除该货品吗？')) return;
     apiFetch('/api/shop/goods/' + id, { method: 'DELETE' }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
       showToast('删除成功', 'success');
@@ -474,7 +987,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
   // --- Keyboard shortcut ---
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape') closeModal();
+    if(e.key === 'Escape') closeDrawer();
   });
 
   function checkAuth() {
@@ -483,10 +996,14 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
 // --- Init ---
   checkAuth();
-  loadData(1);
+  loadMeta().then(function(){
+    loadData(1);
+    // 通过标签页回到「添加货品」时，自动打开抽屉
+    if(location.hash === '#goods:add') showCreate();
+  });
 })();
 </script>
-<script src="/js/tabs.js?v=20260916b"></script>
-<script src="/js/app-shell.js?v=20260916b"></script>
+<script src="/js/tabs.js?v=20260925"></script>
+<script src="/js/app-shell.js?v=20260925"></script>
 </body>
 </html>

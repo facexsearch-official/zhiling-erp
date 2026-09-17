@@ -150,8 +150,8 @@
 .content::-webkit-scrollbar{width:6px}
 .content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260916b">
-<link rel="stylesheet" href="/css/tabs.css?v=20260916b">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260925">
+<link rel="stylesheet" href="/css/tabs.css?v=20260925">
 </head>
 <body>
 <div class="app">
@@ -213,8 +213,8 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="/js/tabs.js?v=20260916b"></script>
-<script src="/js/app-shell.js?v=20260916b"></script>
+<script src="/js/tabs.js?v=20260925"></script>
+<script src="/js/app-shell.js?v=20260925"></script>
 <script>
 /* ═══════════ State ═══════════ */
 const State = {
@@ -536,7 +536,7 @@ function dynamicPageHTML(key){
 
 /* ─── Purchase pages ─── */
 function purchasePageHTML(key){
-  var title={purchases:'进货管理','purchase-order':'采购订单','purchase-return':'进货退货'}[key]||key;
+  var title={purchases:'采购管理','purchase-order':'采购订单','purchase-return':'采购退货'}[key]||key;
   var h='<div class="page-head"><div class="page-title">'+title+'</div><div>'+
     '<button class="btn btn-secondary" onclick="exportTable(\''+key+'\')">导出</button> '+
     '<button class="btn btn-primary" onclick="showPurchaseCreate(\''+key+'\')">+ 新增</button></div></div>';
@@ -659,7 +659,7 @@ async function loadDropdowns(){
 
 function showPurchaseCreate(key){
   loadDropdowns().then(function(){
-    var title={purchases:'新增进货单','purchase-order':'新增采购订单','purchase-return':'新增退货单'}[key]||'新增';
+    var title={purchases:'新增采购单','purchase-order':'新增采购订单','purchase-return':'新增采购退货单'}[key]||'新增';
     var isReturn=key==='purchase-return';
     var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
     // supplier
@@ -1005,7 +1005,7 @@ function homeHTML(){
         <div class="quick-tile" onclick="openNav('sales:order')">${IC.report}<div>客户订单</div></div>
         <div class="quick-tile" onclick="openNav('purchase:order')">${IC.purchase}<div>采购订单</div></div>
         <div class="quick-tile" onclick="openNav('funds:receipt')">${IC.finance}<div>收款单</div></div>
-        <div class="quick-tile" onclick="openNav('goods:list')">${IC.stock}<div>商品管理</div></div>
+        <div class="quick-tile" onclick="openNav('goods:list')">${IC.stock}<div>货品管理</div></div>
       </div>
     </div>
     <div class="card">

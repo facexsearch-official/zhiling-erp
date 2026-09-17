@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strings"
+
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
@@ -38,15 +40,21 @@ func (h *GoodsHandler) ListAll(c *gin.Context) {
 	response.OK(c, list)
 }
 
+// GetByID 返回货品详情（含多单位 / 多规格）
 func (h *GoodsHandler) GetByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-	goods, err := h.repo.GetByID(ctx, id)
+	goods, err := h.repo.GetByIDWithChildren(ctx, id)
 	if err != nil {
 		response.NotFound(c, "货品不存在")
 		return
 	}
 	response.OK(c, goods)
+}
+
+// NextCode 生成下一个货品编号
+func (h *GoodsHandler) NextCode(c *gin.Context) {
+	response.OK(c, gin.H{"code": h.repo.NextCode(c.Request.Context())})
 }
 
 func (h *GoodsHandler) Create(c *gin.Context) {
@@ -56,13 +64,14 @@ func (h *GoodsHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if goods.Name == "" {
+	if strings.TrimSpace(goods.Name) == "" {
 		response.BadRequest(c, "货品名称不能为空")
 		return
 	}
+	goods.ID = 0
 	goods.Status = 1
 	goods.TenantID = context.GetTenantID(ctx)
-	if err := h.repo.Create(ctx, &goods); err != nil {
+	if err := h.repo.CreateWithChildren(ctx, &goods, goods.Units, goods.Specs); err != nil {
 		response.ServerError(c, "创建货品失败")
 		return
 	}
@@ -77,15 +86,24 @@ func (h *GoodsHandler) Update(c *gin.Context) {
 		response.NotFound(c, "货品不存在")
 		return
 	}
-	if err := c.ShouldBindJSON(existing); err != nil {
+	var payload model.Goods
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if err := h.repo.Update(ctx, existing); err != nil {
+	if strings.TrimSpace(payload.Name) == "" {
+		response.BadRequest(c, "货品名称不能为空")
+		return
+	}
+	// 不可变字段以库中为准
+	payload.ID = existing.ID
+	payload.TenantID = existing.TenantID
+	payload.CreatedAt = existing.CreatedAt
+	if err := h.repo.UpdateWithChildren(ctx, &payload, payload.Units, payload.Specs); err != nil {
 		response.ServerError(c, "更新货品失败")
 		return
 	}
-	response.OK(c, existing)
+	response.OK(c, payload)
 }
 
 func (h *GoodsHandler) Delete(c *gin.Context) {

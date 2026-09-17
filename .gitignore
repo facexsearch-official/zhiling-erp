@@ -34,3 +34,7 @@ config.yaml
 # Logs
 *.log
 logs/
+
+# 上传文件（保留目录）
+web/uploads/*
+!web/uploads/.gitkeep

@@ -11,12 +11,12 @@
   var IC = {
     home:'<svg '+S+'><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/></svg>',
     goods:'<svg '+S+'><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
-    sales:'<svg '+S+'><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
-    customer:'<svg '+S+'><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-    purchase:'<svg '+S+'><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2l2.6 12.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6L21.5 7H5.1"/></svg>',
+    sales:'<svg '+S+'><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg>',
+    customer:'<svg '+S+'><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    purchase:'<svg '+S+'><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
     stock:'<svg '+S+'><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/></svg>',
-    funds:'<svg '+S+'><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
-    analysis:'<svg '+S+'><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+    funds:'<svg '+S+'><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>',
+    analysis:'<svg '+S+'><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
     settings:'<svg '+S+'><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9 2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
     search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
     help:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
@@ -33,16 +33,33 @@
   var NAV = [
     {key:'home', label:'首页', icon:IC.home, href:'/'},
 
-    {key:'goods', label:'商品', icon:IC.goods, cols:[
-      {title:'商品', items:[
-        {key:'goods:list',  label:'商品',     href:'/goods.html'},
+    {key:'goods', label:'货品', icon:IC.goods, cols:[
+      {title:'货品', items:[
+        {key:'goods:list',  label:'货品',     href:'/goods.html'},
         {key:'goods:spec',  label:'规格管理'},
         {key:'goods:unit',  label:'单位管理'},
-        {key:'goods:attr',  label:'商品属性'},
+        {key:'goods:attr',  label:'货品属性'},
         {key:'goods:price', label:'价格管理'}
       ]},
       {title:'套餐', items:[
         {key:'goods:combo', label:'套餐'}
+      ]}
+    ]},
+
+    {key:'customer', label:'客户', icon:IC.customer, cols:[
+      {title:'客户', items:[
+        {key:'customer:list',  label:'客户',     href:'/customer.html'},
+        {key:'customer:level', label:'价格等级'},
+        {key:'customer:quote', label:'报价管理'}
+      ]}
+    ]},
+
+    {key:'purchase', label:'采购', icon:IC.purchase, cols:[
+      {title:'采购', guide:true, items:[
+        {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
+        {key:'purchase:new',      label:'采购',     href:'/#purchase:new',      plus:true},
+        {key:'purchase:order',    label:'采购预订', href:'/#purchase:order',    plus:true},
+        {key:'purchase:return',   label:'采购退货', href:'/#purchase:return',   plus:true}
       ]}
     ]},
 
@@ -55,23 +72,6 @@
       ]},
       {title:'其他', items:[
         {key:'sales:commission', label:'业绩提成'}
-      ]}
-    ]},
-
-    {key:'customer', label:'客户', icon:IC.customer, cols:[
-      {title:'客户', items:[
-        {key:'customer:list',  label:'客户',     href:'/customer.html'},
-        {key:'customer:level', label:'价格等级'},
-        {key:'customer:quote', label:'报价管理'}
-      ]}
-    ]},
-
-    {key:'purchase', label:'进货', icon:IC.purchase, cols:[
-      {title:'进货', guide:true, items:[
-        {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
-        {key:'purchase:new',      label:'进货',     href:'/#purchase:new',      plus:true},
-        {key:'purchase:order',    label:'进货预订', href:'/#purchase:order',    plus:true},
-        {key:'purchase:return',   label:'进货退货', href:'/#purchase:return',   plus:true}
       ]}
     ]},
 
@@ -90,7 +90,7 @@
       ]}
     ]},
 
-    {key:'funds', label:'资金', icon:IC.funds, cols:[
+    {key:'funds', label:'财务', icon:IC.funds, cols:[
       {title:'账户', items:[
         {key:'funds:account',  label:'账户概览', href:'/account.html'},
         {key:'funds:transfer', label:'转账'}
@@ -108,14 +108,14 @@
       ]}
     ]},
 
-    {key:'analysis', label:'分析', icon:IC.analysis, cols:[
+    {key:'analysis', label:'报表', icon:IC.analysis, cols:[
       {title:'销售分析', items:[
         {key:'analysis:sales', label:'销售统计'},
         {key:'analysis:hot',   label:'热销分析'},
         {key:'analysis:staff', label:'员工绩效统计'}
       ]},
       {title:'库存分析', items:[
-        {key:'analysis:purchase', label:'进货统计'},
+        {key:'analysis:purchase', label:'采购统计'},
         {key:'analysis:stock',    label:'库存统计'}
       ]},
       {title:'经营分析', items:[

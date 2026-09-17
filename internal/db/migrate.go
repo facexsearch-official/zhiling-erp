@@ -32,6 +32,8 @@ func AutoCreateShopTables(shopDB *gorm.DB) {
 		&model.GoodsAttribute{},
 		&model.Warehouse{},
 		&model.Goods{},
+		&model.GoodsUnit{},
+		&model.GoodsSpec{},
 		&model.Customer{},
 		&model.Supplier{},
 		&model.Account{},
