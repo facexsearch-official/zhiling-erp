@@ -52,6 +52,7 @@ type Goods struct {
 	CategoryID     *int64    `json:"category_id"`
 	UnitID         *int64    `json:"unit_id"`
 	SupplierID     *int64    `json:"supplier_id"`
+	Suppliers      string    `json:"suppliers" gorm:"type:text"` // JSON 数组，存储多个供应商 ID
 	ImageURL       string    `json:"image_url" gorm:"size:255"`
 	CurrentStock   int       `json:"current_stock"`
 	MaxStock       int       `json:"max_stock"`
@@ -67,11 +68,18 @@ type Goods struct {
 	// ── 扩展字段 ──
 	Remark           string  `json:"remark" gorm:"size:500"`
 	Spec             string  `json:"spec" gorm:"size:128"`
+	Brand            string  `json:"brand" gorm:"size:128"`
+	Origin           string  `json:"origin" gorm:"size:255"`
 	HasMultiUnit     int8    `json:"has_multi_unit" gorm:"default:0"`
 	HasMultiSpec     int8    `json:"has_multi_spec" gorm:"default:0"`
+	SalesUnit        string  `json:"sales_unit" gorm:"size:32"`    // 开单默认销售单位
+	PurchaseUnit     string  `json:"purchase_unit" gorm:"size:32"` // 开单默认进货单位
 	EnableStockAlert int8    `json:"enable_stock_alert" gorm:"default:0"`
 	InitCost         float64 `json:"init_cost"`
-	Images           string  `json:"images" gorm:"type:text"` // JSON 数组
+	Images           string  `json:"images" gorm:"type:text"`      // JSON 数组
+	SpecGroups       string  `json:"spec_groups" gorm:"type:text"` // JSON: [{name,has_image,values:[{name,image}]}]
+	PriceRows        string  `json:"price_rows" gorm:"type:text"`  // JSON: {unitName:[{code,barcode,purchase_price,retail_price,wholesale_price,disabled}]}
+	StockRows        string  `json:"stock_rows" gorm:"type:text"`  // JSON: {specKey:{stock,min_stock,safe_stock,max_stock,init_cost}}
 
 	// 非持久化：随详情一起返回
 	Units []GoodsUnit `json:"units" gorm:"-"`

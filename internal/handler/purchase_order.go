@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"pisa_server/internal/db"
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
@@ -11,14 +10,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type PurchaseOrderHandler struct {
-	router *db.ShardRouter
+	db *gorm.DB
 }
 
-func NewPurchaseOrderHandler(router *db.ShardRouter) *PurchaseOrderHandler {
-	return &PurchaseOrderHandler{router: router}
+func NewPurchaseOrderHandler(dbConn *gorm.DB) *PurchaseOrderHandler {
+	return &PurchaseOrderHandler{db: dbConn}
 }
 
 type orderCreateReq struct {
@@ -36,10 +36,9 @@ func (h *PurchaseOrderHandler) List(c *gin.Context) {
 	keyword := c.Query("keyword")
 
 	tenantID := context.GetTenantID(ctx)
-	tableName := h.router.GetTable(tenantID, "purchase_orders")
 	var total int64
 	var list []model.PurchaseOrder
-	q := h.router.GetDB(tenantID).Table(tableName).Where("tenant_id = ?", tenantID)
+	q := h.db.Table("purchase_orders").Where("tenant_id = ?", tenantID)
 	if keyword != "" {
 		q = q.Where("order_no LIKE ?", "%"+keyword+"%")
 	}
@@ -65,10 +64,8 @@ func (h *PurchaseOrderHandler) Create(c *gin.Context) {
 
 	today := time.Now().Format("20060102")
 
-	// 生成当天序号
-	tableName := h.router.GetTable(tenantID, "purchase_orders")
 	var count int64
-	h.router.GetDB(tenantID).Table(tableName).Where("tenant_id = ? AND order_no LIKE ?", tenantID, "CGDD"+today+"%").Count(&count)
+	h.db.Table("purchase_orders").Where("tenant_id = ? AND order_no LIKE ?", tenantID, "CGDD"+today+"%").Count(&count)
 
 	order := model.PurchaseOrder{
 		ID:          snowflake.GenID(),
@@ -83,7 +80,7 @@ func (h *PurchaseOrderHandler) Create(c *gin.Context) {
 		CreatedBy:   userID,
 	}
 
-	if err := h.router.GetDB(tenantID).Table(tableName).Create(&order).Error; err != nil {
+	if err := h.db.Table("purchase_orders").Create(&order).Error; err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}
@@ -94,9 +91,8 @@ func (h *PurchaseOrderHandler) Delete(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	tenantID := context.GetTenantID(c.Request.Context())
 
-	tableName := h.router.GetTable(tenantID, "purchase_orders")
 	var order model.PurchaseOrder
-	if err := h.router.GetDB(tenantID).Table(tableName).Where("id = ? AND tenant_id = ?", id, tenantID).First(&order).Error; err != nil {
+	if err := h.db.Table("purchase_orders").Where("id = ? AND tenant_id = ?", id, tenantID).First(&order).Error; err != nil {
 		response.NotFound(c, "采购订单不存在")
 		return
 	}
@@ -104,7 +100,7 @@ func (h *PurchaseOrderHandler) Delete(c *gin.Context) {
 		response.BadRequest(c, "草稿状态才能删除")
 		return
 	}
-	h.router.GetDB(tenantID).Table(tableName).Delete(&order)
+	h.db.Table("purchase_orders").Delete(&order)
 	response.OKMsg(c, "删除成功")
 }
 
@@ -112,9 +108,8 @@ func (h *PurchaseOrderHandler) Audit(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	tenantID := context.GetTenantID(c.Request.Context())
 
-	tableName := h.router.GetTable(tenantID, "purchase_orders")
 	var order model.PurchaseOrder
-	if err := h.router.GetDB(tenantID).Table(tableName).Where("id = ? AND tenant_id = ?", id, tenantID).First(&order).Error; err != nil {
+	if err := h.db.Table("purchase_orders").Where("id = ? AND tenant_id = ?", id, tenantID).First(&order).Error; err != nil {
 		response.NotFound(c, "采购订单不存在")
 		return
 	}
@@ -123,6 +118,6 @@ func (h *PurchaseOrderHandler) Audit(c *gin.Context) {
 		return
 	}
 	order.Status = 3
-	h.router.GetDB(tenantID).Table(tableName).Save(&order)
+	h.db.Table("purchase_orders").Save(&order)
 	response.OKMsg(c, "审核成功")
 }

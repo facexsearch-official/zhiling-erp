@@ -112,6 +112,24 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(12px)}}
 
+/* Tag list */
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:32px;padding:6px 8px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:#fff;cursor:default;transition:border-color .2s,box-shadow .2s}
+.tag-list:focus-within{border-color:var(--primary-400);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.tag-list:empty::before{content:attr(data-placeholder);color:var(--gray-400);font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--primary-50);color:var(--primary-700);border-radius:var(--radius-sm);font-size:12px;font-weight:500}
+.tag .tag-del{cursor:pointer;color:var(--primary-400);font-size:14px;line-height:1;padding:0 2px;border-radius:2px}
+.tag .tag-del:hover{background:var(--primary-100);color:var(--primary-700)}
+
+/* Checklist */
+.checklist{max-height:320px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:var(--radius-md)}
+.checklist:empty::after{content:'暂无数据';display:block;text-align:center;padding:24px;color:var(--gray-400);font-size:13px}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .1s}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:var(--gray-50)}
+.check-item.selected{background:var(--primary-50)}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary-500);cursor:pointer;flex-shrink:0}
+.check-item label{font-size:13px;color:var(--gray-700);cursor:pointer;flex:1}
+
 /* Loading skeleton */
 .skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -238,18 +256,26 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
         </div>
         <div class="fitem">
           <label class="flabel">货品类别</label>
-          <div class="finline">
-            <select class="finput" id="fCategory"></select>
-            <span class="flink" onclick="addCategory()">新增类别</span>
-          </div>
+          <select class="finput" id="fCategory"></select>
+          <span class="flink" onclick="addCategory()">+ 新增类别</span>
         </div>
         <div class="fitem">
+          <label class="flabel">品牌</label>
+          <div class="tag-list" id="brandTags" data-placeholder="暂无品牌"></div>
+          <span class="flink" onclick="openBrandPicker()">+ 添加品牌</span>
+        </div>
+        <div class="fitem">
+          <label class="flabel">产地</label>
+          <input class="finput" id="fOrigin" placeholder="如 浙江杭州">
+        </div>
+        <div class="fitem full">
           <label class="flabel">供货商</label>
-          <select class="finput" id="fSupplier"></select>
+          <div class="tag-list" id="supplierTags"></div>
+          <span class="flink" onclick="openSupplierPicker()">+ 添加供应商</span>
         </div>
         <div class="fitem full">
           <label class="flabel">备注</label>
-          <textarea class="finput" id="fRemark" placeholder="请输入备注"></textarea>
+          <textarea class="finput" id="fRemark" placeholder="请输入备注" rows="2" style="resize:vertical;min-height:40px"></textarea>
         </div>
       </div>
     </div>
@@ -257,72 +283,77 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     <!-- 单位与规格 -->
     <div class="fsection">
       <div class="fsection-title">单位与规格</div>
-      <div class="frow">
-        <div class="fitem">
-          <label class="flabel">主单位</label>
-          <div class="finline">
-            <select class="finput" id="fUnit"></select>
-            <span class="flink" onclick="addUnit()">新增单位</span>
-          </div>
-        </div>
-        <div class="fitem" style="justify-content:flex-end">
-          <label class="fswitch"><input type="checkbox" id="fMultiUnit" onchange="toggleMultiUnit()"> 启用多单位</label>
-        </div>
-        <div class="fitem full">
-          <label class="flabel">规格</label>
-          <div class="finline">
-            <input class="finput" id="fSpec" placeholder="如 300ml、XL、红色">
-            <label class="fswitch"><input type="checkbox" id="fMultiSpec" onchange="toggleMultiSpec()"> 启用多规格</label>
-          </div>
+
+      <div class="unit-main">
+        <label class="flabel">主单位</label>
+        <select class="finput" id="fUnit" onchange="onMainUnitChange()"></select>
+        <span class="flink" onclick="addUnit()">+ 新增单位</span>
+        <label class="fswitch" style="margin-left:12px"><input type="checkbox" id="fMultiUnit" onchange="toggleMultiUnit()"> 启用多单位</label>
+      </div>
+      <div class="fhint" style="margin-top:7px">主单位需设置成商品的最小单位</div>
+
+      <div id="unitWrap" style="display:none">
+        <div id="unitBoxes"></div>
+        <div style="margin-top:10px"><span class="flink" onclick="addUnitRow()">+ 添加辅单位</span></div>
+
+        <div class="unit-default-title">请选择开单默认单位</div>
+        <div class="unit-default-box">
+          <div class="fitem"><label class="flabel">销售单位</label><select class="finput" id="fSalesUnit"></select></div>
+          <div class="fitem"><label class="flabel">进货单位</label><select class="finput" id="fPurchaseUnit"></select></div>
         </div>
       </div>
 
-      <div class="subtbl-wrap" id="unitWrap" style="display:none">
-        <table class="subtbl">
-          <thead><tr>
-            <th style="width:34px"></th><th style="width:120px">单位</th><th style="width:90px">换算率</th>
-            <th style="width:130px">条码</th><th>进货价</th><th>零售价</th><th>批发价</th><th style="width:34px"></th>
-          </tr></thead>
-          <tbody id="unitBody"></tbody>
-        </table>
-        <div style="margin-top:8px"><span class="flink" onclick="addUnitRow()">+ 添加单位</span></div>
+      <div class="spec-head">
+        <span class="spec-head-label">规格</span>
+        <label class="fswitch"><input type="checkbox" id="fMultiSpec" onchange="toggleMultiSpec()"> 启用多规格</label>
+        <span class="help-dot" title="启用后可为商品设置颜色、尺码等多种规格组合">?</span>
       </div>
 
-      <div class="subtbl-wrap" id="specWrap" style="display:none">
-        <table class="subtbl">
-          <thead><tr>
-            <th style="width:34px"></th><th style="width:120px">规格</th><th style="width:110px">编码</th>
-            <th style="width:120px">条码</th><th>进货价</th><th>零售价</th><th>批发价</th><th style="width:80px">库存</th><th style="width:34px"></th>
-          </tr></thead>
-          <tbody id="specBody"></tbody>
-        </table>
-        <div style="margin-top:8px"><span class="flink" onclick="addSpecRow()">+ 添加规格</span></div>
+      <div id="specWrap" style="display:none">
+        <div id="specGroups"></div>
+        <button type="button" class="spec-add" onclick="addSpecGroup()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          添加
+        </button>
       </div>
     </div>
 
     <!-- 价格 -->
     <div class="fsection">
-      <div class="fsection-title">价格</div>
-      <div class="frow three">
-        <div class="fitem"><label class="flabel">进货价</label><input class="finput" type="number" step="0.01" min="0" id="fPurchasePrice" placeholder="0.00"></div>
-        <div class="fitem"><label class="flabel">零售价</label><input class="finput" type="number" step="0.01" min="0" id="fRetailPrice" placeholder="0.00"></div>
-        <div class="fitem"><label class="flabel">批发价</label><input class="finput" type="number" step="0.01" min="0" id="fWholesalePrice" placeholder="0.00"></div>
+      <div class="fsection-title">商品价格</div>
+      <div id="priceSimple">
+        <div class="frow three">
+          <div class="fitem"><label class="flabel">进货价</label><input class="finput" type="number" step="0.01" min="0" id="fPurchasePrice" placeholder="0.00"></div>
+          <div class="fitem"><label class="flabel">零售价</label><input class="finput" type="number" step="0.01" min="0" id="fRetailPrice" placeholder="0.00"></div>
+          <div class="fitem"><label class="flabel">批发价</label><input class="finput" type="number" step="0.01" min="0" id="fWholesalePrice" placeholder="0.00"></div>
+        </div>
+      </div>
+      <div id="priceMulti" style="display:none">
+        <div class="price-unit-bar">
+          <span class="price-unit-label">价格单位</span>
+          <div class="price-unit-tabs" id="priceUnitTabs"></div>
+          <span class="flink price-more" onclick="addMorePrice()">新增更多价格</span>
+        </div>
+        <div class="spec-table-wrap"><table class="spec-table" id="priceTable"></table></div>
       </div>
     </div>
 
     <!-- 库存 -->
     <div class="fsection">
-      <div class="fsection-title">库存</div>
-      <div class="frow three">
-        <div class="fitem"><label class="flabel">初始库存</label><input class="finput" type="number" min="0" id="fStock" placeholder="0"></div>
-        <div class="fitem"><label class="flabel">初始成本</label><input class="finput" type="number" step="0.01" min="0" id="fInitCost" placeholder="0.00"></div>
-        <div class="fitem" style="justify-content:flex-end">
-          <label class="fswitch"><input type="checkbox" id="fAlert" onchange="toggleAlert()"> 启用库存预警</label>
+      <div class="fsection-title">商品库存</div>
+      <label class="fswitch" style="margin-bottom:14px"><input type="checkbox" id="fAlert" onchange="toggleAlert()"> 启用库存预警 <span class="help-dot" title="低于最低库存或高于最高库存时提醒">?</span></label>
+      <div id="stockSimple">
+        <div class="frow">
+          <div class="fitem"><label class="flabel">初始库存</label><input class="finput" type="number" min="0" id="fStock" placeholder="0"></div>
+          <div class="fitem"><label class="flabel">初始成本</label><input class="finput" type="number" step="0.01" min="0" id="fInitCost" placeholder="0.00"></div>
+        </div>
+        <div class="frow" id="alertRow" style="display:none;margin-top:14px">
+          <div class="fitem"><label class="flabel">预警下限</label><input class="finput" type="number" min="0" id="fMinStock" placeholder="0"></div>
+          <div class="fitem"><label class="flabel">预警上限</label><input class="finput" type="number" min="0" id="fMaxStock" placeholder="0"></div>
         </div>
       </div>
-      <div class="frow" id="alertRow" style="display:none;margin-top:14px">
-        <div class="fitem"><label class="flabel">预警下限</label><input class="finput" type="number" min="0" id="fMinStock" placeholder="0"></div>
-        <div class="fitem"><label class="flabel">预警上限</label><input class="finput" type="number" min="0" id="fMaxStock" placeholder="0"></div>
+      <div id="stockMulti" style="display:none">
+        <div class="spec-table-wrap"><table class="spec-table" id="stockTable"></table></div>
       </div>
     </div>
   
@@ -340,7 +371,69 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- 供应商选择弹窗 -->
+<div class="modal-overlay" id="supplierModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>选择供应商</h2>
+      <button class="modal-close" onclick="closeSupplierPicker()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input class="finput" id="supplierSearch" placeholder="搜索供应商名称…" style="flex:1" oninput="filterSupplierList()">
+        <button class="btn btn-secondary btn-sm" onclick="addSupplierInline()">+ 新增</button>
+      </div>
+      <div class="checklist" id="supplierChecklist"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSupplierPicker()">取消</button>
+      <button class="btn btn-primary" onclick="confirmSupplierPick()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 品牌选择弹窗 -->
+<div class="modal-overlay" id="brandModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2>选择品牌</h2>
+      <button class="modal-close" onclick="closeBrandPicker()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input class="finput" id="brandSearch" placeholder="搜索品牌名称…" style="flex:1" oninput="filterBrandList()">
+        <button class="btn btn-secondary btn-sm" onclick="addBrandInline()">+ 新增</button>
+      </div>
+      <div class="checklist" id="brandChecklist"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBrandPicker()">取消</button>
+      <button class="btn btn-primary" onclick="confirmBrandPick()">确定</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="imgPicker" accept="image/*" multiple style="display:none">
+<input type="file" id="specImgPicker" accept="image/*" style="display:none">
+
+<!-- 规格自定义排序弹窗 -->
+<div class="modal-overlay" id="specSortModal">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center">自定义排序</h2>
+      <button class="modal-close" onclick="closeSpecSort()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="sort-hint"><span id="sortSpecName" class="sort-spec-name"></span><span class="sort-hint-text">请拖动规格值进行排序</span></div>
+      <div class="sort-chips" id="sortChips"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="color:var(--accent-600);margin-right:auto" onclick="resetSpecSort()">重置</button>
+      <button class="btn btn-secondary" onclick="closeSpecSort()">取消</button>
+      <button class="btn btn-primary" onclick="saveSpecSort()">保存</button>
+    </div>
+  </div>
+</div>
 <script>
 (function(){
   var token = localStorage.getItem('pisa_token');
@@ -470,8 +563,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   // ═══════════ 抽屉表单 ═══════════
-  var meta = { categories: [], units: [], suppliers: [], loaded: false };
-  var form = { images: [], units: [], specs: [], editId: null };
+  var meta = { categories: [], units: [], suppliers: [], brands: [], attributes: [], loaded: false };
+  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', suppliers: [], brand: '', salesUnit: '', purchaseUnit: '', editId: null };
 
   function el(id){ return document.getElementById(id); }
   function num(id){ return parseFloat(el(id).value) || 0; }
@@ -494,15 +587,23 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     return Promise.all([
       apiFetch('/api/shop/category/all'),
       apiFetch('/api/shop/unit/all'),
-      apiFetch('/api/shop/supplier/all')
+      apiFetch('/api/shop/supplier/all'),
+      apiFetch('/api/shop/goods/brands'),
+      apiFetch('/api/shop/attribute/all')
     ]).then(function(r){
       meta.categories = (r[0] && r[0].data) || [];
       meta.units      = (r[1] && r[1].data) || [];
       meta.suppliers  = (r[2] && r[2].data) || [];
+      meta.brands     = (r[3] && r[3].data) || [];
+      meta.attributes = (r[4] && r[4].data) || [];
       meta.loaded = true;
       fillSelect('fCategory', meta.categories, '未分类', el('fCategory').value);
       fillSelect('fUnit', meta.units, '请选择', el('fUnit').value);
-      fillSelect('fSupplier', meta.suppliers, '不指定', el('fSupplier').value);
+      renderSupplierTags();
+      renderBrandTags();
+      if(checked('fMultiUnit')) renderUnits();
+      else syncDefaultUnitOptions();
+      if(checked('fMultiSpec')) renderSpecGroups();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('基础资料加载失败', 'error');
     });
@@ -567,7 +668,9 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       el('fCode').value        = d.code || '';
       el('fBarcode').value     = d.barcode || '';
       el('fRemark').value      = d.remark || '';
-      el('fSpec').value        = d.spec || '';
+      el('fOrigin').value      = d.origin || '';
+      form.brand = d.brand || '';
+      renderBrandTags();
       el('fPurchasePrice').value  = d.purchase_price || '';
       el('fRetailPrice').value    = d.retail_price || '';
       el('fWholesalePrice').value = d.wholesale_price || '';
@@ -575,7 +678,20 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       el('fInitCost').value    = d.init_cost || '';
       el('fCategory').value    = d.category_id || '';
       el('fUnit').value        = d.unit_id || '';
-      el('fSupplier').value    = d.supplier_id || '';
+
+      // 供货商：兼容 supplier_id（旧）和 suppliers（新 JSON）
+      form.suppliers = [];
+      try {
+        var parsed = JSON.parse(d.suppliers || '[]');
+        if (Array.isArray(parsed) && parsed.length) {
+          form.suppliers = parsed;
+        } else if (d.supplier_id) {
+          form.suppliers = [d.supplier_id];
+        }
+      } catch(e) {
+        if (d.supplier_id) form.suppliers = [d.supplier_id];
+      }
+      renderSupplierTags();
 
       el('fMultiUnit').checked = !!d.has_multi_unit;
       el('fMultiSpec').checked = !!d.has_multi_spec;
@@ -586,20 +702,30 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       toggleMultiSpec();
       toggleAlert();
 
-      form.units = (d.units || []).map(function(u){
-        return { unit_id: u.unit_id, unit_name: u.unit_name || '', factor: u.factor || 1,
-                 barcode: u.barcode || '', purchase_price: u.purchase_price || '',
-                 retail_price: u.retail_price || '', wholesale_price: u.wholesale_price || '',
-                 is_main: !!u.is_main };
+      var rawUnits = (d.units || []).filter(function(u){ return !u.is_main; });
+      var absArr = rawUnits.map(function(u){ return u.factor || 1; });
+      var relArr = absToRel(absArr);
+      form.units = rawUnits.map(function(u, i){
+        return { unit_id: u.unit_id, unit_name: u.unit_name || '', factor: absArr[i], rel: relArr[i] };
       });
-      form.specs = (d.specs || []).map(function(s){
-        return { name: s.name || '', code: s.code || '', barcode: s.barcode || '',
-                 purchase_price: s.purchase_price || '', retail_price: s.retail_price || '',
-                 wholesale_price: s.wholesale_price || '', stock: s.stock || 0 };
+      form.salesUnit = d.sales_unit || '';
+      form.purchaseUnit = d.purchase_unit || '';
+      try{ form.specGroups = JSON.parse(d.spec_groups || '[]') || []; }catch(e){ form.specGroups = []; }
+      if(!Array.isArray(form.specGroups)) form.specGroups = [];
+      form.specGroups.forEach(function(g){
+        g.hasImage = !!g.hasImage;
+        g.values = (g.values || []).map(function(v){
+          return (typeof v === 'string') ? { name:v, image:'' } : { name:v.name||'', image:v.image||'' };
+        });
       });
+      try{ form.priceRows = JSON.parse(d.price_rows || '{}') || {}; }catch(e){ form.priceRows = {}; }
+      if(typeof form.priceRows !== 'object' || form.priceRows === null) form.priceRows = {};
+      try{ form.stockRows = JSON.parse(d.stock_rows || '{}') || {}; }catch(e){ form.stockRows = {}; }
+      if(typeof form.stockRows !== 'object' || form.stockRows === null) form.stockRows = {};
+      form.priceUnit = '';
       try{ form.images = JSON.parse(d.images || '[]') || []; }catch(e){ form.images = []; }
       if(!form.images.length && d.image_url) form.images = [d.image_url];
-      renderImages(); renderUnits(); renderSpecs();
+      renderImages(); renderUnits(); renderSpecGroups();
       openDrawer();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
@@ -607,14 +733,18 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   function resetForm(){
-    ['fName','fCode','fBarcode','fRemark','fSpec','fPurchasePrice','fRetailPrice',
+    ['fName','fCode','fBarcode','fRemark','fOrigin','fPurchasePrice','fRetailPrice',
      'fWholesalePrice','fStock','fInitCost','fMinStock','fMaxStock'].forEach(function(id){
       var e = el(id); if(e) e.value = '';
     });
     ['fMultiUnit','fMultiSpec','fAlert'].forEach(function(id){ el(id).checked = false; });
-    el('fCategory').value = ''; el('fUnit').value = ''; el('fSupplier').value = '';
-    form.images = []; form.units = []; form.specs = [];
-    renderImages(); renderUnits(); renderSpecs();
+    el('fCategory').value = ''; el('fUnit').value = '';
+    form.brand = '';
+    renderBrandTags();
+    form.images = []; form.units = []; form.specGroups = []; form.suppliers = [];
+    form.priceRows = {}; form.stockRows = {}; form.priceUnit = '';
+    form.salesUnit = ''; form.purchaseUnit = '';
+    renderImages(); renderUnits(); renderSpecGroups(); renderSupplierTags();
     toggleMultiUnit(); toggleMultiSpec(); toggleAlert();
     el('drawerHint').textContent = '';
   }
@@ -624,17 +754,20 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var on = checked('fMultiUnit');
     el('unitWrap').style.display = on ? '' : 'none';
     if(on && !form.units.length){
-      form.units = [{ unit_name: (el('fUnit').selectedOptions[0] || {}).text || '', factor: 1, is_main: true }];
-      renderUnits();
+      form.units = [{ unit_name:'', rel:1 }];
     }
+    renderUnits();
   };
   window.toggleMultiSpec = function(){
     var on = checked('fMultiSpec');
     el('specWrap').style.display = on ? '' : 'none';
-    if(on && !form.specs.length){ form.specs = [{}]; renderSpecs(); }
+    if(on && !form.specGroups.length){ form.specGroups = [{ name:'', hasImage:false, values:[] }]; }
+    renderSpecGroups();
   };
   window.toggleAlert = function(){
-    el('alertRow').style.display = checked('fAlert') ? '' : 'none';
+    var on = checked('fAlert');
+    el('alertRow').style.display = on ? '' : 'none';
+    if(checked('fMultiSpec')) renderStockTable();
   };
 
   // --- 自动生成 ---
@@ -673,6 +806,159 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       loadMeta(true).then(function(){ el('fUnit').value = res.data.id; });
       showToast('单位已新增', 'success');
     });
+  };
+
+  // --- 供货商多选 ---
+  function renderSupplierTags(){
+    var c = el('supplierTags');
+    if(!form.suppliers.length){ c.innerHTML = ''; c.setAttribute('data-placeholder','暂无供应商，点击添加'); return; }
+    c.removeAttribute('data-placeholder');
+    var h = '';
+    form.suppliers.forEach(function(id, i){
+      var s = meta.suppliers.filter(function(x){ return String(x.id)===String(id); })[0];
+      var name = s ? s.name : ('#' + id);
+      h += '<span class="tag">' + esc(name) + '<span class="tag-del" onclick="removeSupplier(' + i + ')">×</span></span>';
+    });
+    c.innerHTML = h;
+  }
+  window.removeSupplier = function(i){
+    form.suppliers.splice(i, 1);
+    renderSupplierTags();
+  };
+
+  // 供应商选择弹窗
+  var _pendingSupplierPick = [];
+  window.openSupplierPicker = function(){
+    _pendingSupplierPick = form.suppliers.slice();
+    var search = el('supplierSearch');
+    if(search) search.value = '';
+    renderSupplierChecklist();
+    el('supplierModal').classList.add('show');
+    if(search) setTimeout(function(){ search.focus(); }, 100);
+  };
+  window.closeSupplierPicker = function(){
+    el('supplierModal').classList.remove('show');
+  };
+  window.confirmSupplierPick = function(){
+    form.suppliers = _pendingSupplierPick.slice();
+    renderSupplierTags();
+    closeSupplierPicker();
+  };
+
+  function renderSupplierChecklist(filter){
+    var c = el('supplierChecklist');
+    var list = meta.suppliers;
+    if(filter){
+      var kw = filter.toLowerCase();
+      list = list.filter(function(s){ return (s.name||'').toLowerCase().indexOf(kw) !== -1; });
+    }
+    if(!list.length){ c.innerHTML = ''; return; }
+    var h = '';
+    list.forEach(function(s){
+      var checked = _pendingSupplierPick.indexOf(s.id) !== -1;
+      h += '<div class="check-item' + (checked ? ' selected' : '') + '" onclick="toggleSupplierPick(' + s.id + ',this)">'
+        + '<input type="checkbox"' + (checked ? ' checked' : '') + ' onclick="event.stopPropagation();toggleSupplierPick(' + s.id + ',this.parentElement)">'
+        + '<label onclick="event.stopPropagation();toggleSupplierPick(' + s.id + ',this.parentElement)">' + esc(s.name) + '</label>'
+        + '</div>';
+    });
+    c.innerHTML = h;
+  }
+  window.toggleSupplierPick = function(id, el){
+    var idx = _pendingSupplierPick.indexOf(id);
+    if(idx === -1) _pendingSupplierPick.push(id);
+    else _pendingSupplierPick.splice(idx, 1);
+    renderSupplierChecklist(el('supplierSearch') ? el('supplierSearch').value.trim() : '');
+  };
+  window.filterSupplierList = function(){
+    renderSupplierChecklist(el('supplierSearch').value.trim());
+  };
+  window.addSupplierInline = function(){
+    var name = (prompt('请输入供应商名称') || '').trim();
+    if(!name) return;
+    apiFetch('/api/shop/supplier', { method:'POST', body:{ name:name } }).then(function(res){
+      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+      meta.loaded = false;
+      loadMeta(true).then(function(){
+        // 自动勾选新增的供应商
+        if(res.data && res.data.id && _pendingSupplierPick.indexOf(res.data.id) === -1){
+          _pendingSupplierPick.push(res.data.id);
+        }
+        renderSupplierChecklist(el('supplierSearch') ? el('supplierSearch').value.trim() : '');
+      });
+      showToast('供应商已新增', 'success');
+    });
+  };
+
+  // --- 品牌选择弹窗（单选）---
+  var _pendingBrandPick = '';
+  function renderBrandTags(){
+    var c = el('brandTags');
+    var v = form.brand || '';
+    if(!v){ c.innerHTML = ''; c.setAttribute('data-placeholder','暂无品牌，点击添加'); return; }
+    c.removeAttribute('data-placeholder');
+    c.innerHTML = '<span class="tag">' + esc(v) + '<span class="tag-del" onclick="removeBrand()">×</span></span>';
+  }
+  window.removeBrand = function(){
+    form.brand = '';
+    renderBrandTags();
+  };
+  window.openBrandPicker = function(){
+    _pendingBrandPick = form.brand || '';
+    var search = el('brandSearch');
+    if(search) search.value = '';
+    renderBrandChecklist();
+    el('brandModal').classList.add('show');
+    if(search) setTimeout(function(){ search.focus(); }, 100);
+  };
+  window.closeBrandPicker = function(){
+    el('brandModal').classList.remove('show');
+  };
+  window.confirmBrandPick = function(){
+    form.brand = _pendingBrandPick;
+    renderBrandTags();
+    closeBrandPicker();
+  };
+  function renderBrandChecklist(filter){
+    var c = el('brandChecklist');
+    var list = meta.brands || [];
+    if(filter){
+      var kw = filter.toLowerCase();
+      list = list.filter(function(s){ return s.toLowerCase().indexOf(kw) !== -1; });
+    }
+    // 合并：已有列表 + 当前输入的新名称
+    var searchVal = (el('brandSearch') ? el('brandSearch').value.trim() : '');
+    var allItems = list.slice();
+    if(searchVal && allItems.indexOf(searchVal) === -1){
+      allItems.push(searchVal);
+    }
+    if(!allItems.length){ c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);font-size:13px">暂无数据</div>'; return; }
+    var h = '';
+    allItems.forEach(function(s){
+      var checked = _pendingBrandPick === s;
+      h += '<div class="check-item' + (checked ? ' selected' : '') + '" onclick="pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this)">'
+        + '<input type="radio" name="brandPick"' + (checked ? ' checked' : '') + ' onclick="event.stopPropagation();pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this.parentElement)">'
+        + '<label onclick="event.stopPropagation();pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this.parentElement)">' + esc(s) + '</label>'
+        + '</div>';
+    });
+    c.innerHTML = h;
+  }
+  window.pickBrand = function(name){
+    _pendingBrandPick = name;
+    renderBrandChecklist(el('brandSearch') ? el('brandSearch').value.trim() : '');
+  };
+  window.filterBrandList = function(){
+    renderBrandChecklist(el('brandSearch').value.trim());
+  };
+  window.addBrandInline = function(){
+    var name = (el('brandSearch') ? el('brandSearch').value.trim() : '');
+    if(!name){ showToast('请输入品牌名称', 'error'); return; }
+    if(meta.brands.indexOf(name) === -1){
+      meta.brands.push(name);
+      meta.brands.sort();
+    }
+    _pendingBrandPick = name;
+    renderBrandChecklist(name);
+    showToast('品牌已添加', 'success');
   };
 
   // --- 图片 ---
@@ -760,113 +1046,583 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     });
   })();
 
-  // --- 多单位表格 ---
-  function unitOptions(sel){
-    var h = '<option value="">请选择</option>';
-    meta.units.forEach(function(u){
-      h += '<option value="' + u.id + '"' + (String(sel)===String(u.id)?' selected':'') + '>' + u.name + '</option>';
-    });
-    return h;
+  // --- 多单位（主单位 + 辅单位链式换算）---
+  function mainUnitName(){
+    var s = el('fUnit');
+    return (s && s.selectedOptions && s.selectedOptions[0]) ? s.selectedOptions[0].text : '';
   }
+  // 第 i 行辅单位的换算基准：第 0 行为主单位，其余为上一行辅单位
+  function refUnitName(i){
+    if(i === 0) return mainUnitName() || '主单位';
+    return form.units[i-1].unit_name || '—';
+  }
+  var TRASH_SVG = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/>'
+    + '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
   function renderUnits(){
-    var b = el('unitBody');
-    if(!form.units.length){ b.innerHTML = ''; return; }
+    var c = el('unitBoxes');
+    if(!form.units.length){ c.innerHTML = ''; syncDefaultUnitOptions(); return; }
     var h = '';
     form.units.forEach(function(u, i){
-      h += '<tr>'
-        + '<td class="rownum"><input type="radio" name="mainUnit" ' + (u.is_main?'checked':'')
-        +   ' onchange="setMainUnit(' + i + ')" title="设为主单位"></td>'
-        + '<td><select class="finput" data-k="unit_name" onchange="syncUnitName(' + i + ',this.value)">'
+      h += '<div class="unit-box">'
+        + '<span class="ub-label">辅单位' + (i+1) + '</span>'
+        + '<select class="finput ub-select" onchange="syncUnitName(' + i + ',this.value)">'
         +   '<option value="">请选择</option>'
         +   meta.units.map(function(x){ return '<option value="' + x.name + '"' + (x.name===u.unit_name?' selected':'') + '>' + x.name + '</option>'; }).join('')
         +   (u.unit_name && !meta.units.some(function(x){return x.name===u.unit_name;}) ? '<option selected>' + u.unit_name + '</option>' : '')
-        + '</select></td>'
-        + '<td><input class="finput" type="number" step="0.0001" min="0" value="' + (u.factor||1) + '" data-k="factor"></td>'
-        + '<td><input class="finput" value="' + (u.barcode||'') + '" data-k="barcode"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.purchase_price||'') + '" data-k="purchase_price"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.retail_price||'') + '" data-k="retail_price"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (u.wholesale_price||'') + '" data-k="wholesale_price"></td>'
-        + '<td><span class="delrow" onclick="removeUnitRow(' + i + ')">×</span></td>'
-        + '</tr>';
+        + '</select>'
+        + '<span class="ub-formula">1' + (u.unit_name || '?') + ' ='
+        +   '<input type="number" step="0.0001" min="0" class="ub-factor" value="' + (u.rel || 1) + '">'
+        +   '<span class="ub-ref">' + esc(refUnitName(i)) + '</span></span>'
+        + '<span class="ub-del" onclick="removeUnitRow(' + i + ')" title="删除">' + TRASH_SVG + '</span>'
+        + '</div>';
     });
-    b.innerHTML = h;
+    c.innerHTML = h;
+    syncDefaultUnitOptions();
+    refreshSpecDependents();
   }
   window.syncUnitName = function(i, v){
     form.units[i].unit_name = v;
     var u = meta.units.filter(function(x){ return x.name === v; })[0];
     form.units[i].unit_id = u ? u.id : null;
+    readUnits();
+    renderUnits();
   };
-  window.setMainUnit = function(i){
-    form.units.forEach(function(u, j){ u.is_main = (i === j); });
+  window.onMainUnitChange = function(){
+    if(checked('fMultiUnit')){ readUnits(); renderUnits(); }
   };
   window.addUnitRow = function(){
     if(form.units.length >= 5){ showToast('最多 5 个单位', 'error'); return; }
     readUnits();
-    form.units.push({ unit_name:'', factor:1, is_main: form.units.length === 0 });
+    form.units.push({ unit_name:'', rel:1 });
     renderUnits();
   };
   window.removeUnitRow = function(i){
     readUnits();
-    var wasMain = form.units[i].is_main;
     form.units.splice(i, 1);
-    if(wasMain && form.units.length) form.units[0].is_main = true;
     renderUnits();
   };
   function readUnits(){
-    var rows = el('unitBody').querySelectorAll('tr');
-    rows.forEach(function(tr, i){
+    var boxes = el('unitBoxes').querySelectorAll('.unit-box');
+    boxes.forEach(function(box, i){
       if(!form.units[i]) return;
-      tr.querySelectorAll('[data-k]').forEach(function(inp){
-        var k = inp.getAttribute('data-k');
-        form.units[i][k] = inp.type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
-      });
-      if(form.units[i].unit_name){
-        var u = meta.units.filter(function(x){ return x.name === form.units[i].unit_name; })[0];
-        form.units[i].unit_id = u ? u.id : null;
-      }
+      var sel = box.querySelector('select');
+      var fac = box.querySelector('.ub-factor');
+      if(sel) form.units[i].unit_name = sel.value;
+      if(fac) form.units[i].rel = parseFloat(fac.value) || 1;
+      var m = meta.units.filter(function(x){ return x.name === form.units[i].unit_name; })[0];
+      form.units[i].unit_id = m ? m.id : null;
     });
+  }
+  // 开单默认单位下拉：主单位 + 全部辅单位
+  function syncDefaultUnitOptions(){
+    var names = [];
+    var m = mainUnitName();
+    if(m) names.push(m);
+    form.units.forEach(function(u){ if(u.unit_name && names.indexOf(u.unit_name) < 0) names.push(u.unit_name); });
+    ['fSalesUnit','fPurchaseUnit'].forEach(function(id){
+      var s = el(id); if(!s) return;
+      var cur = s.value;
+      s.innerHTML = names.map(function(n){ return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('');
+      if(cur && names.indexOf(cur) >= 0) s.value = cur;
+      else if(form[id === 'fSalesUnit' ? 'salesUnit' : 'purchaseUnit']) s.value = form[id === 'fSalesUnit' ? 'salesUnit' : 'purchaseUnit'];
+    });
+  }
+  // 相对换算率（界面） ⇄ 绝对换算率（相对主单位，存储）
+  function relToAbs(rels){
+    var out = [], acc = 1;
+    rels.forEach(function(r){ acc *= (parseFloat(r) || 1); out.push(acc); });
+    return out;
+  }
+  function absToRel(abs){
+    var out = [];
+    abs.forEach(function(a, i){ out.push(i === 0 ? a : (abs[i-1] ? a / abs[i-1] : a)); });
+    return out;
   }
 
-  // --- 多规格表格 ---
-  function renderSpecs(){
-    var b = el('specBody');
-    if(!form.specs.length){ b.innerHTML = ''; return; }
-    var h = '';
-    form.specs.forEach(function(s, i){
-      h += '<tr>'
-        + '<td class="rownum">' + (i+1) + '</td>'
-        + '<td><input class="finput" value="' + (s.name||'') + '" data-k="name" placeholder="规格"></td>'
-        + '<td><input class="finput" value="' + (s.code||'') + '" data-k="code"></td>'
-        + '<td><input class="finput" value="' + (s.barcode||'') + '" data-k="barcode"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.purchase_price||'') + '" data-k="purchase_price"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.retail_price||'') + '" data-k="retail_price"></td>'
-        + '<td><input class="finput" type="number" step="0.01" min="0" value="' + (s.wholesale_price||'') + '" data-k="wholesale_price"></td>'
-        + '<td><input class="finput" type="number" min="0" value="' + (s.stock||0) + '" data-k="stock"></td>'
-        + '<td><span class="delrow" onclick="removeSpecRow(' + i + ')">×</span></td>'
-        + '</tr>';
-    });
-    b.innerHTML = h;
+  // --- 多规格（规格组）---
+  var specUI = { nameIdx: -1, valueIdx: -1, nameFilter: '', valueFilter: '' };
+  var specSort = { idx: -1, values: [] };
+
+  function jsesc(s){ return String(s == null ? '' : s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+  function attrValues(a){
+    if(!a) return [];
+    try{ var v = JSON.parse(a.values || '[]'); return Array.isArray(v) ? v : []; }catch(e){ return []; }
   }
-  window.addSpecRow = function(){
-    if(form.specs.length >= 50){ showToast('最多 50 个规格', 'error'); return; }
-    readSpecs();
-    form.specs.push({});
-    renderSpecs();
+  function findAttr(name){ return (meta.attributes || []).filter(function(a){ return a.name === name; })[0]; }
+  function checkSVG(){ return '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'; }
+
+  function renderSpecGroups(){
+    var c = el('specGroups');
+    if(!form.specGroups.length){ c.innerHTML = ''; return; }
+    var h = '';
+    form.specGroups.forEach(function(g, i){
+      var used = form.specGroups.filter(function(x,j){ return j!==i && x.name; }).map(function(x){ return x.name; });
+      var avail = (meta.attributes || []).filter(function(a){ return used.indexOf(a.name) < 0; });
+      var nf = (specUI.nameIdx===i ? specUI.nameFilter : '').toLowerCase();
+      var nameItems = avail.filter(function(a){ return !nf || a.name.toLowerCase().indexOf(nf) >= 0; });
+
+      h += '<div class="spec-card">'
+        + '<div class="spec-row">'
+        +   '<span class="spec-row-label">规格</span>'
+        +   '<div class="spec-name-wrap">'
+        +     '<div class="spec-name-input' + (g.name?' filled':'') + (specUI.nameIdx===i?' open':'') + '" onclick="openSpecNameDrop(' + i + ')">'
+        +       '<input class="spec-name-field" value="' + esc(g.name) + '" placeholder="请选择" oninput="onSpecNameInput(' + i + ',this.value)">'
+        +       '<span class="spec-clear" onclick="event.stopPropagation();clearSpecName(' + i + ')">×</span>'
+        +       '<span class="arrow"></span>'
+        +     '</div>'
+        +     '<div class="spec-drop' + (specUI.nameIdx===i?' open':'') + '">'
+        +       '<div class="spec-drop-list" id="specNameList' + i + '">' + specNameListHTML(i, nameItems, g.name) + '</div>'
+        +       '<div class="spec-drop-add" onclick="newSpecName(' + i + ')">+ 新增规格</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<label class="fswitch"><input type="checkbox" ' + (g.hasImage?'checked':'') + ' onchange="toggleSpecImage(' + i + ')"> 设置规格图片</label>'
+        +   '<div class="spec-row-right">'
+        +     '<span class="spec-sort-link" onclick="openSpecSort(' + i + ')">自定义排序</span>'
+        +     '<span class="ub-del" onclick="removeSpecGroup(' + i + ')" title="删除">' + TRASH_SVG + '</span>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="spec-row">'
+        +   '<span class="spec-row-label">规格值</span>'
+        +   '<div class="spec-values' + (specUI.valueIdx===i?' focus':'') + '" id="specValues' + i + '" onclick="focusSpecValue(' + i + ')">'
+        +     '<span class="spec-chips" id="specChips' + i + '">' + specChipsHTML(i) + '</span>'
+        +     '<input class="spec-value-input" placeholder="' + (g.values.length?'':'请选择') + '" value="' + (specUI.valueIdx===i?esc(specUI.valueFilter):'') + '" oninput="onSpecValueInput(' + i + ',this.value)">'
+        +     '<div class="spec-value-drop' + (specUI.valueIdx===i?' open':'') + '" id="specValueDrop' + i + '">' + specValueDropHTML(i) + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '</div>';
+    });
+    c.innerHTML = h;
+    refreshSpecDependents();
+  }
+
+  function specNameListHTML(i, items, cur){
+    var h = items.map(function(a){
+      return '<div class="spec-drop-item' + (a.name===cur?' active':'') + '" onclick="selectSpecName(' + i + ',\'' + jsesc(a.name) + '\')">' + esc(a.name) + '</div>';
+    }).join('');
+    return h || '<div class="spec-drop-item" style="color:var(--gray-400);cursor:default">暂无规格</div>';
+  }
+
+  function specChipsHTML(i){
+    var g = form.specGroups[i]; if(!g) return '';
+    return g.values.map(function(v, j){
+      var img = g.hasImage
+        ? '<span class="chip-img" onclick="event.stopPropagation();pickSpecImage(' + i + ',' + j + ')" title="上传图片">'
+          + (v.image ? '<img src="' + esc(v.image) + '">'
+                     : '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>')
+          + '</span>'
+        : '';
+      return '<span class="spec-chip">' + img + esc(v.name)
+        + '<span class="chip-x" onclick="event.stopPropagation();removeSpecValue(' + i + ',' + j + ')">×</span></span>';
+    }).join('');
+  }
+
+  function specValueDropHTML(i){
+    var g = form.specGroups[i]; if(!g) return '';
+    if(!g.name) return '<div class="spec-value-opt" style="color:var(--gray-400);cursor:default">请先选择规格</div>';
+    var all = attrValues(findAttr(g.name)).slice();
+    g.values.forEach(function(v){ if(all.indexOf(v.name) < 0) all.push(v.name); });
+    var vf = (specUI.valueIdx===i ? specUI.valueFilter : '').toLowerCase();
+    var shown = all.filter(function(n){ return !vf || n.toLowerCase().indexOf(vf) >= 0; });
+    var h = shown.map(function(n){
+      var sel = g.values.some(function(v){ return v.name===n; });
+      return '<div class="spec-value-opt' + (sel?' selected':'') + '" onclick="toggleSpecValue(' + i + ',\'' + jsesc(n) + '\')">' + esc(n)
+        + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    }).join('');
+    var typed = (specUI.valueIdx===i ? (specUI.valueFilter||'').trim() : '');
+    if(typed && all.indexOf(typed) < 0){
+      h += '<div class="spec-value-opt add" onclick="toggleSpecValue(' + i + ',\'' + jsesc(typed) + '\')">+ 新增「' + esc(typed) + '」</div>';
+    }
+    return h || '<div class="spec-value-opt" style="color:var(--gray-400);cursor:default">暂无规格值</div>';
+  }
+
+  // 局部刷新
+  function renderSpecChips(i){ var e = el('specChips'+i); if(e) e.innerHTML = specChipsHTML(i); }
+  function renderSpecValueDrop(i){ var e = el('specValueDrop'+i); if(e) e.innerHTML = specValueDropHTML(i); }
+  function renderSpecNameList(i){
+    var e = el('specNameList'+i); if(!e) return;
+    var used = form.specGroups.filter(function(x,j){ return j!==i && x.name; }).map(function(x){ return x.name; });
+    var avail = (meta.attributes || []).filter(function(a){ return used.indexOf(a.name) < 0; });
+    var nf = (specUI.nameFilter||'').toLowerCase();
+    var items = avail.filter(function(a){ return !nf || a.name.toLowerCase().indexOf(nf) >= 0; });
+    e.innerHTML = items.map(function(a){
+      return '<div class="spec-drop-item' + (a.name===form.specGroups[i].name?' active':'') + '" onclick="selectSpecName(' + i + ',\'' + jsesc(a.name) + '\')">' + esc(a.name) + '</div>';
+    }).join('') || '<div class="spec-drop-item" style="color:var(--gray-400);cursor:default">暂无规格</div>';
+  }
+  function closeAllSpecDrops(){
+    document.querySelectorAll('.spec-drop.open,.spec-value-drop.open').forEach(function(d){ d.classList.remove('open'); });
+    document.querySelectorAll('.spec-name-input.open').forEach(function(d){ d.classList.remove('open'); });
+    document.querySelectorAll('.spec-values.focus').forEach(function(d){ d.classList.remove('focus'); });
+    specUI.nameIdx = -1; specUI.valueIdx = -1;
+  }
+  document.addEventListener('click', function(e){
+    if(e.target.closest && (e.target.closest('.spec-name-wrap') || e.target.closest('.spec-values'))) return;
+    closeAllSpecDrops();
+  });
+
+  window.addSpecGroup = function(){
+    if(form.specGroups.length >= 3){ showToast('最多 3 组规格', 'error'); return; }
+    form.specGroups.push({ name:'', hasImage:false, values:[] });
+    renderSpecGroups();
   };
-  window.removeSpecRow = function(i){
-    readSpecs();
-    form.specs.splice(i, 1);
-    renderSpecs();
+  window.removeSpecGroup = function(i){
+    form.specGroups.splice(i, 1);
+    closeAllSpecDrops();
+    renderSpecGroups();
   };
-  function readSpecs(){
-    var rows = el('specBody').querySelectorAll('tr');
-    rows.forEach(function(tr, i){
-      if(!form.specs[i]) return;
-      tr.querySelectorAll('[data-k]').forEach(function(inp){
-        var k = inp.getAttribute('data-k');
-        form.specs[i][k] = inp.type === 'number' ? (parseFloat(inp.value) || 0) : inp.value;
+  window.openSpecNameDrop = function(i){
+    var was = specUI.nameIdx === i;
+    closeAllSpecDrops();
+    if(was) return;
+    specUI.nameIdx = i; specUI.nameFilter = '';
+    var wrap = document.querySelectorAll('.spec-name-input')[i];
+    var drop = wrap ? wrap.parentNode.querySelector('.spec-drop') : null;
+    if(wrap) wrap.classList.add('open');
+    if(drop) drop.classList.add('open');
+    var inp = wrap ? wrap.querySelector('input') : null;
+    if(inp){ inp.focus(); inp.select(); }
+  };
+  window.onSpecNameInput = function(i, v){
+    specUI.nameIdx = i; specUI.nameFilter = v;
+    renderSpecNameList(i);
+  };
+  window.clearSpecName = function(i){
+    form.specGroups[i].name = '';
+    form.specGroups[i].values = [];
+    closeAllSpecDrops();
+    renderSpecGroups();
+  };
+  window.selectSpecName = function(i, name){
+    var g = form.specGroups[i];
+    if(g.name !== name) g.values = [];
+    g.name = name;
+    var attr = findAttr(name);
+    if(attr){
+      var valid = attrValues(attr);
+      g.values = g.values.filter(function(v){ return valid.indexOf(v.name) >= 0; });
+    }
+    closeAllSpecDrops();
+    renderSpecGroups();
+  };
+  window.newSpecName = function(i){
+    var name = (prompt('请输入规格名称，如 颜色 / 尺码') || '').trim();
+    if(!name) return;
+    if(findAttr(name)){
+      form.specGroups[i].name = name;
+      closeAllSpecDrops(); renderSpecGroups(); return;
+    }
+    apiFetch('/api/shop/attribute', { method:'POST', body:{ name:name } }).then(function(res){
+      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+      return loadMeta(true).then(function(){
+        form.specGroups[i].name = name;
+        form.specGroups[i].values = [];
+        closeAllSpecDrops(); renderSpecGroups();
+        showToast('规格已新增', 'success');
+      });
+    }).catch(function(e){ if(e.message !== 'Unauthorized') showToast('网络错误', 'error'); });
+  };
+  window.toggleSpecImage = function(i){
+    form.specGroups[i].hasImage = !form.specGroups[i].hasImage;
+    renderSpecGroups();
+  };
+  window.focusSpecValue = function(i){
+    closeAllSpecDrops();
+    specUI.valueIdx = i;
+    var box = el('specValues'+i);
+    if(box){
+      box.classList.add('focus');
+      var inp = box.querySelector('.spec-value-input');
+      specUI.valueFilter = inp ? inp.value : '';
+      renderSpecValueDrop(i);
+      var drop = el('specValueDrop'+i); if(drop) drop.classList.add('open');
+      if(inp) inp.focus();
+    }
+  };
+  window.onSpecValueInput = function(i, v){
+    specUI.valueIdx = i; specUI.valueFilter = v;
+    renderSpecValueDrop(i);
+  };
+  window.toggleSpecValue = function(i, name){
+    var g = form.specGroups[i];
+    var idx = -1;
+    g.values.forEach(function(v, j){ if(v.name === name) idx = j; });
+    if(idx >= 0){
+      g.values.splice(idx, 1);
+    }else{
+      g.values.push({ name:name, image:'' });
+      persistSpecValue(g.name, name);
+    }
+    specUI.valueFilter = '';
+    var box = el('specValues'+i);
+    var inp = box ? box.querySelector('.spec-value-input') : null;
+    if(inp) inp.value = '';
+    renderSpecChips(i); renderSpecValueDrop(i);
+    if(inp) inp.focus();
+  };
+  window.removeSpecValue = function(i, j){
+    form.specGroups[i].values.splice(j, 1);
+    renderSpecChips(i); renderSpecValueDrop(i);
+  };
+  function persistSpecValue(attrName, value){
+    var attr = findAttr(attrName);
+    if(!attr) return;
+    if(attrValues(attr).indexOf(value) >= 0) return;
+    apiFetch('/api/shop/attribute/' + attr.id + '/value', { method:'POST', body:{ value:value } }).then(function(){
+      if(attr.values){
+        var arr = attrValues(attr); arr.push(value); attr.values = JSON.stringify(arr);
+      }
+    }).catch(function(){});
+  }
+
+  // 规格图片上传
+  var _sp = el('specImgPicker');
+  var specImgTarget = null;
+  if(_sp) _sp.addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if(!f || !specImgTarget) return;
+    var fd = new FormData(); fd.append('file', f);
+    apiFetch('/api/shop/upload', { method:'POST', body: fd }).then(function(res){
+      if(res.code === 0 && res.data && res.data.url){
+        var g = form.specGroups[specImgTarget.i];
+        if(g && g.values[specImgTarget.j]) g.values[specImgTarget.j].image = res.data.url;
+        renderSpecChips(specImgTarget.i);
+      }else{
+        showToast(res.message || '上传失败', 'error');
+      }
+    }).catch(function(){ showToast('上传失败', 'error'); });
+  });
+  window.pickSpecImage = function(i, j){
+    specImgTarget = { i:i, j:j };
+    if(_sp) _sp.click();
+  };
+
+  // 自定义排序
+  window.openSpecSort = function(i){
+    var g = form.specGroups[i];
+    specSort.idx = i;
+    specSort.values = g.values.map(function(v){ return v.name; });
+    el('sortSpecName').textContent = g.name || '规格';
+    renderSortChips();
+    el('specSortModal').classList.add('open');
+  };
+  window.closeSpecSort = function(){ el('specSortModal').classList.remove('open'); };
+  window.resetSpecSort = function(){
+    var g = form.specGroups[specSort.idx];
+    var order = attrValues(findAttr(g.name));
+    specSort.values = g.values.slice().sort(function(a, b){
+      var ia = order.indexOf(a.name), ib = order.indexOf(b.name);
+      if(ia < 0) ia = 999;
+      if(ib < 0) ib = 999;
+      return ia - ib;
+    }).map(function(v){ return v.name; });
+    renderSortChips();
+  };
+  function renderSortChips(){
+    el('sortChips').innerHTML = specSort.values.map(function(n, i){
+      return '<span class="sort-chip" draggable="true" data-i="' + i + '">' + esc(n) + '</span>';
+    }).join('');
+    bindSortDrag();
+  }
+  function bindSortDrag(){
+    var chips = el('sortChips').querySelectorAll('.sort-chip');
+    var dragI = -1;
+    chips.forEach(function(ch){
+      ch.addEventListener('dragstart', function(e){ dragI = parseInt(this.getAttribute('data-i'),10); this.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+      ch.addEventListener('dragend', function(){ this.classList.remove('dragging'); chips.forEach(function(c){ c.classList.remove('dragover'); }); });
+      ch.addEventListener('dragover', function(e){ e.preventDefault(); this.classList.add('dragover'); });
+      ch.addEventListener('dragleave', function(){ this.classList.remove('dragover'); });
+      ch.addEventListener('drop', function(e){
+        e.preventDefault();
+        var to = parseInt(this.getAttribute('data-i'),10);
+        if(dragI < 0 || dragI === to) return;
+        var moved = specSort.values.splice(dragI, 1)[0];
+        specSort.values.splice(to, 0, moved);
+        renderSortChips();
       });
     });
+  }
+  window.saveSpecSort = function(){
+    var g = form.specGroups[specSort.idx];
+    var ordered = specSort.values.map(function(n){
+      return g.values.filter(function(v){ return v.name === n; })[0] || { name:n, image:'' };
+    });
+    g.values = ordered;
+    closeSpecSort();
+    renderSpecGroups();
+  };
+
+  // --- 价格 / 库存 与 规格、单位 联动 ---
+  function specCombos(){
+    var groups = form.specGroups.filter(function(g){ return g.name && g.values.length; });
+    if(!groups.length) return [];
+    var combos = [{ key:'', values:{} }];
+    groups.forEach(function(g){
+      var next = [];
+      combos.forEach(function(c){
+        g.values.forEach(function(v){
+          var vals = {}; for(var k in c.values) vals[k] = c.values[k];
+          vals[g.name] = v.name;
+          next.push({ key: (c.key ? c.key + ' / ' : '') + v.name, values: vals });
+        });
+      });
+      combos = next;
+    });
+    return combos;
+  }
+  function priceUnitNames(){
+    var names = [];
+    var m = mainUnitName();
+    if(m) names.push(m);
+    form.units.forEach(function(u){ if(u.unit_name && names.indexOf(u.unit_name) < 0) names.push(u.unit_name); });
+    return names;
+  }
+  function priceUnitLabel(name){
+    var idx = -1;
+    form.units.forEach(function(u, i){ if(u.unit_name === name) idx = i; });
+    if(idx < 0) return name;
+    var ref = idx === 0 ? mainUnitName() : form.units[idx-1].unit_name;
+    return name + '(1' + name + '=' + (form.units[idx].rel || 1) + ref + ')';
+  }
+  function blankPriceRow(){ return { code:'', barcode:'', purchase_price:'', retail_price:'', wholesale_price:'', disabled:false }; }
+  function blankStockRow(){ return { stock:'', min_stock:'', safe_stock:'', max_stock:'', init_cost:'' }; }
+
+  function refreshSpecDependents(){
+    var on = checked('fMultiSpec');
+    el('priceSimple').style.display = on ? 'none' : '';
+    el('priceMulti').style.display  = on ? '' : 'none';
+    el('stockSimple').style.display = on ? 'none' : '';
+    el('stockMulti').style.display  = on ? '' : 'none';
+    if(!on) return;
+    reconcileRows();
+    renderPriceTabs();
+    renderPriceTable();
+    renderStockTable();
+  }
+  function reconcileRows(){
+    var combos = specCombos();
+    var keys = combos.map(function(c){ return c.key; });
+    var units = priceUnitNames();
+    var pr = {};
+    units.forEach(function(u){
+      var old = form.priceRows[u] || {};
+      pr[u] = {};
+      keys.forEach(function(k){ pr[u][k] = old[k] || blankPriceRow(); });
+    });
+    form.priceRows = pr;
+    if(units.indexOf(form.priceUnit) < 0) form.priceUnit = units[0] || '';
+    var oldS = form.stockRows || {};
+    var ns = {};
+    keys.forEach(function(k){ ns[k] = oldS[k] || blankStockRow(); });
+    form.stockRows = ns;
+  }
+  window.selectPriceUnit = function(name){
+    readPriceTable();
+    form.priceUnit = name;
+    renderPriceTabs();
+    renderPriceTable();
+  };
+  window.addMorePrice = function(){
+    if(!checked('fMultiUnit')){
+      el('fMultiUnit').checked = true;
+      toggleMultiUnit();
+    }
+    addUnitRow();
+    showToast('请在「单位与规格」中设置新单位');
+  };
+  function renderPriceTabs(){
+    var units = priceUnitNames();
+    el('priceUnitTabs').innerHTML = units.map(function(u){
+      return '<span class="price-unit-tab' + (u === form.priceUnit ? ' active' : '') + '" onclick="selectPriceUnit(\'' + jsesc(u) + '\')">' + esc(priceUnitLabel(u)) + '</span>';
+    }).join('') || '<span class="fhint">请先在「单位与规格」中添加单位</span>';
+  }
+  function renderPriceTable(){
+    var combos = specCombos();
+    var groups = form.specGroups.filter(function(g){ return g.name; });
+    var unit = form.priceUnit;
+    var rows = form.priceRows[unit] || {};
+    var h = '<thead><tr>';
+    groups.forEach(function(g){ h += '<th>' + esc(g.name) + '</th>'; });
+    h += '<th>单位</th>'
+      + '<th>编号/货号<span class="th-sub">批量</span></th>'
+      + '<th>条形码<span class="th-sub">自动生成</span></th>'
+      + '<th>进货价<span class="th-sub">批量</span></th>'
+      + '<th>零售价<span class="th-sub">批量</span></th>'
+      + '<th>批发价<span class="th-sub">批量</span></th>'
+      + '<th>停用</th></tr></thead><tbody>';
+    combos.forEach(function(c){
+      var r = rows[c.key] || blankPriceRow();
+      h += '<tr data-key="' + esc(c.key) + '">';
+      groups.forEach(function(g){ h += '<td class="spec-cell">' + esc(c.values[g.name] || '') + '</td>'; });
+      h += '<td class="spec-cell">' + esc(unit) + '</td>'
+        + '<td><input class="cell-input" data-f="code" value="' + esc(r.code) + '"></td>'
+        + '<td><input class="cell-input" data-f="barcode" value="' + esc(r.barcode) + '"></td>'
+        + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="purchase_price" value="' + (r.purchase_price || '') + '"></td>'
+        + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="retail_price" value="' + (r.retail_price || '') + '"></td>'
+        + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="wholesale_price" value="' + (r.wholesale_price || '') + '"></td>'
+        + '<td><label class="switch"><input type="checkbox" data-f="disabled" ' + (r.disabled ? 'checked' : '') + '><span class="slider"></span></label></td>'
+        + '</tr>';
+    });
+    h += '</tbody>';
+    if(!combos.length){ h += ''; }
+    el('priceTable').innerHTML = h;
+  }
+  function readPriceTable(){
+    var unit = form.priceUnit; if(!unit) return;
+    if(!form.priceRows[unit]) form.priceRows[unit] = {};
+    el('priceTable').querySelectorAll('tbody tr').forEach(function(tr){
+      var key = tr.getAttribute('data-key');
+      var r = form.priceRows[unit][key] || blankPriceRow();
+      tr.querySelectorAll('[data-f]').forEach(function(inp){
+        var f = inp.getAttribute('data-f');
+        r[f] = inp.type === 'checkbox' ? inp.checked : inp.value;
+      });
+      form.priceRows[unit][key] = r;
+    });
+  }
+  function renderStockTable(){
+    var combos = specCombos();
+    var groups = form.specGroups.filter(function(g){ return g.name; });
+    var unit = mainUnitName();
+    var rows = form.stockRows || {};
+    var alert = checked('fAlert');
+    var h = '<thead><tr>';
+    groups.forEach(function(g){ h += '<th>' + esc(g.name) + '</th>'; });
+    h += '<th>单位</th><th>初始库存<span class="th-sub">批量</span></th>';
+    if(alert){
+      h += '<th>最低库存<span class="th-sub">批量</span></th>'
+        + '<th>安全库存<span class="th-sub">批量</span></th>'
+        + '<th>最高库存<span class="th-sub">批量</span></th>';
+    }
+    h += '<th>初始成本<span class="th-sub">批量</span></th></tr></thead><tbody>';
+    combos.forEach(function(c){
+      var r = rows[c.key] || blankStockRow();
+      h += '<tr data-key="' + esc(c.key) + '">';
+      groups.forEach(function(g){ h += '<td class="spec-cell">' + esc(c.values[g.name] || '') + '</td>'; });
+      h += '<td class="spec-cell">' + esc(unit || '—') + '</td>'
+        + '<td><input class="cell-input" type="number" min="0" data-f="stock" value="' + (r.stock || '') + '"></td>';
+      if(alert){
+        h += '<td><input class="cell-input" type="number" min="0" data-f="min_stock" value="' + (r.min_stock || '') + '"></td>'
+          + '<td><input class="cell-input" type="number" min="0" data-f="safe_stock" value="' + (r.safe_stock || '') + '"></td>'
+          + '<td><input class="cell-input" type="number" min="0" data-f="max_stock" value="' + (r.max_stock || '') + '"></td>';
+      }
+      h += '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="init_cost" value="' + (r.init_cost || '') + '"></td>'
+        + '</tr>';
+    });
+    h += '</tbody>';
+    el('stockTable').innerHTML = h;
+  }
+  function readStockTable(){
+    var rows = form.stockRows || {};
+    el('stockTable').querySelectorAll('tbody tr').forEach(function(tr){
+      var key = tr.getAttribute('data-key');
+      var r = rows[key] || blankStockRow();
+      tr.querySelectorAll('[data-f]').forEach(function(inp){
+        r[inp.getAttribute('data-f')] = inp.value;
+      });
+      rows[key] = r;
+    });
+    form.stockRows = rows;
   }
 
   // --- 提交 ---
@@ -874,10 +1630,22 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var name = el('fName').value.trim();
     if(!name){ showToast('请输入货品名称', 'error'); el('fName').focus(); return; }
 
-    readUnits(); readSpecs();
+    readUnits();
+    if(checked('fMultiUnit')){
+      if(!mainUnitName()){ showToast('请先选择主单位', 'error'); return; }
+      form.units = form.units.filter(function(u){ return (u.unit_name||'').trim() !== ''; });
+      if(!form.units.length){ showToast('启用多单位时请至少选择 1 个辅单位', 'error'); return; }
+    }
     if(checked('fMultiSpec')){
-      form.specs = form.specs.filter(function(s){ return (s.name||'').trim() !== ''; });
-      if(!form.specs.length){ showToast('启用多规格时至少填写 1 行规格', 'error'); return; }
+      form.specGroups = form.specGroups.filter(function(g){ return (g.name||'').trim() !== ''; });
+      if(!form.specGroups.length){ showToast('启用多规格时请至少添加 1 组规格', 'error'); return; }
+      for(var gi = 0; gi < form.specGroups.length; gi++){
+        if(!form.specGroups[gi].values.length){
+          showToast('规格「' + form.specGroups[gi].name + '」至少添加 1 个规格值', 'error');
+          return;
+        }
+      }
+      readPriceTable(); readStockTable();
     }
 
     var body = {
@@ -885,12 +1653,17 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       code: el('fCode').value.trim(),
       barcode: el('fBarcode').value.trim(),
       remark: el('fRemark').value.trim(),
-      spec: el('fSpec').value.trim(),
+      spec: '',
+      brand: form.brand || '',
+      origin: el('fOrigin').value.trim(),
       category_id: el('fCategory').value ? parseInt(el('fCategory').value,10) : null,
       unit_id: el('fUnit').value ? parseInt(el('fUnit').value,10) : null,
-      supplier_id: el('fSupplier').value ? parseInt(el('fSupplier').value,10) : null,
+      supplier_id: form.suppliers.length ? form.suppliers[0] : null,
+      suppliers: JSON.stringify(form.suppliers),
       has_multi_unit: checked('fMultiUnit') ? 1 : 0,
       has_multi_spec: checked('fMultiSpec') ? 1 : 0,
+      sales_unit: checked('fMultiUnit') ? (el('fSalesUnit').value || '') : '',
+      purchase_unit: checked('fMultiUnit') ? (el('fPurchaseUnit').value || '') : '',
       enable_stock_alert: checked('fAlert') ? 1 : 0,
       init_cost: num('fInitCost'),
       current_stock: int('fStock'),
@@ -901,19 +1674,23 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       wholesale_price: num('fWholesalePrice'),
       images: JSON.stringify(form.images),
       image_url: form.images[0] || '',
-      units: checked('fMultiUnit') ? form.units.map(function(u){
-        return {
-          unit_id: u.unit_id || null,
-          unit_name: u.unit_name || '',
-          factor: u.factor || 1,
-          barcode: u.barcode || '',
-          purchase_price: u.purchase_price || 0,
-          retail_price: u.retail_price || 0,
-          wholesale_price: u.wholesale_price || 0,
-          is_main: u.is_main ? 1 : 0
-        };
-      }) : [],
-      specs: checked('fMultiSpec') ? form.specs : []
+      units: (function(){
+        if(!checked('fMultiUnit')) return [];
+        var rels = form.units.map(function(u){ return parseFloat(u.rel) || 1; });
+        var abs = relToAbs(rels);
+        return form.units.map(function(u, i){
+          return {
+            unit_id: u.unit_id || null,
+            unit_name: u.unit_name || '',
+            factor: abs[i],
+            is_main: 0
+          };
+        });
+      })(),
+      specs: [],
+      spec_groups: checked('fMultiSpec') ? JSON.stringify(form.specGroups) : '',
+      price_rows: checked('fMultiSpec') ? JSON.stringify(form.priceRows) : '',
+      stock_rows: checked('fMultiSpec') ? JSON.stringify(form.stockRows) : ''
     };
 
     var isEdit = form.editId != null;

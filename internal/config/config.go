@@ -5,9 +5,9 @@ import (
 )
 
 type Config struct {
-	Server    ServerConfig            `mapstructure:"server"`
-	JWT       JWTConfig               `mapstructure:"jwt"`
-	Databases map[string]DBConfig     `mapstructure:"databases"`
+	Server   ServerConfig `mapstructure:"server"`
+	JWT      JWTConfig    `mapstructure:"jwt"`
+	Database DBConfig     `mapstructure:"database"`
 }
 
 type ServerConfig struct {

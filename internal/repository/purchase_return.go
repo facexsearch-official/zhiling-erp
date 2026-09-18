@@ -16,7 +16,7 @@ func NewPurchaseReturnRepository(base BaseRepository) *PurchaseReturnRepository 
 func (r *PurchaseReturnRepository) List(ctx context.Context, page, pageSize int, supplierID int64, status int8, keyword string) ([]model.PurchaseReturn, int64) {
 	var total int64
 	var list []model.PurchaseReturn
-	q := r.ScopedShard(ctx, "purchase_returns")
+	q := r.Scoped(ctx).Table("purchase_returns")
 	if supplierID > 0 {
 		q = q.Where("supplier_id = ?", supplierID)
 	}
@@ -33,18 +33,18 @@ func (r *PurchaseReturnRepository) List(ctx context.Context, page, pageSize int,
 
 func (r *PurchaseReturnRepository) GetByID(ctx context.Context, id int64) (*model.PurchaseReturn, error) {
 	var pr model.PurchaseReturn
-	err := r.ScopedShard(ctx, "purchase_returns").Where("id = ?", id).First(&pr).Error
+	err := r.Scoped(ctx).Table("purchase_returns").Where("id = ?", id).First(&pr).Error
 	return &pr, err
 }
 
 func (r *PurchaseReturnRepository) Create(ctx context.Context, pr *model.PurchaseReturn) error {
-	return r.DB.Table(r.GetShardTable(ctx, "purchase_returns")).Create(pr).Error
+	return r.Scoped(ctx).Table("purchase_returns").Create(pr).Error
 }
 
 func (r *PurchaseReturnRepository) Update(ctx context.Context, pr *model.PurchaseReturn) error {
-	return r.DB.Table(r.GetShardTable(ctx, "purchase_returns")).Save(pr).Error
+	return r.Scoped(ctx).Table("purchase_returns").Save(pr).Error
 }
 
 func (r *PurchaseReturnRepository) Delete(ctx context.Context, id int64) error {
-	return r.ScopedShard(ctx, "purchase_returns").Where("id = ?", id).Delete(&model.PurchaseReturn{}).Error
+	return r.Scoped(ctx).Table("purchase_returns").Where("id = ?", id).Delete(&model.PurchaseReturn{}).Error
 }

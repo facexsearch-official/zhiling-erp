@@ -1,11 +1,11 @@
 # PISA 进销存
 
-智能进销存管理系统，支持多商户、分店、物理分表。
+智能进销存管理系统，支持多商户、分店。
 
 ## 技术栈
 
 - **后端**: Go + Gin + GORM
-- **数据库**: MySQL (物理分片，tenant_id % 16)
+- **数据库**: MySQL
 - **前端**: 纯 HTML/CSS/JS SPA（无框架依赖）
 - **认证**: JWT
 
@@ -34,7 +34,7 @@ go run ./cmd/server/
 cmd/server/        # 入口
 internal/
   config/          # 配置加载
-  db/              # 数据库连接、分片路由、种子数据
+  db/              # 数据库连接、种子数据
   handler/         # API 处理器
   middleware/       # 认证、租户、套餐限制
   model/           # 数据模型

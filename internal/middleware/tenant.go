@@ -17,7 +17,7 @@ type UserTenant struct {
 	Status  int8  `json:"status"`
 }
 
-func TenantMiddleware(mainDB *gorm.DB) gin.HandlerFunc {
+func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tenantID := c.GetInt64("tenant_id")
 		userID := c.GetInt64("user_id")
@@ -28,9 +28,8 @@ func TenantMiddleware(mainDB *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Verify membership
 		var member UserTenant
-		result := mainDB.Where("user_id = ? AND tenant_id = ? AND status = 1", userID, tenantID).First(&member)
+		result := db.Where("user_id = ? AND tenant_id = ? AND status = 1", userID, tenantID).First(&member)
 		if result.Error != nil {
 			response.Forbidden(c, "您已不在该商户中")
 			c.Abort()

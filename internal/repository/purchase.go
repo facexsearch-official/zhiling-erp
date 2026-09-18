@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"pisa_server/internal/model"
-
-	customContext "pisa_server/internal/pkg/context"
 )
 
 type PurchaseRepository struct {
@@ -18,7 +16,7 @@ func NewPurchaseRepository(base BaseRepository) *PurchaseRepository {
 func (r *PurchaseRepository) List(ctx context.Context, page, pageSize int, supplierID int64, status int8, keyword string, dateFrom, dateTo string) ([]model.Purchase, int64) {
 	var total int64
 	var list []model.Purchase
-	q := r.ScopedShard(ctx, "purchases")
+	q := r.Scoped(ctx).Table("purchases")
 	if supplierID > 0 {
 		q = q.Where("supplier_id = ?", supplierID)
 	}
@@ -41,24 +39,22 @@ func (r *PurchaseRepository) List(ctx context.Context, page, pageSize int, suppl
 
 func (r *PurchaseRepository) GetByID(ctx context.Context, id int64) (*model.Purchase, error) {
 	var purchase model.Purchase
-	err := r.ScopedShard(ctx, "purchases").Where("id = ?", id).First(&purchase).Error
+	err := r.Scoped(ctx).Table("purchases").Where("id = ?", id).First(&purchase).Error
 	return &purchase, err
 }
 
 func (r *PurchaseRepository) Create(ctx context.Context, purchase *model.Purchase) error {
-	return r.DB.Table(r.GetShardTable(ctx, "purchases")).Create(purchase).Error
+	return r.Scoped(ctx).Table("purchases").Create(purchase).Error
 }
 
 func (r *PurchaseRepository) Update(ctx context.Context, purchase *model.Purchase) error {
-	return r.DB.Table(r.GetShardTable(ctx, "purchases")).Save(purchase).Error
+	return r.Scoped(ctx).Table("purchases").Save(purchase).Error
 }
 
 func (r *PurchaseRepository) Delete(ctx context.Context, id int64) error {
-	tenantID := customContext.GetTenantID(ctx)
-	return r.DB.Table(r.GetShardTable(ctx, "purchases")).Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&model.Purchase{}).Error
+	return r.Scoped(ctx).Table("purchases").Where("id = ?", id).Delete(&model.Purchase{}).Error
 }
 
-// FillSupplierNames 填充供应商名称
 func (r *PurchaseRepository) FillSupplierNames(ctx context.Context, purchases []model.Purchase, supplierRepo *SupplierRepository) {
 	if len(purchases) == 0 {
 		return

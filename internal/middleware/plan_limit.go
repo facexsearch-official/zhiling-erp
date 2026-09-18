@@ -16,31 +16,30 @@ type TenantPlan struct {
 }
 
 type LimitChecker struct {
-	mainDB *gorm.DB
-	shopDB *gorm.DB
+	db *gorm.DB
 }
 
-func NewLimitChecker(mainDB, shopDB *gorm.DB) *LimitChecker {
-	return &LimitChecker{mainDB: mainDB, shopDB: shopDB}
+func NewLimitChecker(db *gorm.DB) *LimitChecker {
+	return &LimitChecker{db: db}
 }
 
 func (lc *LimitChecker) Check(tenantID int64, resource string) bool {
 	var plan TenantPlan
-	lc.mainDB.Where("id = (SELECT plan_id FROM tenants WHERE id = ?)", tenantID).First(&plan)
+	lc.db.Where("id = (SELECT plan_id FROM tenants WHERE id = ?)", tenantID).First(&plan)
 
 	var count int64
 	switch resource {
 	case "goods":
-		lc.shopDB.Model(&struct{ TenantID int64 }{}).Table("goods").Where("tenant_id = ?", tenantID).Count(&count)
+		lc.db.Model(&struct{ TenantID int64 }{}).Table("goods").Where("tenant_id = ?", tenantID).Count(&count)
 		return count < int64(plan.MaxGoods) || plan.MaxGoods <= 0
 	case "staff":
-		lc.mainDB.Model(&struct{ TenantID int64 }{}).Table("user_tenants").Where("tenant_id = ?", tenantID).Count(&count)
+		lc.db.Model(&struct{ TenantID int64 }{}).Table("user_tenants").Where("tenant_id = ?", tenantID).Count(&count)
 		return count < int64(plan.MaxStaff) || plan.MaxStaff <= 0
 	case "shop":
-		lc.mainDB.Model(&struct{ TenantID int64 }{}).Table("shops").Where("tenant_id = ?", tenantID).Count(&count)
+		lc.db.Model(&struct{ TenantID int64 }{}).Table("shops").Where("tenant_id = ?", tenantID).Count(&count)
 		return count < int64(plan.MaxShops) || plan.MaxShops <= 0
 	case "order":
-		return plan.MaxOrders <= 0 // 0 = unlimited
+		return plan.MaxOrders <= 0
 	default:
 		return true
 	}

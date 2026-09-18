@@ -427,6 +427,9 @@ function showPage(key){
   active=key;
   var f=findNavLabel(key);
   const label=(f&&f.label)||key;
+  // 独立页面：跳转到对应 html
+  var standalone={'goods':'/goods.html','customer':'/customer.html','supplier':'/supplier.html','warehouse':'/warehouse.html','account':'/account.html'};
+  if(standalone[key]){location.href=standalone[key];return;}
   if(window.PisaTabs) PisaTabs.touch(key, label, PisaTabs.hrefFor(key));
   if(location.hash.slice(1)!==key){try{history.replaceState(null,'','#'+key);}catch(e){}}
   const c=document.getElementById('content');

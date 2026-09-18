@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"pisa_server/internal/db"
 	"pisa_server/internal/model"
 	customContext "pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/snowflake"
@@ -18,8 +17,6 @@ type PurchaseService struct {
 	repo      *repository.PurchaseRepository
 	itemRepo  *repository.PurchaseItemRepository
 	goodsRepo *repository.GoodsRepository
-	stockDB   *db.ShardDB
-	router    *db.ShardRouter
 }
 
 func NewPurchaseService(
@@ -27,32 +24,25 @@ func NewPurchaseService(
 	repo *repository.PurchaseRepository,
 	itemRepo *repository.PurchaseItemRepository,
 	goodsRepo *repository.GoodsRepository,
-	stockDB *db.ShardDB,
-	router *db.ShardRouter,
 ) *PurchaseService {
 	return &PurchaseService{
 		db:        dbConn,
 		repo:      repo,
 		itemRepo:  itemRepo,
 		goodsRepo: goodsRepo,
-		stockDB:   stockDB,
-		router:    router,
 	}
 }
 
-// Create 创建进货单（草稿状态，不改库存）
 func (s *PurchaseService) Create(ctx context.Context, purchase *model.Purchase, items []model.PurchaseItem) error {
 	tenantID := customContext.GetTenantID(ctx)
 	userID := customContext.GetUserID(ctx)
 
-	// 生成单号和ID
 	purchase.ID = snowflake.GenID()
 	purchase.OrderNo = s.generateOrderNo(ctx)
 	purchase.TenantID = tenantID
 	purchase.CreatedBy = userID
-	purchase.Status = 1 // 草稿
+	purchase.Status = 1
 
-	// 计算总金额
 	var total float64
 	for i := range items {
 		items[i].ID = snowflake.GenID()
@@ -63,19 +53,16 @@ func (s *PurchaseService) Create(ctx context.Context, purchase *model.Purchase, 
 	purchase.TotalAmount = total
 	purchase.UnpaidAmount = total - purchase.PaidAmount
 
-	// 写主表
 	if err := s.repo.Create(ctx, purchase); err != nil {
 		return err
 	}
 
-	// 写明细
 	for i := range items {
 		items[i].PurchaseID = purchase.ID
 	}
 	return s.itemRepo.BatchCreate(ctx, items)
 }
 
-// GetByID 获取进货单（含明细）
 func (s *PurchaseService) GetByID(ctx context.Context, id int64) (*model.Purchase, error) {
 	purchase, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -89,12 +76,10 @@ func (s *PurchaseService) GetByID(ctx context.Context, id int64) (*model.Purchas
 	return purchase, nil
 }
 
-// List 列表查询
 func (s *PurchaseService) List(ctx context.Context, page, pageSize int, supplierID int64, status int8, keyword, dateFrom, dateTo string) ([]model.Purchase, int64) {
 	return s.repo.List(ctx, page, pageSize, supplierID, status, keyword, dateFrom, dateTo)
 }
 
-// Audit 审核进货单（增加库存）
 func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 	tenantID := customContext.GetTenantID(ctx)
 	shopID := customContext.GetShopID(ctx)
@@ -147,7 +132,6 @@ func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 			return err
 		}
 
-		logTable := s.router.GetTable(tenantID, "stock_logs")
 		stockLog := map[string]interface{}{
 			"id":           snowflake.GenID(),
 			"tenant_id":    tenantID,
@@ -164,15 +148,14 @@ func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 			"created_by":   userID,
 			"created_at":   now,
 		}
-		if err := tx.Table(logTable).Create(stockLog).Error; err != nil {
+		if err := tx.Table("stock_logs").Create(stockLog).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
 	purchase.Status = 3
-	purchaseTable := s.router.GetTable(tenantID, "purchases")
-	if err := tx.Table(purchaseTable).Save(purchase).Error; err != nil {
+	if err := tx.Table("purchases").Save(purchase).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -180,7 +163,6 @@ func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 	return tx.Commit().Error
 }
 
-// UnAudit 反审核（回滚库存）
 func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 	tenantID := customContext.GetTenantID(ctx)
 	shopID := customContext.GetShopID(ctx)
@@ -222,7 +204,6 @@ func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 			return err
 		}
 
-		logTable := s.router.GetTable(tenantID, "stock_logs")
 		stockLog := map[string]interface{}{
 			"id":           snowflake.GenID(),
 			"tenant_id":    tenantID,
@@ -238,15 +219,14 @@ func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 			"related_no":   purchase.OrderNo,
 			"created_at":   time.Now(),
 		}
-		if err := tx.Table(logTable).Create(stockLog).Error; err != nil {
+		if err := tx.Table("stock_logs").Create(stockLog).Error; err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
 	purchase.Status = 1
-	purchaseTable := s.router.GetTable(tenantID, "purchases")
-	if err := tx.Table(purchaseTable).Save(purchase).Error; err != nil {
+	if err := tx.Table("purchases").Save(purchase).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -254,7 +234,6 @@ func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 	return tx.Commit().Error
 }
 
-// Delete 删除进货单
 func (s *PurchaseService) Delete(ctx context.Context, id int64) error {
 	purchase, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -274,6 +253,6 @@ func (s *PurchaseService) Delete(ctx context.Context, id int64) error {
 func (s *PurchaseService) generateOrderNo(ctx context.Context) string {
 	today := time.Now().Format("20060102")
 	var count int64
-	s.repo.ScopedShard(ctx, "purchases").Where("order_no LIKE ?", "GH"+today+"%").Model(&model.Purchase{}).Count(&count)
+	s.repo.Scoped(ctx).Table("purchases").Where("order_no LIKE ?", "GH"+today+"%").Model(&model.Purchase{}).Count(&count)
 	return fmt.Sprintf("GH%s%04d", today, count+1)
 }

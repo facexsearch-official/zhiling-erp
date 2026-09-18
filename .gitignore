@@ -38,3 +38,6 @@ logs/
 # 上传文件（保留目录）
 web/uploads/*
 !web/uploads/.gitkeep
+
+# 企业版内部文档（不提交）
+docs/enterprise-*.md

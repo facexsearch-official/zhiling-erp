@@ -57,6 +57,28 @@ func (h *GoodsHandler) NextCode(c *gin.Context) {
 	response.OK(c, gin.H{"code": h.repo.NextCode(c.Request.Context())})
 }
 
+// Brands 返回当前商户所有不重复的品牌
+func (h *GoodsHandler) Brands(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	var list []string
+	h.repo.DB.Model(&model.Goods{}).
+		Where("tenant_id = ? AND brand != '' AND brand IS NOT NULL", tenantID).
+		Distinct("brand").Pluck("brand", &list)
+	response.OK(c, list)
+}
+
+// Origins 返回当前商户所有不重复的产地
+func (h *GoodsHandler) Origins(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	var list []string
+	h.repo.DB.Model(&model.Goods{}).
+		Where("tenant_id = ? AND origin != '' AND origin IS NOT NULL", tenantID).
+		Distinct("origin").Pluck("origin", &list)
+	response.OK(c, list)
+}
+
 func (h *GoodsHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	var goods model.Goods

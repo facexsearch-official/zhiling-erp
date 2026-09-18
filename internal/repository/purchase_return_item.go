@@ -15,7 +15,7 @@ func NewPurchaseReturnItemRepository(base BaseRepository) *PurchaseReturnItemRep
 
 func (r *PurchaseReturnItemRepository) ListByReturnID(ctx context.Context, returnID int64) ([]model.PurchaseReturnItem, error) {
 	var list []model.PurchaseReturnItem
-	err := r.ScopedShard(ctx, "purchase_return_items").Where("purchase_return_id = ?", returnID).Find(&list).Error
+	err := r.Scoped(ctx).Table("purchase_return_items").Where("purchase_return_id = ?", returnID).Find(&list).Error
 	return list, err
 }
 
@@ -23,9 +23,9 @@ func (r *PurchaseReturnItemRepository) BatchCreate(ctx context.Context, items []
 	if len(items) == 0 {
 		return nil
 	}
-	return r.DB.Table(r.GetShardTable(ctx, "purchase_return_items")).Create(&items).Error
+	return r.Scoped(ctx).Table("purchase_return_items").Create(&items).Error
 }
 
 func (r *PurchaseReturnItemRepository) DeleteByReturnID(ctx context.Context, returnID int64) error {
-	return r.ScopedShard(ctx, "purchase_return_items").Where("purchase_return_id = ?", returnID).Delete(&model.PurchaseReturnItem{}).Error
+	return r.Scoped(ctx).Table("purchase_return_items").Where("purchase_return_id = ?", returnID).Delete(&model.PurchaseReturnItem{}).Error
 }

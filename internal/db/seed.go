@@ -10,12 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// Seed 初始化种子数据
-func Seed(mainDB, shopDB *gorm.DB) {
-	seedUsers(mainDB)
-	seedTenants(mainDB)
-	seedShops(mainDB)
-	seedPlans(mainDB)
+func Seed(db *gorm.DB) {
+	seedPlans(db)
+	seedUsers(db)
+	seedTenants(db)
+	seedShops(db)
 }
 
 func seedPlans(db *gorm.DB) {
@@ -31,7 +30,6 @@ func seedPlans(db *gorm.DB) {
 }
 
 func seedUsers(db *gorm.DB) {
-	// Check if admin exists
 	var count int64
 	db.Model(&model.User{}).Where("phone = ?", "admin").Count(&count)
 	if count > 0 {
@@ -85,7 +83,6 @@ func seedTenants(db *gorm.DB) {
 		return
 	}
 
-	// Link user to tenant
 	ut := model.UserTenant{
 		UserID:    admin.ID,
 		TenantID:  tenant.ID,
@@ -100,9 +97,7 @@ func seedTenants(db *gorm.DB) {
 		return
 	}
 
-	// Update user default tenant
 	db.Model(&admin).Update("default_tenant_id", tenant.ID)
-
 	log.Printf("seed tenant: name=演示商户, id=%d", tenant.ID)
 }
 

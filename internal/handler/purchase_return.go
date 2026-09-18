@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"pisa_server/internal/db"
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
@@ -16,33 +15,30 @@ import (
 )
 
 type PurchaseReturnHandler struct {
-	returnRepo  *repository.PurchaseReturnRepository
-	itemRepo    *repository.PurchaseReturnItemRepository
-	router      *db.ShardRouter
-	db          *gorm.DB
+	returnRepo *repository.PurchaseReturnRepository
+	itemRepo   *repository.PurchaseReturnItemRepository
+	db         *gorm.DB
 }
 
 func NewPurchaseReturnHandler(
 	returnRepo *repository.PurchaseReturnRepository,
 	itemRepo *repository.PurchaseReturnItemRepository,
-	router *db.ShardRouter,
 	dbConn *gorm.DB,
 ) *PurchaseReturnHandler {
 	return &PurchaseReturnHandler{
 		returnRepo: returnRepo,
 		itemRepo:   itemRepo,
-		router:     router,
 		db:         dbConn,
 	}
 }
 
 type returnCreateReq struct {
-	ShopID      int64             `json:"shop_id"`
-	WarehouseID int64             `json:"warehouse_id"`
-	SupplierID  int64             `json:"supplier_id"`
-	BillDate    string            `json:"bill_date"`
-	Remark      string            `json:"remark"`
-	Items       []returnItemReq   `json:"items"`
+	ShopID      int64           `json:"shop_id"`
+	WarehouseID int64           `json:"warehouse_id"`
+	SupplierID  int64           `json:"supplier_id"`
+	BillDate    string          `json:"bill_date"`
+	Remark      string          `json:"remark"`
+	Items       []returnItemReq `json:"items"`
 }
 
 type returnItemReq struct {
@@ -109,12 +105,12 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 	for _, item := range req.Items {
 		amt := float64(item.Quantity) * item.UnitPrice
 		items = append(items, model.PurchaseReturnItem{
-			TenantID:         tenantID,
-			GoodsID:          item.GoodsID,
-			Quantity:         item.Quantity,
-			UnitPrice:        item.UnitPrice,
-			Amount:           amt,
-			Remark:           item.Remark,
+			TenantID:  tenantID,
+			GoodsID:   item.GoodsID,
+			Quantity:  item.Quantity,
+			UnitPrice: item.UnitPrice,
+			Amount:    amt,
+			Remark:    item.Remark,
 		})
 		total += amt
 	}
@@ -191,8 +187,7 @@ func (h *PurchaseReturnHandler) Audit(c *gin.Context) {
 		balance.TotalCost = float64(balance.Quantity) * balance.CostPrice
 		tx.Save(&balance)
 
-		logTable := h.router.GetTable(tenantID, "stock_logs")
-		tx.Table(logTable).Create(map[string]interface{}{
+		tx.Table("stock_logs").Create(map[string]interface{}{
 			"id": snowflake.GenID(), "tenant_id": tenantID, "shop_id": shopID,
 			"warehouse_id": pr.WarehouseID, "goods_id": item.GoodsID,
 			"type": 2, "quantity": item.Quantity, "before_stock": beforeStock,

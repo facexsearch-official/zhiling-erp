@@ -7,26 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// AutoCreateTables 自动创建主库表结构
-func AutoCreateTables(mainDB *gorm.DB) {
+// AutoCreateTables 自动创建表结构
+func AutoCreateTables(db *gorm.DB) {
 	tables := []interface{}{
+		// 账户体系
 		&model.Plan{},
 		&model.Tenant{},
 		&model.User{},
 		&model.UserTenant{},
 		&model.Shop{},
-	}
-	for _, t := range tables {
-		if err := mainDB.AutoMigrate(t); err != nil {
-			log.Printf("auto migrate %T error: %v", t, err)
-		}
-	}
-	log.Println("main db tables ready")
-}
-
-// AutoCreateShopTables 自动创建业务库非分片表结构
-func AutoCreateShopTables(shopDB *gorm.DB) {
-	tables := []interface{}{
+		// 业务数据
 		&model.GoodsCategory{},
 		&model.Unit{},
 		&model.GoodsAttribute{},
@@ -40,9 +30,9 @@ func AutoCreateShopTables(shopDB *gorm.DB) {
 		&model.StockBalance{},
 	}
 	for _, t := range tables {
-		if err := shopDB.AutoMigrate(t); err != nil {
-			log.Printf("auto migrate shop %T error: %v", t, err)
+		if err := db.AutoMigrate(t); err != nil {
+			log.Printf("auto migrate %T error: %v", t, err)
 		}
 	}
-	log.Println("shop db tables ready")
+	log.Println("db tables ready")
 }
