@@ -8,6 +8,7 @@ import (
 	"pisa_server/internal/pkg/response"
 	"pisa_server/internal/repository"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 )
@@ -90,6 +91,10 @@ func (h *GoodsHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "货品名称不能为空")
 		return
 	}
+	if utf8.RuneCountInString(goods.Brand) > 100 {
+		response.BadRequest(c, "品牌名称不能超过100个字符")
+		return
+	}
 	goods.ID = 0
 	goods.Status = 1
 	goods.TenantID = context.GetTenantID(ctx)
@@ -108,13 +113,17 @@ func (h *GoodsHandler) Update(c *gin.Context) {
 		response.NotFound(c, "货品不存在")
 		return
 	}
-	var payload model.Goods
+	var payload = *existing
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		response.BadRequest(c, "参数错误")
 		return
 	}
 	if strings.TrimSpace(payload.Name) == "" {
 		response.BadRequest(c, "货品名称不能为空")
+		return
+	}
+	if utf8.RuneCountInString(payload.Brand) > 100 {
+		response.BadRequest(c, "品牌名称不能超过100个字符")
 		return
 	}
 	// 不可变字段以库中为准

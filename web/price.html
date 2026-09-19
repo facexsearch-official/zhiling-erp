@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>价格管理 - PISA 进销存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary-500:#3B82F6;
+--accent-50:#ECFDF5;--accent-400:#34D399;--accent-500:#10B981;--accent-600:#059669;--accent-700:#047857;
+--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;
+--danger-50:#FEF2F2;--danger-500:#EF4444;
+--success-500:#22C55E;
+--radius-sm:4px;--radius-md:6px;--radius-lg:8px;
+--sidebar-width:252px;--topbar-height:60px;
+}
+html,body{height:100%;font-family:'Noto Sans SC','Inter',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font:inherit}
+input,select{font:inherit}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent}
+.btn-accent{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.btn-accent:hover{background:var(--accent-700);border-color:var(--accent-700)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-lg{padding:10px 24px;font-size:14px}
+
+.checkbox-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-700);margin-bottom:14px;cursor:pointer}
+.checkbox-line input{width:16px;height:16px;accent-color:var(--accent-600);cursor:pointer}
+
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.filter-item{display:flex;align-items:center;gap:8px}
+.filter-item>label{font-size:13px;color:var(--gray-700);white-space:nowrap}
+.filter-input{height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 12px;font-size:13px;color:var(--gray-800);outline:none;width:210px;transition:border-color .15s,box-shadow .15s}
+.filter-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.filter-input::placeholder{color:var(--gray-400)}
+.filter-select{height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 30px 0 12px;font-size:13px;color:var(--gray-800);outline:none;width:180px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 10px center;appearance:none;cursor:pointer}
+.search-combo{display:flex;align-items:center;border:1px solid var(--gray-300);border-radius:var(--radius-md);overflow:hidden;height:36px;background:#fff}
+.search-combo input{border:none;outline:none;height:100%;padding:0 12px;font-size:13px;width:230px;color:var(--gray-800)}
+.search-combo input::placeholder{color:var(--gray-400)}
+.search-combo button{width:44px;height:100%;display:flex;align-items:center;justify-content:center;background:var(--gray-50);border-left:1px solid var(--gray-200)}
+.search-combo button:hover{background:var(--gray-100)}
+.search-combo svg{width:16px;height:16px;stroke:var(--gray-500);fill:none;stroke-width:2}
+.expand-link{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--gray-600);cursor:pointer;user-select:none}
+.expand-link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .2s}
+.expand-link.collapsed svg{transform:rotate(180deg)}
+.filter-bar.collapsed .collapsible{display:none}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+.table-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1200px}
+th,td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--gray-200);text-align:left;vertical-align:middle;white-space:nowrap}
+th{font-weight:500;color:var(--gray-500);background:var(--gray-100)}
+td{color:var(--gray-700)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--gray-50)}
+th.num,td.num{text-align:right}
+th.c-img,td.c-img{width:60px;padding-left:16px;padding-right:0}
+th.c-check,td.c-check{width:44px;text-align:center;padding-right:0}
+th.c-name,td.c-name{min-width:200px;white-space:normal}
+.c-name .g-name{color:var(--gray-800)}
+.c-name .g-code{font-size:12px;color:var(--gray-400);margin-top:2px}
+.thumb{width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;background:var(--gray-100);display:block}
+.thumb-ph{width:40px;height:40px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#DBEAFE,#BFDBFE);display:flex;align-items:center;justify-content:center}
+.thumb-ph svg{width:20px;height:20px;stroke:#60A5FA;fill:none;stroke-width:1.6}
+input[type=checkbox].row-check,th.c-check input{width:16px;height:16px;accent-color:var(--accent-600);cursor:pointer}
+.price-input{width:104px;height:34px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;color:var(--gray-800);outline:none;text-align:right;transition:border-color .15s,box-shadow .15s}
+.price-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.price-input::-webkit-outer-spin-button,.price-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.price-input[type=number]{-moz-appearance:textfield}
+.money{font-family:'Inter',monospace;color:var(--gray-700)}
+
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.pagination .info{font-size:13px;color:var(--gray-500)}
+.pagination .pages{display:flex;align-items:center;gap:4px}
+.page-btn{min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);font-size:13px;color:var(--gray-600);border:1px solid var(--gray-200);background:#fff}
+.page-btn:hover:not(.disabled):not(.active){background:var(--gray-50)}
+.page-btn.active{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.page-btn.disabled{opacity:.4;cursor:not-allowed}
+
+.empty{padding:60px 0;text-align:center;color:var(--gray-400)}
+.empty svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.2;margin-bottom:12px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.modal-overlay.show{opacity:1;visibility:visible}
+.modal{width:760px;max-width:calc(100vw - 40px);background:#fff;border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(20px) scale(.97);transition:transform .2s;max-height:calc(100vh - 60px);display:flex;flex-direction:column}
+.modal-overlay.show .modal{transform:translateY(0) scale(1)}
+.modal-header{position:relative;display:flex;align-items:center;justify-content:center;padding:22px 24px;border-bottom:1px solid var(--gray-100)}
+.modal-header h2{font-size:18px;font-weight:500}
+.modal-close{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--gray-400)}
+.modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
+.modal-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.modal-body{padding:24px 32px;overflow-y:auto}
+.scope-group{display:flex;align-items:center;gap:28px;margin-bottom:24px;flex-wrap:wrap}
+.scope-item{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--gray-800);cursor:pointer}
+.scope-item input[type=radio]{width:18px;height:18px;accent-color:var(--accent-600);cursor:pointer}
+.batch-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.batch-label{width:80px;font-size:14px;color:var(--gray-700);text-align:left;flex-shrink:0}
+.batch-select{height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 30px 0 12px;font-size:14px;color:var(--gray-800);background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 10px center;appearance:none;cursor:pointer;width:180px}
+.batch-num-wrap{display:flex;align-items:center;border:1px solid var(--gray-300);border-radius:var(--radius-md);overflow:hidden;height:40px;width:190px;background:#fff}
+.batch-num-wrap input{border:none;outline:none;height:100%;padding:0 12px;font-size:14px;flex:1;min-width:0;color:var(--gray-800)}
+.batch-num-wrap input::-webkit-outer-spin-button,.batch-num-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.batch-num-wrap .suffix{padding:0 14px;height:100%;display:flex;align-items:center;background:var(--gray-50);border-left:1px solid var(--gray-300);color:var(--gray-600);font-size:14px}
+.modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:18px 32px 26px;border-top:1px solid var(--gray-100)}
+
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:var(--radius-md);font-size:14px;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:toastIn .3s ease}
+.toast.success{background:var(--success-500)}
+.toast.error{background:var(--danger-500)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
+<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+</head>
+<body>
+
+<div class="app">
+  <div class="app-body">
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+    </aside>
+    <div class="main">
+      <div class="content">
+        <label class="checkbox-line">
+          <input type="checkbox" id="hideDisabled" onchange="loadData(1)"> 隐藏停用商品
+        </label>
+
+        <div class="filter-bar" id="filterBar">
+          <div class="filter-item">
+            <label>商品名称</label>
+            <input class="filter-input" id="fKeyword" placeholder="商品名称 / 简拼 / 货号" onkeydown="if(event.key==='Enter')loadData(1)">
+          </div>
+          <div class="filter-item collapsible">
+            <label>规格</label>
+            <input class="filter-input" id="fSpec" placeholder="请输入规格搜索" onkeydown="if(event.key==='Enter')loadData(1)">
+          </div>
+          <div class="filter-item collapsible">
+            <label>品牌</label>
+            <select class="filter-select" id="fBrand"></select>
+          </div>
+          <div class="search-combo">
+            <input id="fSearch" placeholder="输入商品名称/条形码/货号" onkeydown="if(event.key==='Enter')loadData(1)">
+            <button onclick="loadData(1)" title="搜索">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+          </div>
+          <button class="btn btn-accent" onclick="loadData(1)">查 询</button>
+          <span class="expand-link" id="expandLink" onclick="toggleExpand()">展开 <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </div>
+
+        <div class="toolbar">
+          <div id="toolbarLeft">
+            <button class="btn btn-accent" onclick="enterQuickEdit()">快捷改价</button>
+          </div>
+          <div id="toolbarRight"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead id="priceHead"></thead>
+            <tbody id="priceBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pager"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="batchModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>批量改价</h2>
+      <button class="modal-close" onclick="closeBatch()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="scope-group">
+        <label class="scope-item"><input type="radio" name="batchScope" value="selected" checked onchange="renderBatchRows()"> 只修改选中的商品（<span id="selCount">0</span>）个</label>
+        <label class="scope-item"><input type="radio" name="batchScope" value="all" onchange="renderBatchRows()"> 修改当前查询条件下的所有商品（<span id="allCount">0</span>个）</label>
+      </div>
+      <div id="batchRows"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-lg" onclick="closeBatch()">取 消</button>
+      <button class="btn btn-accent btn-lg" onclick="submitBatch()">确 定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/tabs.js?v=20260972"></script>
+<script src="/js/app-shell.js?v=20260972"></script>
+<script>
+var state={page:1,pageSize:50,total:0,rows:[],columns:[],edit:false,selected:{},brands:[]};
+var batchFields=[];
+
+function apiFetch(url,opts){
+  var t=localStorage.getItem('pisa_token');
+  var headers={'Content-Type':'application/json'};
+  if(t) headers['Authorization']='Bearer '+t;
+  return fetch(url,Object.assign({headers:headers},opts||{})).then(function(r){
+    if(r.status===401){showToast('登录已过期','error');return Promise.reject('Unauthorized');}
+    return r.json();
+  });
+}
+function showToast(msg,type){
+  var c=document.getElementById('toastContainer');
+  var d=document.createElement('div');
+  d.className='toast '+(type||'info');d.textContent=msg;c.appendChild(d);
+  setTimeout(function(){d.style.animation='toastIn .3s ease reverse';setTimeout(function(){d.remove();},300);},2500);
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function money(v){var n=parseFloat(v)||0;return n.toFixed(2);}
+
+function loadBrands(){
+  apiFetch('/api/shop/goods/brands').then(function(res){
+    if(res.code!==0) return;
+    state.brands=res.data||[];
+    var sel=document.getElementById('fBrand');
+    sel.innerHTML='<option value="">全部</option>'+state.brands.map(function(b){
+      return '<option value="'+esc(b)+'">'+esc(b)+'</option>';
+    }).join('');
+  }).catch(function(){});
+}
+
+function currentFilters(){
+  var kw=document.getElementById('fKeyword').value.trim();
+  var combo=document.getElementById('fSearch').value.trim();
+  return {
+    keyword: kw||combo,
+    spec: document.getElementById('fSpec').value.trim(),
+    brand: document.getElementById('fBrand').value||'',
+    hide_disabled: document.getElementById('hideDisabled').checked?'1':''
+  };
+}
+
+function loadData(page){
+  if(page) state.page=page;
+  var f=currentFilters();
+  var qs=new URLSearchParams();
+  qs.set('page',state.page);qs.set('page_size',state.pageSize);
+  if(f.keyword) qs.set('keyword',f.keyword);
+  if(f.spec) qs.set('spec',f.spec);
+  if(f.brand) qs.set('brand',f.brand);
+  if(f.hide_disabled) qs.set('hide_disabled',f.hide_disabled);
+  apiFetch('/api/shop/price/list?'+qs.toString()).then(function(res){
+    if(res.code!==0){showToast(res.message||'加载失败','error');return;}
+    var d=res.data||{};
+    state.rows=d.list||[];state.total=d.total||0;state.columns=d.columns||[];
+    state.selected={};
+    renderHead();renderBody();renderPager();
+  }).catch(function(){});
+}
+
+function allColumns(){
+  return ['purchase_price','retail_price','wholesale_price'].concat(state.columns);
+}
+function colLabel(key){
+  if(key==='purchase_price') return '进货价';
+  if(key==='retail_price') return '零售价';
+  if(key==='wholesale_price') return '批发价';
+  return key;
+}
+function rowValue(r,key){
+  if(key==='purchase_price') return r.purchase_price;
+  if(key==='retail_price') return r.retail_price;
+  if(key==='wholesale_price') return r.wholesale_price;
+  return (r.custom&&r.custom[key])||0;
+}
+
+function renderHead(){
+  var h='<tr>';
+  if(state.edit) h+='<th class="c-check"><input type="checkbox" id="checkAll" onchange="toggleAll(this.checked)"></th>';
+  h+='<th class="c-img">图片</th><th class="c-name">商品名称</th><th>规格</th><th>编号/货号</th><th>分类</th><th>单位</th>';
+  allColumns().forEach(function(k){ h+='<th class="num">'+esc(colLabel(k))+'</th>'; });
+  h+='</tr>';
+  document.getElementById('priceHead').innerHTML=h;
+}
+
+function renderBody(){
+  var b=document.getElementById('priceBody');
+  if(state.rows.length===0){
+    b.innerHTML='<tr><td colspan="'+(7+allColumns().length+(state.edit?1:0))+'"><div class="empty"><svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><p>暂无商品数据</p></div></td></tr>';
+    return;
+  }
+  var h='';
+  state.rows.forEach(function(r){
+    var img=r.image_url
+      ? '<img class="thumb" src="'+esc(r.image_url)+'" alt="">'
+      : '<span class="thumb-ph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>';
+    h+='<tr data-key="'+esc(r.key)+'">';
+    if(state.edit) h+='<td class="c-check"><input type="checkbox" class="row-check" data-key="'+esc(r.key)+'" '+(state.selected[r.key]?'checked':'')+' onchange="toggleRow(this)"></td>';
+    h+='<td class="c-img">'+img+'</td>';
+    h+='<td class="c-name"><div class="g-name">'+esc(r.name)+'</div><div class="g-code">'+esc(r.code||'')+'</div></td>';
+    h+='<td>'+esc(r.spec||'--')+'</td>';
+    h+='<td>'+esc(r.code||'--')+'</td>';
+    h+='<td>'+esc(r.category||'未分类')+'</td>';
+    h+='<td>'+esc(r.unit||'--')+'</td>';
+    allColumns().forEach(function(k){
+      if(state.edit){
+        h+='<td class="num"><input class="price-input" type="number" step="0.01" min="0" data-key="'+esc(r.key)+'" data-f="'+esc(k)+'" value="'+money(rowValue(r,k))+'"></td>';
+      }else{
+        h+='<td class="num money">'+money(rowValue(r,k))+'</td>';
+      }
+    });
+    h+='</tr>';
+  });
+  document.getElementById('priceBody').innerHTML=h;
+}
+
+function renderPager(){
+  var totalPages=Math.ceil(state.total/state.pageSize)||1;
+  var p=state.page;
+  var h='<div class="info">共 '+state.total+' 条</div><div class="pages">';
+  h+='<button class="page-btn'+(p<=1?' disabled':'')+'" onclick="'+(p>1?'loadData('+(p-1)+')':'')+'">‹</button>';
+  var start=Math.max(1,p-2),end=Math.min(totalPages,start+4);start=Math.max(1,end-4);
+  for(var i=start;i<=end;i++) h+='<button class="page-btn'+(i===p?' active':'')+'" onclick="loadData('+i+')">'+i+'</button>';
+  h+='<button class="page-btn'+(p>=totalPages?' disabled':'')+'" onclick="'+(p<totalPages?'loadData('+(p+1)+')':'')+'">›</button>';
+  h+='</div>';
+  document.getElementById('pager').innerHTML=h;
+}
+
+function toggleExpand(){
+  var bar=document.getElementById('filterBar');
+  bar.classList.toggle('collapsed');
+  document.getElementById('expandLink').classList.toggle('collapsed',bar.classList.contains('collapsed'));
+  document.getElementById('expandLink').childNodes[0].nodeValue=bar.classList.contains('collapsed')?'展开 ':'收起 ';
+}
+
+/* ── 快捷改价（内联编辑） ── */
+function enterQuickEdit(){
+  state.edit=true;state.selected={};
+  document.getElementById('toolbarLeft').innerHTML='<button class="btn btn-accent" onclick="openBatch()">批量改价</button>';
+  document.getElementById('toolbarRight').innerHTML='<button class="btn btn-accent" onclick="finishQuickEdit()">改价完成</button>';
+  renderHead();renderBody();
+}
+function exitQuickEdit(){
+  state.edit=false;state.selected={};
+  document.getElementById('toolbarLeft').innerHTML='<button class="btn btn-accent" onclick="enterQuickEdit()">快捷改价</button>';
+  document.getElementById('toolbarRight').innerHTML='';
+  renderHead();renderBody();
+}
+function toggleAll(checked){
+  state.selected={};
+  if(checked) state.rows.forEach(function(r){state.selected[r.key]=true;});
+  renderBody();
+}
+function toggleRow(el){
+  var key=el.getAttribute('data-key');
+  if(el.checked) state.selected[key]=true;else delete state.selected[key];
+}
+function selectedCount(){return Object.keys(state.selected).length;}
+
+function collectEdits(){
+  var rows={};
+  document.querySelectorAll('#priceBody .price-input').forEach(function(inp){
+    var key=inp.getAttribute('data-key');
+    var f=inp.getAttribute('data-f');
+    if(!rows[key]){rows[key]={purchase_price:0,retail_price:0,wholesale_price:0,custom:{}};}
+    var val=parseFloat(inp.value)||0;
+    if(f==='purchase_price') rows[key].purchase_price=val;
+    else if(f==='retail_price') rows[key].retail_price=val;
+    else if(f==='wholesale_price') rows[key].wholesale_price=val;
+    else rows[key].custom[f]=val;
+  });
+  return rows;
+}
+
+function finishQuickEdit(){
+  var edits=collectEdits();
+  var byGoods={};
+  Object.keys(edits).forEach(function(key){
+    var parts=key.split('|');
+    var gid=parseInt(parts[0],10);
+    if(!byGoods[gid]) byGoods[gid]=[];
+    byGoods[gid].push({key:key,val:edits[key],unitKey:parts[1]||'',specKey:parts.slice(2).join('|')||''});
+  });
+  var payload=[];
+  Object.keys(byGoods).forEach(function(gid){
+    byGoods[gid].forEach(function(item){
+      payload.push({
+        goods_id:parseInt(gid,10),
+        unit_key:item.unitKey,
+        spec_key:item.specKey,
+        purchase_price:item.val.purchase_price,
+        retail_price:item.val.retail_price,
+        wholesale_price:item.val.wholesale_price,
+        custom:item.val.custom
+      });
+    });
+  });
+  if(payload.length===0){showToast('没有需要保存的数据','error');return;}
+  apiFetch('/api/shop/price/rows',{method:'PUT',body:JSON.stringify({rows:payload})}).then(function(res){
+    if(res.code!==0){showToast(res.message||'保存失败','error');return;}
+    showToast('改价成功','success');
+    exitQuickEdit();
+    loadData();
+  }).catch(function(){});
+}
+
+/* ── 批量改价 ── */
+function openBatch(){
+  batchFields=[{key:'retail_price',label:'零售价'},{key:'wholesale_price',label:'批发价'}]
+    .concat(state.columns.map(function(c){return {key:'custom:'+c,label:c};}));
+  document.getElementById('selCount').textContent=selectedCount();
+  document.getElementById('allCount').textContent=state.total;
+  document.querySelector('input[name=batchScope][value=selected]').checked=true;
+  renderBatchRows();
+  document.getElementById('batchModal').classList.add('show');
+}
+function closeBatch(){document.getElementById('batchModal').classList.remove('show');}
+function batchScope(){var e=document.querySelector('input[name=batchScope]:checked');return e?e.value:'selected';}
+function renderBatchRows(){
+  var scope=batchScope();
+  if(scope==='selected'&&selectedCount()===0){
+    document.getElementById('batchRows').innerHTML='<div style="color:var(--gray-400);font-size:13px;padding:8px 0">请先勾选要修改的商品</div>';
+    return;
+  }
+  var h='';
+  batchFields.forEach(function(f,i){
+    h+='<div class="batch-row">'
+      +'<span class="batch-label">'+esc(f.label)+'</span>'
+      +'<select class="batch-select" data-i="'+i+'" data-role="field">'
+      +batchFields.map(function(o){return '<option value="'+esc(o.key)+'"'+(o.key===f.key?' selected':'')+'>原'+esc(o.label)+'</option>';}).join('')
+      +'</select>'
+      +'<select class="batch-select" data-i="'+i+'" data-role="mode" style="width:130px">'
+      +'<option value="up">上调</option><option value="down">下调</option>'
+      +'</select>'
+      +'<div class="batch-num-wrap"><input type="number" step="0.01" min="0" data-i="'+i+'" data-role="percent" placeholder=""><span class="suffix">%</span></div>'
+      +'</div>';
+  });
+  document.getElementById('batchRows').innerHTML=h;
+}
+function submitBatch(){
+  var scope=batchScope();
+  if(scope==='selected'&&selectedCount()===0){showToast('请先勾选要修改的商品','error');return;}
+  var changes=[];
+  var any=false;
+  document.querySelectorAll('#batchRows .batch-row').forEach(function(row){
+    var field=row.querySelector('[data-role=field]').value;
+    var mode=row.querySelector('[data-role=mode]').value;
+    var percent=parseFloat(row.querySelector('[data-role=percent]').value);
+    if(percent>0){changes.push({field:field,mode:mode,percent:percent});any=true;}
+  });
+  if(!any){showToast('请填写改价比例','error');return;}
+  var body={scope:scope,keys:Object.keys(state.selected),filters:currentFilters(),changes:changes};
+  apiFetch('/api/shop/price/batch',{method:'PUT',body:JSON.stringify(body)}).then(function(res){
+    if(res.code!==0){showToast(res.message||'改价失败','error');return;}
+    showToast('已修改 '+(res.data&&res.data.count||0)+' 个商品','success');
+    closeBatch();
+    loadData();
+  }).catch(function(){});
+}
+
+document.getElementById('batchModal').addEventListener('click',function(e){if(e.target===this)closeBatch();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeBatch();});
+
+loadBrands();
+loadData(1);
+</script>
+</body>
+</html>

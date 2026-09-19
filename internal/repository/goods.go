@@ -27,8 +27,15 @@ func (r *GoodsRepository) List(ctx context.Context, page, pageSize int, keyword 
 	if keyword != "" {
 		q = q.Where("name LIKE ? OR code LIKE ? OR barcode LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
-	if categoryID > 0 {
-		q = q.Where("category_id = ?", categoryID)
+	if categoryID == -1 {
+		// 未分类：无分类或分类为 0
+		q = q.Where("category_id IS NULL OR category_id = 0")
+	} else if categoryID > 0 {
+		sub := r.DB.Model(&model.GoodsCategory{}).Select("id").Where("parent_id = ?", categoryID)
+		if tid := customContext.GetTenantID(ctx); tid > 0 {
+			sub = sub.Where("tenant_id = ?", tid)
+		}
+		q = q.Where("category_id = ? OR category_id IN (?)", categoryID, sub)
 	}
 	q.Model(&model.Goods{}).Count(&total)
 	q.Offset((page - 1) * pageSize).Limit(pageSize).Order("created_at DESC").Find(&list)

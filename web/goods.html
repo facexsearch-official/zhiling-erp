@@ -89,6 +89,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
 .modal-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
 .modal-body{padding:24px}
+.prompt-hint{font-size:12px;color:var(--gray-400);margin-top:8px;min-height:16px}
 .modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--gray-100)}
 
 /* Form */
@@ -134,8 +135,9 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260925">
-<link rel="stylesheet" href="/css/tabs.css?v=20260925">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
+<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+<script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
 
@@ -149,21 +151,25 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   <!-- 列表视图 -->
   <div id="listView">
   <div class="split">
-    <aside class="cat-panel">
+    <aside class="cat-panel" id="catPanel">
       <div class="cat-head">
-        <span>货品分类</span>
-        <div class="cat-actions">
-          <button title="搜索分类" onclick="catSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-          <button title="新增分类" onclick="catAdd()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>
+        <span id="catTitle">货品分类</span>
+        <div class="cat-actions" id="catDefaultActions">
+          <button class="cat-search-btn" title="搜索分类" onclick="catToggleSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+          <button title="编辑分类" onclick="catToggleEdit()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        </div>
+        <div class="cat-actions" id="catEditActions" style="display:none">
+          <button class="cat-search-btn" title="搜索分类" onclick="catToggleSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+          <button class="cat-done-btn" onclick="catToggleEdit()">完成</button>
         </div>
       </div>
-      <div class="cat-tree" id="catTree">
-        <div class="cat-node active" data-cat="0" onclick="pickCat(this,0)">
-          <svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(90deg)"><polyline points="9 18 15 12 9 6"/></svg>
-          <span>全部</span><span class="cat-count" id="catCountAll">-</span>
+      <div class="cat-search-wrap" id="catSearchWrap" style="display:none">
+        <div class="cat-search-box">
+          <input class="cat-search-input" id="catSearchInput" placeholder="请搜索" oninput="catOnSearch(this.value)">
+          <button class="cat-search-clear" id="catSearchClear" title="清除" onclick="catClearSearch()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
-        <div class="cat-node child" data-cat="uncat" onclick="pickCat(this,-1)">未分类</div>
       </div>
+      <div class="cat-tree" id="catTree"></div>
     </aside>
     <div class="split-main">
     <div class="page-head">
@@ -255,23 +261,53 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
           </div>
         </div>
         <div class="fitem">
-          <label class="flabel">货品类别</label>
-          <select class="finput" id="fCategory"></select>
-          <span class="flink" onclick="addCategory()">+ 新增类别</span>
+          <label class="flabel">货品类别 <span class="req">*</span></label>
+          <div class="cat-field">
+            <div class="cat-picker" id="catPicker">
+              <div class="picker-input" id="catInputWrap" onclick="openCategoryDrop()">
+                <input class="picker-field" id="catInput" placeholder="未分类" readonly>
+                <span class="picker-clear" onclick="clearCategory()">×</span>
+              </div>
+              <div class="cat-drop" id="catDrop">
+                <div class="cat-col" id="catColParent"></div>
+                <div class="cat-col" id="catColChild"></div>
+              </div>
+            </div>
+            <span class="flink cat-add-link" onclick="openCategoryModal()">新增类别</span>
+          </div>
         </div>
         <div class="fitem">
           <label class="flabel">品牌</label>
-          <div class="tag-list" id="brandTags" data-placeholder="暂无品牌"></div>
-          <span class="flink" onclick="openBrandPicker()">+ 添加品牌</span>
+          <div class="picker" id="brandPicker">
+            <div class="picker-input" id="brandInputWrap" onclick="focusBrandInput()">
+              <input class="picker-field" id="brandInput" autocomplete="off" placeholder="请选择品牌"
+                     oninput="onBrandInput(this.value)" onkeydown="onBrandKeydown(event)" onfocus="openBrandDrop()">
+              <svg class="picker-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="picker-drop" id="brandDrop">
+              <div class="picker-list" id="brandList"></div>
+              <div class="picker-opt add" id="brandAdd" onclick="addBrandInline()">+ 新增品牌</div>
+            </div>
+          </div>
         </div>
         <div class="fitem">
           <label class="flabel">产地</label>
           <input class="finput" id="fOrigin" placeholder="如 浙江杭州">
         </div>
-        <div class="fitem full">
-          <label class="flabel">供货商</label>
-          <div class="tag-list" id="supplierTags"></div>
-          <span class="flink" onclick="openSupplierPicker()">+ 添加供应商</span>
+        <div class="fitem">
+          <label class="flabel">供货商 <span class="help-dot help-dot-up" title="可多选供货商">?</span></label>
+          <div class="picker" id="supplierPicker">
+            <div class="picker-input" id="supplierInputWrap" onclick="focusSupplierInput()">
+              <span class="picker-chips" id="supplierChips"></span>
+              <input class="picker-field" id="supplierInput" autocomplete="off" placeholder="请选择供货商"
+                     oninput="onSupplierInput(this.value)" onkeydown="onSupplierKeydown(event)" onfocus="openSupplierDrop()">
+              <span class="picker-clear" onclick="event.stopPropagation();clearSuppliers()">×</span>
+            </div>
+            <div class="picker-drop" id="supplierDrop">
+              <div class="picker-list" id="supplierList"></div>
+              <div class="picker-opt add" id="supplierAdd" onclick="addSupplierInline()">+ 新增供应商</div>
+            </div>
+          </div>
         </div>
         <div class="fitem full">
           <label class="flabel">备注</label>
@@ -286,20 +322,45 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
       <div class="unit-main">
         <label class="flabel">主单位</label>
-        <select class="finput" id="fUnit" onchange="onMainUnitChange()"></select>
-        <span class="flink" onclick="addUnit()">+ 新增单位</span>
+        <div class="picker unit-picker" id="unitPicker">
+          <div class="picker-input" id="unitInputWrap">
+            <input class="picker-field" id="unitInput" autocomplete="off" placeholder="请选择单位"
+                   oninput="onUnitInput(this.value)" onfocus="openUnitDrop()">
+            <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="picker-drop" id="unitDrop">
+            <div class="picker-list" id="unitList"></div>
+            <div class="picker-opt add" id="unitAdd" onclick="openUnitModal()">+ 新增单位</div>
+          </div>
+        </div>
         <label class="fswitch" style="margin-left:12px"><input type="checkbox" id="fMultiUnit" onchange="toggleMultiUnit()"> 启用多单位</label>
       </div>
       <div class="fhint" style="margin-top:7px">主单位需设置成商品的最小单位</div>
 
       <div id="unitWrap" style="display:none">
         <div id="unitBoxes"></div>
-        <div style="margin-top:10px"><span class="flink" onclick="addUnitRow()">+ 添加辅单位</span></div>
+        <div style="margin-top:10px" id="addUnitRowWrap"><span class="flink" onclick="addUnitRow()">+ 添加辅单位</span></div>
 
         <div class="unit-default-title">请选择开单默认单位</div>
         <div class="unit-default-box">
-          <div class="fitem"><label class="flabel">销售单位</label><select class="finput" id="fSalesUnit"></select></div>
-          <div class="fitem"><label class="flabel">进货单位</label><select class="finput" id="fPurchaseUnit"></select></div>
+          <div class="fitem"><label class="flabel">销售单位</label>
+            <div class="picker du-picker">
+              <div class="picker-input" onclick="toggleDU('sales')">
+                <input class="picker-field" id="fSalesUnit" placeholder="请选择" readonly>
+                <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="picker-drop" id="duDropSales"><div class="picker-list" id="duListSales"></div></div>
+            </div>
+          </div>
+          <div class="fitem"><label class="flabel">进货单位</label>
+            <div class="picker du-picker">
+              <div class="picker-input" onclick="toggleDU('purchase')">
+                <input class="picker-field" id="fPurchaseUnit" placeholder="请选择" readonly>
+                <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="picker-drop" id="duDropPurchase"><div class="picker-list" id="duListPurchase"></div></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -322,11 +383,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     <div class="fsection">
       <div class="fsection-title">商品价格</div>
       <div id="priceSimple">
-        <div class="frow three">
-          <div class="fitem"><label class="flabel">进货价</label><input class="finput" type="number" step="0.01" min="0" id="fPurchasePrice" placeholder="0.00"></div>
-          <div class="fitem"><label class="flabel">零售价</label><input class="finput" type="number" step="0.01" min="0" id="fRetailPrice" placeholder="0.00"></div>
-          <div class="fitem"><label class="flabel">批发价</label><input class="finput" type="number" step="0.01" min="0" id="fWholesalePrice" placeholder="0.00"></div>
-        </div>
+        <div class="price-unit-bar"><span class="flink price-more" onclick="addMorePrice()">新增更多价格</span></div>
+        <div class="spec-table-wrap"><table class="spec-table" id="simplePriceTable"></table></div>
       </div>
       <div id="priceMulti" style="display:none">
         <div class="price-unit-bar">
@@ -343,14 +401,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       <div class="fsection-title">商品库存</div>
       <label class="fswitch" style="margin-bottom:14px"><input type="checkbox" id="fAlert" onchange="toggleAlert()"> 启用库存预警 <span class="help-dot" title="低于最低库存或高于最高库存时提醒">?</span></label>
       <div id="stockSimple">
-        <div class="frow">
-          <div class="fitem"><label class="flabel">初始库存</label><input class="finput" type="number" min="0" id="fStock" placeholder="0"></div>
-          <div class="fitem"><label class="flabel">初始成本</label><input class="finput" type="number" step="0.01" min="0" id="fInitCost" placeholder="0.00"></div>
-        </div>
-        <div class="frow" id="alertRow" style="display:none;margin-top:14px">
-          <div class="fitem"><label class="flabel">预警下限</label><input class="finput" type="number" min="0" id="fMinStock" placeholder="0"></div>
-          <div class="fitem"><label class="flabel">预警上限</label><input class="finput" type="number" min="0" id="fMaxStock" placeholder="0"></div>
-        </div>
+        <div class="spec-table-wrap"><table class="spec-table" id="simpleStockTable"></table></div>
       </div>
       <div id="stockMulti" style="display:none">
         <div class="spec-table-wrap"><table class="spec-table" id="stockTable"></table></div>
@@ -361,7 +412,6 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   </div><!-- /formView -->
 </div>
 </div>
-    <aside class="help-panel" id="helpPanel"></aside>
   </div>
 </div>
 
@@ -370,48 +420,6 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
-
-<!-- 供应商选择弹窗 -->
-<div class="modal-overlay" id="supplierModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>选择供应商</h2>
-      <button class="modal-close" onclick="closeSupplierPicker()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input class="finput" id="supplierSearch" placeholder="搜索供应商名称…" style="flex:1" oninput="filterSupplierList()">
-        <button class="btn btn-secondary btn-sm" onclick="addSupplierInline()">+ 新增</button>
-      </div>
-      <div class="checklist" id="supplierChecklist"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeSupplierPicker()">取消</button>
-      <button class="btn btn-primary" onclick="confirmSupplierPick()">确定</button>
-    </div>
-  </div>
-</div>
-
-<!-- 品牌选择弹窗 -->
-<div class="modal-overlay" id="brandModal">
-  <div class="modal" style="width:420px">
-    <div class="modal-header">
-      <h2>选择品牌</h2>
-      <button class="modal-close" onclick="closeBrandPicker()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input class="finput" id="brandSearch" placeholder="搜索品牌名称…" style="flex:1" oninput="filterBrandList()">
-        <button class="btn btn-secondary btn-sm" onclick="addBrandInline()">+ 新增</button>
-      </div>
-      <div class="checklist" id="brandChecklist"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeBrandPicker()">取消</button>
-      <button class="btn btn-primary" onclick="confirmBrandPick()">确定</button>
-    </div>
-  </div>
-</div>
 
 <input type="file" id="imgPicker" accept="image/*" multiple style="display:none">
 <input type="file" id="specImgPicker" accept="image/*" style="display:none">
@@ -431,6 +439,134 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       <button class="btn btn-ghost" style="color:var(--accent-600);margin-right:auto" onclick="resetSpecSort()">重置</button>
       <button class="btn btn-secondary" onclick="closeSpecSort()">取消</button>
       <button class="btn btn-primary" onclick="saveSpecSort()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用输入弹窗 -->
+<div class="modal-overlay" id="promptModal">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <h2 id="promptTitle">请输入</h2>
+      <button class="modal-close" onclick="closePrompt()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input class="finput" id="promptInput" autocomplete="off">
+      <div class="prompt-hint" id="promptHint"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePrompt()">取消</button>
+      <button class="btn btn-primary" onclick="confirmPrompt()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑类别弹窗 -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center" id="categoryModalTitle">新增类别</h2>
+      <button class="modal-close" onclick="closeCategoryModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form-row">
+        <label class="cat-form-label">分类名称</label>
+        <div class="cat-input-wrap">
+          <input class="cat-input" id="catNameInput" placeholder="请输入类别名称" maxlength="30" autocomplete="off" oninput="onCatNameInput(this.value)">
+          <span class="cat-counter" id="catNameCounter">0 / 30</span>
+        </div>
+      </div>
+      <div class="cat-form-row">
+        <label class="cat-form-label">上级分类</label>
+        <div class="cat-picker" id="catParentPicker">
+          <div class="picker-input" id="catParentInputWrap" onclick="openCatParentDrop()">
+            <input class="picker-field" id="catParentInput" placeholder="无" readonly>
+            <svg class="cat-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="cat-drop" id="catParentDrop">
+            <div class="cat-col" id="catParentColLeft"></div>
+            <div class="cat-col" id="catParentColRight"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCategoryModal()">取消</button>
+      <button class="btn btn-primary" id="categorySubmitBtn" onclick="submitCategory()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增单位弹窗 -->
+<div class="modal-overlay" id="unitModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center">新增单位</h2>
+      <button class="modal-close" onclick="closeUnitModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form-row">
+        <label class="cat-form-label">单位名称</label>
+        <div class="cat-input-wrap">
+          <input class="cat-input" id="unitNameInput" placeholder="请输入单位名称" maxlength="20" autocomplete="off" oninput="onUnitNameInput(this.value)">
+          <span class="cat-counter" id="unitNameCounter">0 / 20</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUnitModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitUnit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增规格内容弹窗 -->
+<div class="modal-overlay" id="specValueModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center">新增规格内容</h2>
+      <button class="modal-close" onclick="closeSpecValueModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form-row">
+        <label class="cat-form-label">规格名称</label>
+        <div class="cat-spec-name" id="specValueName">—</div>
+      </div>
+      <div class="cat-form-row">
+        <label class="cat-form-label">规格内容</label>
+        <div class="cat-input-wrap">
+          <input class="cat-input" id="specValueInput" placeholder="请输入规格内容" maxlength="50" autocomplete="off" oninput="onSpecValueModalInput(this.value)">
+          <span class="cat-counter" id="specValueCounter">0 / 50</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSpecValueModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitSpecValue()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增价格等级弹窗 -->
+<div class="modal-overlay" id="priceLevelModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center">新增价格等级</h2>
+      <button class="modal-close" onclick="closePriceLevelModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form-row" style="margin-bottom:6px">
+        <label class="cat-form-label wide">价格等级名称</label>
+        <div class="cat-input-wrap">
+          <input class="cat-input" id="priceLevelInput" placeholder="请输入价格等级名称" maxlength="20" autocomplete="off" oninput="onPriceLevelInput(this.value)">
+          <span class="cat-counter" id="priceLevelCounter">0 / 20</span>
+        </div>
+      </div>
+      <div class="cat-form-row"><label class="cat-form-label wide"></label><div class="fhint">设置不同等级的价格，以便给不同类型的客户报价</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePriceLevelModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitPriceLevel()">确定</button>
     </div>
   </div>
 </div>
@@ -458,14 +594,152 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   // --- Category tree ---
+  var catUI = { activeParent: 0, editMode: false, searchMode: false, searchKw: '', collapsed: {}, editingId: 0 };
+
+  function renderCatTree(){
+    var c = document.getElementById('catTree');
+    if(!c) return;
+    var kw = catUI.searchKw.toLowerCase();
+    function matchKw(name){ return !kw || name.toLowerCase().indexOf(kw) >= 0; }
+    var h = '';
+    var allOpen = kw ? true : !catUI.collapsed['all'];
+    // 全部（根节点，展开后显示全部一级分类）
+    h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="pickCat(this,0)">'
+      + '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (allOpen ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'all\')"><polyline points="9 18 15 12 9 6"/></svg>'
+      + '<span>全部</span>';
+    if(catUI.editMode) h += '<div class="cat-actions-row"><button class="cat-node-actions" title="新增分类" onclick="event.stopPropagation();catAddChild(0)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>';
+    h += '</div>';
+    if(allOpen){
+      catTopLevels().forEach(function(t){
+        var kids = catChildren(t.id);
+        var matchT = matchKw(t.name);
+        if(kw && !matchT && !kids.some(function(ch){ return matchKw(ch.name); })) return;
+        var expanded = kw ? true : !catUI.collapsed[t.id];
+        h += '<div class="cat-node child' + (String(state.catId) === String(t.id) ? ' active' : '') + '" onclick="pickCat(this,' + t.id + ')">';
+        if(kids.length){
+          h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(' + t.id + ')"><polyline points="9 18 15 12 9 6"/></svg>';
+        } else {
+          h += '<span class="cat-caret"></span>';
+        }
+        h += '<span>' + esc(t.name) + '</span>';
+        if(catUI.editMode) h += '<div class="cat-actions-row">'
+          + '<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();catAddChild(' + t.id + ')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
+          + '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + t.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+          + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + t.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+          + '</div>';
+        h += '</div>';
+        if(expanded){
+          kids.forEach(function(ch){
+            if(kw && !matchT && !matchKw(ch.name)) return;
+            h += '<div class="cat-node child2' + (String(state.catId) === String(ch.id) ? ' active' : '') + '" onclick="pickCat(this,' + ch.id + ')"><span class="cat-caret"></span><span>' + esc(ch.name) + '</span>';
+            if(catUI.editMode) h += '<div class="cat-actions-row">'
+              + '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + ch.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+              + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + ch.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+              + '</div>';
+            h += '</div>';
+          });
+        }
+      });
+    }
+    // 未分类（根节点，搜索时仅名称匹配才显示）
+    if(!kw || matchKw('未分类')){
+      h += '<div class="cat-node' + (state.catId === -1 ? ' active' : '') + '" onclick="pickCat(this,-1)"><span class="cat-caret"></span><span>未分类</span></div>';
+    }
+    c.innerHTML = h;
+  }
   window.pickCat = function(el, catId){
     document.querySelectorAll('#catTree .cat-node').forEach(function(n){ n.classList.remove('active'); });
     if(el) el.classList.add('active');
     state.catId = catId;
     loadData(1);
   };
-  window.catSearch = function(){ showToast('分类搜索开发中'); };
-  window.catAdd = function(){ showToast('新增分类开发中'); };
+  window.catToggleCollapse = function(catId){
+    catUI.collapsed[catId] = !catUI.collapsed[catId];
+    renderCatTree();
+  };
+  window.catToggleSearch = function(){
+    catUI.searchMode = !catUI.searchMode;
+    var wrap = el('catSearchWrap');
+    if(wrap) wrap.style.display = catUI.searchMode ? '' : 'none';
+    document.querySelectorAll('.cat-search-btn').forEach(function(b){ b.style.display = catUI.searchMode ? 'none' : ''; });
+    if(catUI.searchMode){
+      var inp = el('catSearchInput');
+      if(inp){ inp.value = ''; inp.focus(); }
+    }
+    catUI.searchKw = '';
+    catSyncSearchClear();
+    renderCatTree();
+  };
+  window.catOnSearch = function(v){
+    catUI.searchKw = (v || '').trim();
+    catSyncSearchClear();
+    renderCatTree();
+  };
+  window.catClearSearch = function(){
+    var inp = el('catSearchInput');
+    if(inp){ inp.value = ''; inp.focus(); }
+    catUI.searchKw = '';
+    catSyncSearchClear();
+    renderCatTree();
+  };
+  function catSyncSearchClear(){
+    var box = document.querySelector('.cat-search-box');
+    var inp = el('catSearchInput');
+    if(box) box.classList.toggle('has-value', !!(inp && inp.value));
+  }
+  window.catToggleEdit = function(){
+    catUI.editMode = !catUI.editMode;
+    var def = el('catDefaultActions');
+    var ed = el('catEditActions');
+    if(def) def.style.display = catUI.editMode ? 'none' : '';
+    if(ed) ed.style.display = catUI.editMode ? '' : 'none';
+    var p = el('catPanel');
+    if(p) p.classList.toggle('editing', catUI.editMode);
+    renderCatTree();
+  };
+  window.catAddChild = function(parentId){
+    catUI.editingId = 0;
+    catParentUI.value = parentId;
+    catParentUI.activeParent = parentId ? (catById(parentId) || {}).parent_id || 0 : 0;
+    el('categoryModalTitle').textContent = '新增商品分类';
+    el('categorySubmitBtn').textContent = '保存';
+    el('catNameInput').value = '';
+    el('catNameCounter').textContent = '0 / 30';
+    renderCatParentPicker();
+    closeCatParentDrop();
+    el('categoryModal').classList.add('show');
+    setTimeout(function(){ el('catNameInput').focus(); }, 60);
+  };
+  window.catEdit = function(catId){
+    var cat = catById(catId);
+    if(!cat) return;
+    catUI.editingId = catId;
+    catParentUI.value = cat.parent_id || 0;
+    catParentUI.activeParent = cat.parent_id || 0;
+    el('categoryModalTitle').textContent = '编辑商品分类';
+    el('categorySubmitBtn').textContent = '保存';
+    el('catNameInput').value = cat.name;
+    el('catNameCounter').textContent = cat.name.length + ' / 30';
+    renderCatParentPicker();
+    closeCatParentDrop();
+    el('categoryModal').classList.add('show');
+    setTimeout(function(){ el('catNameInput').focus(); }, 60);
+  };
+  window.catDelete = function(catId){
+    var cat = catById(catId);
+    if(!cat) return;
+    if(!confirm('确认删除分类"' + cat.name + '"？')) return;
+    apiFetch('/api/shop/category/' + catId, { method:'DELETE' }).then(function(res){
+      if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
+      meta.loaded = false;
+      loadMeta(true).then(function(){
+        if(state.catId === catId) state.catId = 0;
+        renderCatTree();
+        loadData(1);
+        showToast('删除成功', 'success');
+      });
+    });
+  };
 
   // --- Sidebar ---
   window.toggleSidebar = function(){
@@ -482,7 +756,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     params.set('page', state.page);
     params.set('page_size', state.pageSize);
     if(state.keyword) params.set('keyword', state.keyword);
-    if(state.catId > 0) params.set('category_id', state.catId);
+    if(state.catId !== 0) params.set('category_id', state.catId);
     apiFetch('/api/shop/goods/list?' + params.toString()).then(function(res){
       if(res.code !== 0){ showToast(res.message || '加载失败', 'error'); return; }
       state.list = res.data.list || [];
@@ -563,8 +837,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   // ═══════════ 抽屉表单 ═══════════
-  var meta = { categories: [], units: [], suppliers: [], brands: [], attributes: [], loaded: false };
-  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', suppliers: [], brand: '', salesUnit: '', purchaseUnit: '', editId: null };
+  var meta = { categories: [], units: [], suppliers: [], brands: [], extraBrands: [], attributes: [], loaded: false };
+  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', priceColumns: [], simpleRow: { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }, simpleStock: { stock:'', init_cost:'', min_stock:'', max_stock:'' }, suppliers: [], brand: '', categoryId: 0, unitId: 0, salesUnit: '', purchaseUnit: '', editId: null };
 
   function el(id){ return document.getElementById(id); }
   function num(id){ return parseFloat(el(id).value) || 0; }
@@ -595,12 +869,18 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       meta.units      = (r[1] && r[1].data) || [];
       meta.suppliers  = (r[2] && r[2].data) || [];
       meta.brands     = (r[3] && r[3].data) || [];
+      // 合并本地新增（尚未保存到任何货品）的品牌，避免刷新基础资料后丢失
+      (meta.extraBrands || []).forEach(function(b){
+        if(meta.brands.indexOf(b) === -1) meta.brands.push(b);
+      });
+      meta.brands.sort();
       meta.attributes = (r[4] && r[4].data) || [];
       meta.loaded = true;
-      fillSelect('fCategory', meta.categories, '未分类', el('fCategory').value);
-      fillSelect('fUnit', meta.units, '请选择', el('fUnit').value);
+      renderUnitPicker();
+      renderCategoryPicker();
       renderSupplierTags();
       renderBrandTags();
+      renderCatTree();
       if(checked('fMultiUnit')) renderUnits();
       else syncDefaultUnitOptions();
       if(checked('fMultiSpec')) renderSpecGroups();
@@ -614,17 +894,27 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   var LIST_KEY = 'goods:list';
 
   function addFormTab(){
-    if(!window.PisaTabs) return;
-    PisaTabs.touch(ADD_KEY, '添加货品', '/goods.html#goods:add');
+    if(window.PisaTabs) PisaTabs.touch(ADD_KEY, '添加货品', '/goods.html#goods:add');
+    if(location.hash !== '#goods:add'){
+      try{ history.replaceState(null, '', '#goods:add'); }catch(e){ location.hash = 'goods:add'; }
+    }
   }
   function removeFormTab(){
-    if(!window.PisaTabs) return;
-    // 先把激活标签切回「货品」，再关掉新增标签（避免关闭时整页跳转）
-    PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
-    PisaTabs.close(ADD_KEY);
+    if(window.PisaTabs){
+      // 先把激活标签切回「货品」，再关掉新增标签（避免关闭时整页跳转）
+      PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
+      PisaTabs.close(ADD_KEY);
+    }
     if(location.hash === '#goods:add'){
       try{ history.replaceState(null, '', '/goods.html'); }catch(e){}
     }
+  }
+
+  var formInited = false;
+
+  function showListView(){
+    el('formView').style.display = 'none';
+    el('listView').style.display = '';
   }
 
   function openDrawer(){
@@ -635,8 +925,9 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     setTimeout(function(){ el('fName').focus(); }, 120);
   }
   window.closeDrawer = function(){
-    el('formView').style.display = 'none';
-    el('listView').style.display = '';
+    if(el('formView').style.display === 'none') return;
+    showListView();
+    formInited = false;
     if(form.editId == null) removeFormTab();
   };
 
@@ -646,10 +937,10 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     el('formTitle').textContent = '新增货品';
     el('saveMoreBtn').style.display = '';
     resetForm();
-    loadMeta().then(function(){
-      openDrawer();
-      addFormTab();
-    });
+    formInited = true;
+    openDrawer();
+    addFormTab();
+    loadMeta();
   };
 
   window.showEdit = function(id){
@@ -676,8 +967,10 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       el('fWholesalePrice').value = d.wholesale_price || '';
       el('fStock').value       = d.current_stock || '';
       el('fInitCost').value    = d.init_cost || '';
-      el('fCategory').value    = d.category_id || '';
-      el('fUnit').value        = d.unit_id || '';
+      form.categoryId = d.category_id || 0;
+      renderCategoryPicker();
+      form.unitId = d.unit_id || 0;
+      renderUnitPicker();
 
       // 供货商：兼容 supplier_id（旧）和 suppliers（新 JSON）
       form.suppliers = [];
@@ -696,8 +989,6 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       el('fMultiUnit').checked = !!d.has_multi_unit;
       el('fMultiSpec').checked = !!d.has_multi_spec;
       el('fAlert').checked     = !!d.enable_stock_alert;
-      el('fMinStock').value    = d.min_stock || '';
-      el('fMaxStock').value    = d.max_stock || '';
       toggleMultiUnit();
       toggleMultiSpec();
       toggleAlert();
@@ -723,9 +1014,18 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       try{ form.stockRows = JSON.parse(d.stock_rows || '{}') || {}; }catch(e){ form.stockRows = {}; }
       if(typeof form.stockRows !== 'object' || form.stockRows === null) form.stockRows = {};
       form.priceUnit = '';
+      try{ form.priceColumns = JSON.parse(d.price_columns || '[]') || []; }catch(e){ form.priceColumns = []; }
+      if(!Array.isArray(form.priceColumns)) form.priceColumns = [];
+      form.simpleRow = { purchase_price: (d.purchase_price || ''), retail_price: (d.retail_price || ''), wholesale_price: (d.wholesale_price || ''), custom:{} };
+      var _simple = form.priceRows['__simple__'] && form.priceRows['__simple__'][''];
+      if(_simple){ form.simpleRow.purchase_price = _simple.purchase_price || form.simpleRow.purchase_price; form.simpleRow.retail_price = _simple.retail_price || form.simpleRow.retail_price; form.simpleRow.wholesale_price = _simple.wholesale_price || form.simpleRow.wholesale_price; form.simpleRow.custom = _simple.custom || {}; }
+      delete form.priceRows['__simple__'];
+      form.simpleStock = { stock: (d.current_stock == null ? '' : d.current_stock), init_cost: (d.init_cost == null ? '' : d.init_cost), min_stock: (d.min_stock == null ? '' : d.min_stock), max_stock: (d.max_stock == null ? '' : d.max_stock) };
       try{ form.images = JSON.parse(d.images || '[]') || []; }catch(e){ form.images = []; }
       if(!form.images.length && d.image_url) form.images = [d.image_url];
+      renderSimplePrice(); renderSimpleStock();
       renderImages(); renderUnits(); renderSpecGroups();
+      formInited = true;
       openDrawer();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
@@ -738,11 +1038,12 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       var e = el(id); if(e) e.value = '';
     });
     ['fMultiUnit','fMultiSpec','fAlert'].forEach(function(id){ el(id).checked = false; });
-    el('fCategory').value = ''; el('fUnit').value = '';
+    form.categoryId = 0; renderCategoryPicker();
+    form.unitId = 0; renderUnitPicker();
     form.brand = '';
     renderBrandTags();
     form.images = []; form.units = []; form.specGroups = []; form.suppliers = [];
-    form.priceRows = {}; form.stockRows = {}; form.priceUnit = '';
+    form.priceRows = {}; form.stockRows = {}; form.priceUnit = ''; form.priceColumns = []; form.simpleRow = { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }; form.simpleStock = { stock:'', init_cost:'', min_stock:'', max_stock:'' };
     form.salesUnit = ''; form.purchaseUnit = '';
     renderImages(); renderUnits(); renderSpecGroups(); renderSupplierTags();
     toggleMultiUnit(); toggleMultiSpec(); toggleAlert();
@@ -765,8 +1066,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     renderSpecGroups();
   };
   window.toggleAlert = function(){
-    var on = checked('fAlert');
-    el('alertRow').style.display = on ? '' : 'none';
+    readSimpleStock();
+    renderSimpleStock();
     if(checked('fMultiSpec')) renderStockTable();
   };
 
@@ -786,180 +1087,579 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
   window.genBarcode = function(){ el('fBarcode').value = ean13(); };
 
-  // --- 新增类别 / 单位 ---
-  window.addCategory = function(){
-    var name = (prompt('请输入类别名称') || '').trim();
-    if(!name) return;
-    apiFetch('/api/shop/category', { method:'POST', body:{ name:name } }).then(function(res){
-      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
-      meta.loaded = false;
-      loadMeta(true).then(function(){ el('fCategory').value = res.data.id; });
-      showToast('类别已新增', 'success');
+  // --- 通用输入弹窗 ---
+  var _promptResolve = null;
+  var _promptMaxLength = 0;
+  window.pisaPrompt = function(title, opts){
+    opts = opts || {};
+    _promptMaxLength = opts.maxLength || 0;
+    return new Promise(function(resolve){
+      _promptResolve = resolve;
+      el('promptTitle').textContent = title || '请输入';
+      var hint = opts.hint || '';
+      if(_promptMaxLength > 0) hint += (hint ? '  ' : '') + '<span style="color:var(--gray-400)">最多' + _promptMaxLength + '字</span>';
+      el('promptHint').innerHTML = hint;
+      var inp = el('promptInput');
+      inp.value = opts.value || '';
+      inp.placeholder = opts.placeholder || '';
+      if(_promptMaxLength > 0) inp.maxLength = _promptMaxLength; else inp.removeAttribute('maxlength');
+      el('promptModal').classList.add('show');
+      setTimeout(function(){ inp.focus(); inp.select(); }, 60);
     });
   };
-  window.addUnit = function(){
-    var name = (prompt('请输入单位名称，如 个 / 箱') || '').trim();
-    if(!name) return;
+  window.closePrompt = function(){
+    el('promptModal').classList.remove('show');
+    if(_promptResolve){ var r = _promptResolve; _promptResolve = null; r(null); }
+  };
+  window.confirmPrompt = function(){
+    var v = el('promptInput').value.trim();
+    if(_promptMaxLength > 0 && v.length > _promptMaxLength){
+      el('promptHint').innerHTML = '<span style="color:var(--danger-500)">最多' + _promptMaxLength + '字，当前已' + v.length + '字</span>';
+      return;
+    }
+    var r = _promptResolve; _promptResolve = null;
+    el('promptModal').classList.remove('show');
+    if(r) r(v || null);
+  };
+  (function bindPrompt(){
+    var inp = el('promptInput');
+    if(inp) inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); confirmPrompt(); }
+      else if(e.key === 'Escape'){ e.preventDefault(); closePrompt(); }
+    });
+    var ov = el('promptModal');
+    if(ov) ov.addEventListener('click', function(e){ if(e.target === ov) closePrompt(); });
+  })();
+
+  // --- 新增类别 / 单位 ---
+  // --- 货品类别（两级级联）---
+  function catById(id){
+    if(!id) return null;
+    return (meta.categories || []).filter(function(c){ return String(c.id) === String(id); })[0] || null;
+  }
+  function catChildren(pid){
+    return (meta.categories || []).filter(function(c){ return String(c.parent_id || 0) === String(pid || 0); });
+  }
+  function catTopLevels(){ return catChildren(0); }
+  function catPath(id){
+    var c = catById(id); if(!c) return '';
+    var p = c.parent_id ? catById(c.parent_id) : null;
+    return p ? (p.name + ' / ' + c.name) : c.name;
+  }
+  function catHasChild(id){ return catChildren(id).length > 0; }
+
+  function renderCategoryPicker(){
+    var inp = el('catInput');
+    if(!inp) return;
+    inp.value = form.categoryId ? catPath(form.categoryId) : '';
+    inp.placeholder = '未分类';
+    var w = el('catInputWrap');
+    if(w) w.classList.toggle('filled', !!form.categoryId);
+  }
+  function buildCascadeHTML(activeParent, selectedId, hoverFn, pickFn, noneLabel){
+    var left = '<div class="cat-opt' + (String(activeParent) === '0' ? ' active' : '') + (selectedId ? '' : ' selected') + '"'
+      + ' onmouseenter="' + hoverFn + '(0)" onclick="' + pickFn + '(0)">' + esc(noneLabel)
+      + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    catTopLevels().forEach(function(c){
+      var active = String(activeParent) === String(c.id);
+      var sel = String(selectedId) === String(c.id);
+      left += '<div class="cat-opt' + (active ? ' active' : '') + (sel ? ' selected' : '') + '"'
+        + ' onmouseenter="' + hoverFn + '(' + c.id + ')" onclick="' + pickFn + '(' + c.id + ')">'
+        + esc(c.name)
+        + (catHasChild(c.id)
+            ? '<svg class="cat-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>'
+            : '<span class="opt-check">' + checkSVG() + '</span>')
+        + '</div>';
+    });
+    var right;
+    if(!activeParent){
+      right = '<div class="cat-opt empty">请选择左侧类别</div>';
+    } else {
+      var kids = catChildren(activeParent);
+      right = kids.length
+        ? kids.map(function(c){
+            var sel = String(selectedId) === String(c.id);
+            return '<div class="cat-opt' + (sel ? ' selected' : '') + '" onclick="' + pickFn + '(' + c.id + ')">'
+              + esc(c.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
+          }).join('')
+        : '<div class="cat-opt empty">暂无子类别</div>';
+    }
+    return { left: left, right: right };
+  }
+  function renderCatCols(){
+    var pl = el('catColParent'), cl = el('catColChild');
+    if(!pl || !cl) return;
+    var html = buildCascadeHTML(catUI.activeParent, form.categoryId, 'hoverCat', 'selectCategory', '未分类');
+    pl.innerHTML = html.left;
+    cl.innerHTML = html.right;
+  }
+  window.hoverCat = function(pid){
+    catUI.activeParent = pid || 0;
+    renderCatCols();
+  };
+  window.openCategoryDrop = function(){
+    var c = catById(form.categoryId);
+    catUI.activeParent = (c && c.parent_id) ? c.parent_id : 0;
+    renderCatCols();
+    var d = el('catDrop'), w = el('catInputWrap');
+    if(d) d.classList.add('open');
+    if(w) w.classList.add('open');
+  };
+  window.closeCategoryDrop = function(){
+    var d = el('catDrop'), w = el('catInputWrap');
+    if(d) d.classList.remove('open');
+    if(w) w.classList.remove('open');
+  };
+  window.selectCategory = function(id){
+    form.categoryId = id ? parseInt(id, 10) : 0;
+    renderCategoryPicker();
+    closeCategoryDrop();
+  };
+  window.clearCategory = function(){
+    form.categoryId = 0;
+    renderCategoryPicker();
+  };
+
+  // 弹窗内「上级类别」级联
+  var catParentUI = { activeParent: 0, value: 0 };
+  function renderCatParentPicker(){
+    var inp = el('catParentInput');
+    if(!inp) return;
+    inp.value = catParentUI.value ? catPath(catParentUI.value) : '无';
+  }
+  function renderCatParentCols(){
+    var L = el('catParentColLeft'), R = el('catParentColRight');
+    if(!L || !R) return;
+    var html = buildCascadeHTML(catParentUI.activeParent, catParentUI.value, 'hoverCatParent', 'selectCatParent', '无');
+    L.innerHTML = html.left;
+    R.innerHTML = html.right;
+  }
+  window.openCatParentDrop = function(){
+    var c = catById(catParentUI.value);
+    catParentUI.activeParent = (c && c.parent_id) ? c.parent_id : 0;
+    renderCatParentCols();
+    var d = el('catParentDrop'), w = el('catParentInputWrap');
+    if(d) d.classList.add('open');
+    if(w) w.classList.add('open');
+  };
+  window.closeCatParentDrop = function(){
+    var d = el('catParentDrop'), w = el('catParentInputWrap');
+    if(d) d.classList.remove('open');
+    if(w) w.classList.remove('open');
+  };
+  window.hoverCatParent = function(pid){
+    catParentUI.activeParent = pid || 0;
+    renderCatParentCols();
+  };
+  window.selectCatParent = function(id){
+    catParentUI.value = id ? parseInt(id, 10) : 0;
+    renderCatParentPicker();
+    closeCatParentDrop();
+  };
+
+  window.openCategoryModal = function(){
+    catUI.editingId = 0;
+    catParentUI.value = 0;
+    catParentUI.activeParent = 0;
+    el('categoryModalTitle').textContent = '新增商品分类';
+    el('categorySubmitBtn').textContent = '保存';
+    el('catNameInput').value = '';
+    el('catNameCounter').textContent = '0 / 30';
+    renderCatParentPicker();
+    closeCatParentDrop();
+    el('categoryModal').classList.add('show');
+    setTimeout(function(){ el('catNameInput').focus(); }, 60);
+  };
+  window.closeCategoryModal = function(){
+    closeCatParentDrop();
+    el('categoryModal').classList.remove('show');
+  };
+  window.onCatNameInput = function(v){
+    el('catNameCounter').textContent = (v || '').length + ' / 30';
+  };
+  window.submitCategory = function(){
+    var name = (el('catNameInput').value || '').trim();
+    if(!name){ showToast('请输入分类名称', 'error'); return; }
+    if(name.length > 30){ showToast('分类名称不能超过30个字符', 'error'); return; }
+    var pid = catParentUI.value || 0;
+    if(catUI.editingId){
+      apiFetch('/api/shop/category/' + catUI.editingId, { method:'PUT', body:{ name:name, parent_id:pid } }).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '修改失败', 'error'); return; }
+        meta.loaded = false;
+        closeCategoryModal();
+        loadMeta(true).then(function(){
+          renderCatTree();
+          showToast('修改成功', 'success');
+        });
+      });
+    } else {
+      apiFetch('/api/shop/category', { method:'POST', body:{ name:name, parent_id:pid } }).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+        meta.loaded = false;
+        closeCategoryModal();
+        loadMeta(true).then(function(){
+          selectCategory(res.data.id);
+          renderCatTree();
+          showToast('类别已新增', 'success');
+        });
+      });
+    }
+  };
+  window.addCategory = function(){ window.openCategoryModal(); };
+
+  // --- 主单位（可搜索下拉）---
+  function unitById(id){
+    return (meta.units || []).filter(function(u){ return String(u.id) === String(id); })[0] || null;
+  }
+  function unitNameById(id){
+    var u = unitById(id);
+    return u ? u.name : '';
+  }
+  function renderUnitPicker(){
+    var inp = el('unitInput');
+    if(!inp) return;
+    inp.value = form.unitId ? unitNameById(form.unitId) : '';
+    var w = el('unitInputWrap');
+    if(w) w.classList.toggle('filled', !!form.unitId);
+  }
+  window.openUnitDrop = function(){
+    renderUnitList(true);
+    var d = el('unitDrop');
+    if(d) d.classList.add('open');
+    var inp = el('unitInput');
+    if(inp && form.unitId) setTimeout(function(){ try{ inp.select(); }catch(e){} }, 0);
+  };
+  window.closeUnitDrop = function(){
+    var d = el('unitDrop');
+    if(d) d.classList.remove('open');
+    var inp = el('unitInput');
+    if(inp) inp.value = form.unitId ? unitNameById(form.unitId) : '';
+  };
+  window.onUnitInput = function(v){
+    renderUnitList(false);
+    var d = el('unitDrop');
+    if(d && !d.classList.contains('open')) d.classList.add('open');
+  };
+  function renderUnitList(showAll){
+    var c = el('unitList');
+    if(!c) return;
+    var kw = showAll ? '' : (el('unitInput') ? el('unitInput').value.trim().toLowerCase() : '');
+    var list = (meta.units || []).filter(function(u){ return textMatch(u.name, kw); });
+    var h = '';
+    list.forEach(function(u){
+      var sel = String(form.unitId) === String(u.id);
+      h += '<div class="picker-opt' + (sel ? ' selected' : '') + '" onclick="pickUnit(' + u.id + ')">'
+        + esc(u.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    });
+    if(!h) h = '<div class="picker-opt empty">暂无单位</div>';
+    c.innerHTML = h;
+  }
+  window.pickUnit = function(id){
+    form.unitId = id ? parseInt(id, 10) : 0;
+    renderUnitPicker();
+    closeUnitDrop();
+    onMainUnitChange();
+  };
+  window.openUnitModal = function(){
+    el('unitNameInput').value = '';
+    el('unitNameCounter').textContent = '0 / 20';
+    el('unitModal').classList.add('show');
+    setTimeout(function(){ el('unitNameInput').focus(); }, 60);
+  };
+  window.closeUnitModal = function(){ el('unitModal').classList.remove('show'); };
+  window.onUnitNameInput = function(v){ el('unitNameCounter').textContent = (v || '').length + ' / 20'; };
+  window.submitUnit = function(){
+    var name = (el('unitNameInput').value || '').trim();
+    if(!name){ showToast('请输入单位名称', 'error'); return; }
+    if(name.length > 20){ showToast('单位名称不能超过20个字符', 'error'); return; }
     apiFetch('/api/shop/unit', { method:'POST', body:{ name:name } }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
       meta.loaded = false;
-      loadMeta(true).then(function(){ el('fUnit').value = res.data.id; });
-      showToast('单位已新增', 'success');
+      closeUnitModal();
+      loadMeta(true).then(function(){
+        pickUnit(res.data.id);
+        showToast('单位已新增', 'success');
+      });
     });
   };
+  window.addUnit = function(){ window.openUnitModal(); };
 
-  // --- 供货商多选 ---
+  // --- 供货商（下拉多选）---
+  function supplierName(id){
+    var s = (meta.suppliers || []).filter(function(x){ return String(x.id) === String(id); })[0];
+    return s ? s.name : ('#' + id);
+  }
+  function hasSupplier(id){
+    return form.suppliers.some(function(x){ return String(x) === String(id); });
+  }
   function renderSupplierTags(){
-    var c = el('supplierTags');
-    if(!form.suppliers.length){ c.innerHTML = ''; c.setAttribute('data-placeholder','暂无供应商，点击添加'); return; }
-    c.removeAttribute('data-placeholder');
+    var c = el('supplierChips');
+    if(!c) return;
     var h = '';
     form.suppliers.forEach(function(id, i){
-      var s = meta.suppliers.filter(function(x){ return String(x.id)===String(id); })[0];
-      var name = s ? s.name : ('#' + id);
-      h += '<span class="tag">' + esc(name) + '<span class="tag-del" onclick="removeSupplier(' + i + ')">×</span></span>';
+      h += '<span class="picker-chip">' + esc(supplierName(id))
+        + '<span class="chip-x" onclick="event.stopPropagation();removeSupplier(' + i + ')">×</span></span>';
     });
     c.innerHTML = h;
+    var inp = el('supplierInput');
+    if(inp) inp.placeholder = form.suppliers.length ? '' : '请选择供货商';
+    var w = el('supplierInputWrap');
+    if(w) w.classList.toggle('filled', form.suppliers.length > 0);
   }
   window.removeSupplier = function(i){
     form.suppliers.splice(i, 1);
     renderSupplierTags();
+    renderSupplierList();
   };
-
-  // 供应商选择弹窗
-  var _pendingSupplierPick = [];
-  window.openSupplierPicker = function(){
-    _pendingSupplierPick = form.suppliers.slice();
-    var search = el('supplierSearch');
-    if(search) search.value = '';
-    renderSupplierChecklist();
-    el('supplierModal').classList.add('show');
-    if(search) setTimeout(function(){ search.focus(); }, 100);
-  };
-  window.closeSupplierPicker = function(){
-    el('supplierModal').classList.remove('show');
-  };
-  window.confirmSupplierPick = function(){
-    form.suppliers = _pendingSupplierPick.slice();
+  window.clearSuppliers = function(){
+    form.suppliers = [];
     renderSupplierTags();
-    closeSupplierPicker();
+    renderSupplierList();
+    focusSupplierInput();
   };
-
-  function renderSupplierChecklist(filter){
-    var c = el('supplierChecklist');
-    var list = meta.suppliers;
-    if(filter){
-      var kw = filter.toLowerCase();
-      list = list.filter(function(s){ return (s.name||'').toLowerCase().indexOf(kw) !== -1; });
-    }
-    if(!list.length){ c.innerHTML = ''; return; }
-    var h = '';
-    list.forEach(function(s){
-      var checked = _pendingSupplierPick.indexOf(s.id) !== -1;
-      h += '<div class="check-item' + (checked ? ' selected' : '') + '" onclick="toggleSupplierPick(' + s.id + ',this)">'
-        + '<input type="checkbox"' + (checked ? ' checked' : '') + ' onclick="event.stopPropagation();toggleSupplierPick(' + s.id + ',this.parentElement)">'
-        + '<label onclick="event.stopPropagation();toggleSupplierPick(' + s.id + ',this.parentElement)">' + esc(s.name) + '</label>'
-        + '</div>';
-    });
-    c.innerHTML = h;
+  window.focusSupplierInput = function(){
+    var inp = el('supplierInput');
+    if(inp) inp.focus();
+    openSupplierDrop();
+  };
+  var supplierFilterSrc = null;
+  function supplierKeyword(){
+    var i = el('supplierInput');
+    return i ? i.value.trim() : '';
   }
-  window.toggleSupplierPick = function(id, el){
-    var idx = _pendingSupplierPick.indexOf(id);
-    if(idx === -1) _pendingSupplierPick.push(id);
-    else _pendingSupplierPick.splice(idx, 1);
-    renderSupplierChecklist(el('supplierSearch') ? el('supplierSearch').value.trim() : '');
+  window.openSupplierDrop = function(){
+    supplierFilterSrc = null;
+    renderSupplierList(true);
+    var d = el('supplierDrop'), w = el('supplierInputWrap');
+    if(d) d.classList.add('open');
+    if(w) w.classList.add('open');
   };
-  window.filterSupplierList = function(){
-    renderSupplierChecklist(el('supplierSearch').value.trim());
+  window.closeSupplierDrop = function(){
+    var d = el('supplierDrop'), w = el('supplierInputWrap');
+    if(d) d.classList.remove('open');
+    if(w) w.classList.remove('open');
+    supplierFilterSrc = null;
+    var i = el('supplierInput'); if(i) i.value = '';
   };
-  window.addSupplierInline = function(){
-    var name = (prompt('请输入供应商名称') || '').trim();
+  window.onSupplierInput = function(v){
+    supplierFilterSrc = 'input';
+    renderSupplierList(false);
+    var d = el('supplierDrop'), w = el('supplierInputWrap');
+    if(d && !d.classList.contains('open')) d.classList.add('open');
+    if(w && !w.classList.contains('open')) w.classList.add('open');
+  };
+  window.onSupplierKeydown = function(e){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    var typed = supplierKeyword();
+    if(!typed) return;
+    var exact = (meta.suppliers || []).filter(function(s){ return (s.name || '') === typed; })[0];
+    if(exact){ if(!hasSupplier(exact.id)) toggleSupplierPick(exact.id); return; }
+    commitSupplierInline(typed);
+  };
+  window.commitSupplierInline = function(name){
+    name = (name || supplierKeyword()).trim();
     if(!name) return;
+    if(name.length > 220){ showToast('供应商名称不能超过220个字符', 'error'); return; }
+    var exist = (meta.suppliers || []).filter(function(s){ return (s.name || '') === name; })[0];
+    if(exist){ if(!hasSupplier(exist.id)) toggleSupplierPick(exist.id); return; }
+    var inp = el('supplierInput'); if(inp) inp.value = '';
+    supplierFilterSrc = null;
     apiFetch('/api/shop/supplier', { method:'POST', body:{ name:name } }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
       meta.loaded = false;
-      loadMeta(true).then(function(){
-        // 自动勾选新增的供应商
-        if(res.data && res.data.id && _pendingSupplierPick.indexOf(res.data.id) === -1){
-          _pendingSupplierPick.push(res.data.id);
-        }
-        renderSupplierChecklist(el('supplierSearch') ? el('supplierSearch').value.trim() : '');
+      return loadMeta(true).then(function(){
+        if(res.data && res.data.id && !hasSupplier(res.data.id)) form.suppliers.push(res.data.id);
+        renderSupplierTags(); renderSupplierList(true);
+        showToast('供应商已新增', 'success');
       });
-      showToast('供应商已新增', 'success');
+    });
+  };
+  function renderSupplierList(showAll){
+    var c = el('supplierList');
+    if(!c) return;
+    var kw = '';
+    if(!showAll && supplierFilterSrc === 'input'){
+      var i = el('supplierInput'); kw = i ? i.value.trim().toLowerCase() : '';
+    }
+    var list = (meta.suppliers || []).filter(function(s){ return textMatch(s.name, kw); });
+    var h = '';
+    list.forEach(function(s){
+      var sel = hasSupplier(s.id);
+      h += '<div class="picker-opt' + (sel ? ' selected' : '') + '" onclick="toggleSupplierPick(' + s.id + ')">'
+        + esc(s.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    });
+    if(!h){
+      h = '<div class="picker-empty">'
+        + '<svg class="picker-empty-icon" viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></svg>'
+        + '<div class="picker-empty-text">暂无数据</div>'
+        + '<button type="button" class="picker-empty-add" onclick="commitSupplierInline()">(Enter) 按回车新增</button>'
+        + '</div>';
+    }
+    c.innerHTML = h;
+    var add = el('supplierAdd');
+    if(add) add.style.display = list.length ? '' : 'none';
+  }
+  window.toggleSupplierPick = function(id){
+    var idx = -1;
+    form.suppliers.forEach(function(x, i){ if(String(x) === String(id)) idx = i; });
+    if(idx === -1) form.suppliers.push(id);
+    else form.suppliers.splice(idx, 1);
+    var i = el('supplierInput'); if(i) i.value = '';
+    supplierFilterSrc = null;
+    renderSupplierTags();
+    renderSupplierList(true);
+  };
+  window.addSupplierInline = function(){
+    var typed = supplierKeyword();
+    pisaPrompt('新增供应商', { placeholder:'请输入供应商名称', maxLength:220, value:typed }).then(function(name){
+      if(!name) return;
+      var inp = el('supplierInput'); if(inp) inp.value = '';
+      supplierFilterSrc = null;
+      var exist = (meta.suppliers || []).filter(function(s){ return (s.name || '') === name; })[0];
+      if(exist){
+        if(!hasSupplier(exist.id)) form.suppliers.push(exist.id);
+        renderSupplierTags(); renderSupplierList(true);
+        return;
+      }
+      apiFetch('/api/shop/supplier', { method:'POST', body:{ name:name } }).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+        meta.loaded = false;
+        return loadMeta(true).then(function(){
+          if(res.data && res.data.id && !hasSupplier(res.data.id)) form.suppliers.push(res.data.id);
+          renderSupplierTags();
+          renderSupplierList(true);
+          showToast('供应商已新增', 'success');
+        });
+      });
     });
   };
 
-  // --- 品牌选择弹窗（单选）---
-  var _pendingBrandPick = '';
+  // --- 品牌（下拉单选）---
   function renderBrandTags(){
-    var c = el('brandTags');
-    var v = form.brand || '';
-    if(!v){ c.innerHTML = ''; c.setAttribute('data-placeholder','暂无品牌，点击添加'); return; }
-    c.removeAttribute('data-placeholder');
-    c.innerHTML = '<span class="tag">' + esc(v) + '<span class="tag-del" onclick="removeBrand()">×</span></span>';
+    var inp = el('brandInput');
+    if(!inp) return;
+    inp.value = form.brand || '';
+    var w = el('brandInputWrap');
+    if(w) w.classList.toggle('filled', !!form.brand);
   }
-  window.removeBrand = function(){
-    form.brand = '';
-    renderBrandTags();
+  var brandFilterSrc = null;
+  window.openBrandDrop = function(){
+    brandFilterSrc = null;
+    renderBrandList(true);
+    var d = el('brandDrop'), w = el('brandInputWrap');
+    if(d) d.classList.add('open');
+    if(w) w.classList.add('open');
+    var inp = el('brandInput');
+    if(inp && form.brand) setTimeout(function(){ try{ inp.select(); }catch(e){} }, 0);
   };
-  window.openBrandPicker = function(){
-    _pendingBrandPick = form.brand || '';
-    var search = el('brandSearch');
-    if(search) search.value = '';
-    renderBrandChecklist();
-    el('brandModal').classList.add('show');
-    if(search) setTimeout(function(){ search.focus(); }, 100);
+  window.focusBrandInput = function(){
+    var inp = el('brandInput');
+    if(inp) inp.focus();
+    openBrandDrop();
   };
-  window.closeBrandPicker = function(){
-    el('brandModal').classList.remove('show');
+  window.closeBrandDrop = function(){
+    var d = el('brandDrop'), w = el('brandInputWrap');
+    if(d) d.classList.remove('open');
+    if(w) w.classList.remove('open');
+    brandFilterSrc = null;
+    var inp = el('brandInput');
+    if(inp) inp.value = form.brand || '';
   };
-  window.confirmBrandPick = function(){
-    form.brand = _pendingBrandPick;
-    renderBrandTags();
-    closeBrandPicker();
-  };
-  function renderBrandChecklist(filter){
-    var c = el('brandChecklist');
-    var list = meta.brands || [];
-    if(filter){
-      var kw = filter.toLowerCase();
-      list = list.filter(function(s){ return s.toLowerCase().indexOf(kw) !== -1; });
-    }
-    // 合并：已有列表 + 当前输入的新名称
-    var searchVal = (el('brandSearch') ? el('brandSearch').value.trim() : '');
-    var allItems = list.slice();
-    if(searchVal && allItems.indexOf(searchVal) === -1){
-      allItems.push(searchVal);
-    }
-    if(!allItems.length){ c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-400);font-size:13px">暂无数据</div>'; return; }
-    var h = '';
-    allItems.forEach(function(s){
-      var checked = _pendingBrandPick === s;
-      h += '<div class="check-item' + (checked ? ' selected' : '') + '" onclick="pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this)">'
-        + '<input type="radio" name="brandPick"' + (checked ? ' checked' : '') + ' onclick="event.stopPropagation();pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this.parentElement)">'
-        + '<label onclick="event.stopPropagation();pickBrand(\'' + esc(s).replace(/'/g,"\\'") + '\',this.parentElement)">' + esc(s) + '</label>'
-        + '</div>';
-    });
-    c.innerHTML = h;
+  function brandKeyword(){
+    var i = el('brandInput');
+    return i ? i.value.trim() : '';
   }
-  window.pickBrand = function(name){
-    _pendingBrandPick = name;
-    renderBrandChecklist(el('brandSearch') ? el('brandSearch').value.trim() : '');
+  window.onBrandInput = function(v){
+    brandFilterSrc = 'input';
+    renderBrandList(false);
+    var d = el('brandDrop'), w = el('brandInputWrap');
+    if(d && !d.classList.contains('open')) d.classList.add('open');
+    if(w && !w.classList.contains('open')) w.classList.add('open');
   };
-  window.filterBrandList = function(){
-    renderBrandChecklist(el('brandSearch').value.trim());
+  window.onBrandKeydown = function(e){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    var typed = brandKeyword();
+    if(!typed) return;
+    var exact = (meta.brands || []).filter(function(b){ return b === typed; })[0];
+    if(exact){ pickBrand(exact); return; }
+    commitBrandInline(typed);
   };
-  window.addBrandInline = function(){
-    var name = (el('brandSearch') ? el('brandSearch').value.trim() : '');
-    if(!name){ showToast('请输入品牌名称', 'error'); return; }
-    if(meta.brands.indexOf(name) === -1){
-      meta.brands.push(name);
-      meta.brands.sort();
-    }
-    _pendingBrandPick = name;
-    renderBrandChecklist(name);
+  window.commitBrandInline = function(name){
+    name = (name || brandKeyword()).trim();
+    if(!name) return;
+    if(name.length > 100){ showToast('品牌名称不能超过100个字符', 'error'); return; }
+    if(meta.brands.indexOf(name) === -1){ meta.brands.push(name); meta.brands.sort(); }
+    if(meta.extraBrands.indexOf(name) === -1) meta.extraBrands.push(name);
+    pickBrand(name);
     showToast('品牌已添加', 'success');
   };
+  function renderBrandList(showAll){
+    var c = el('brandList');
+    if(!c) return;
+    var kw = '';
+    if(!showAll && brandFilterSrc === 'input'){
+      var i = el('brandInput'); kw = i ? i.value.trim().toLowerCase() : '';
+    }
+    var list = (meta.brands || []).filter(function(b){ return textMatch(b, kw); });
+    var h = '';
+    list.forEach(function(b){
+      var sel = form.brand === b;
+      h += '<div class="picker-opt' + (sel ? ' selected' : '') + '" onclick="pickBrand(\'' + jsesc(b) + '\')">'
+        + esc(b) + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    });
+    if(!h){
+      h = '<div class="picker-empty">'
+        + '<svg class="picker-empty-icon" viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></svg>'
+        + '<div class="picker-empty-text">暂无数据</div>'
+        + '<button type="button" class="picker-empty-add" onclick="commitBrandInline()">(Enter) 按回车新增</button>'
+        + '</div>';
+    }
+    c.innerHTML = h;
+    var add = el('brandAdd');
+    if(add) add.style.display = list.length ? '' : 'none';
+  }
+  window.pickBrand = function(name){
+    form.brand = name;
+    closeBrandDrop();
+    var inp = el('brandInput');
+    if(inp) inp.value = name;
+    var w = el('brandInputWrap');
+    if(w) w.classList.add('filled');
+  };
+  window.clearBrand = function(){
+    form.brand = '';
+    var inp = el('brandInput');
+    if(inp) inp.value = '';
+    openBrandDrop();
+  };
+  window.addBrandInline = function(){
+    var typed = brandKeyword();
+    pisaPrompt('新增品牌', { placeholder:'请输入品牌名称', maxLength:100, value:typed }).then(function(name){
+      if(!name) return;
+      if(meta.brands.indexOf(name) === -1){
+        meta.brands.push(name);
+        meta.brands.sort();
+      }
+      if(meta.extraBrands.indexOf(name) === -1) meta.extraBrands.push(name);
+      pickBrand(name);
+      showToast('品牌已添加', 'success');
+    });
+  };
+
+  // 点击外部关闭下拉
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(t.closest && (t.closest('.picker') || t.closest('.cat-picker'))) return;
+    closeBrandDrop();
+    closeSupplierDrop();
+    closeCategoryDrop();
+    closeCatParentDrop();
+    closeUnitDrop();
+    closeAllAuxDrops();
+    closeAllDUDrops();
+  });
 
   // --- 图片 ---
   window.pickImages = function(){ el('imgPicker').click(); };
@@ -1048,8 +1748,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
   // --- 多单位（主单位 + 辅单位链式换算）---
   function mainUnitName(){
-    var s = el('fUnit');
-    return (s && s.selectedOptions && s.selectedOptions[0]) ? s.selectedOptions[0].text : '';
+    return form.unitId ? unitNameById(form.unitId) : '';
   }
   // 第 i 行辅单位的换算基准：第 0 行为主单位，其余为上一行辅单位
   function refUnitName(i){
@@ -1061,19 +1760,24 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
   function renderUnits(){
     var c = el('unitBoxes');
-    if(!form.units.length){ c.innerHTML = ''; syncDefaultUnitOptions(); return; }
+    var addWrap = el('addUnitRowWrap');
+    if(addWrap) addWrap.style.display = form.units.length >= 2 ? 'none' : '';
+    if(!form.units.length){ c.innerHTML = ''; syncDefaultUnitOptions(); refreshSpecDependents(); return; }
     var h = '';
     form.units.forEach(function(u, i){
       h += '<div class="unit-box">'
         + '<span class="ub-label">辅单位' + (i+1) + '</span>'
-        + '<select class="finput ub-select" onchange="syncUnitName(' + i + ',this.value)">'
-        +   '<option value="">请选择</option>'
-        +   meta.units.map(function(x){ return '<option value="' + x.name + '"' + (x.name===u.unit_name?' selected':'') + '>' + x.name + '</option>'; }).join('')
-        +   (u.unit_name && !meta.units.some(function(x){return x.name===u.unit_name;}) ? '<option selected>' + u.unit_name + '</option>' : '')
-        + '</select>'
-        + '<span class="ub-formula">1' + (u.unit_name || '?') + ' ='
+        + '<div class="picker ub-picker" data-unit-idx="' + i + '">'
+        +   '<div class="picker-input">'
+        +     '<input class="picker-field" autocomplete="off" placeholder="选择" value="' + escAttr(u.unit_name) + '" data-unit-idx="' + i + '"'
+        +       ' oninput="onAuxUnitInput(this)" onfocus="openAuxDrop(' + i + ')">'
+        +     '<svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+        +   '</div>'
+        +   '<div class="picker-drop"></div>'
+        + '</div>'
+        + (u.unit_name ? '<span class="ub-formula">1<span class="ub-ref-unit">' + esc(u.unit_name) + '</span> ='
         +   '<input type="number" step="0.0001" min="0" class="ub-factor" value="' + (u.rel || 1) + '">'
-        +   '<span class="ub-ref">' + esc(refUnitName(i)) + '</span></span>'
+        +   '<span class="ub-ref">' + esc(refUnitName(i)) + '</span></span>' : '')
         + '<span class="ub-del" onclick="removeUnitRow(' + i + ')" title="删除">' + TRASH_SVG + '</span>'
         + '</div>';
     });
@@ -1088,11 +1792,95 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     readUnits();
     renderUnits();
   };
+  // --- 辅单位（可搜索下拉）---
+  function auxPickerEl(i){
+    return el('unitBoxes').querySelector('.ub-picker[data-unit-idx="' + i + '"]');
+  }
+  function auxDropEl(i){
+    var p = auxPickerEl(i);
+    return p ? p.querySelector('.picker-drop') : null;
+  }
+  function auxInputEl(i){
+    var p = auxPickerEl(i);
+    return p ? p.querySelector('.picker-field') : null;
+  }
+  window.openAuxDrop = function(i){
+    renderAuxUnitList(i, true);
+    var d = auxDropEl(i);
+    if(d) d.classList.add('open');
+    var inp = auxInputEl(i);
+    if(inp && form.units[i] && form.units[i].unit_name)
+      setTimeout(function(){ try{ inp.select(); }catch(e){} }, 0);
+  };
+  window.closeAuxDrop = function(i){
+    var d = auxDropEl(i);
+    if(d) d.classList.remove('open');
+    var inp = auxInputEl(i);
+    if(inp && form.units[i]) inp.value = form.units[i].unit_name || '';
+  };
+  function closeAllAuxDrops(){
+    var boxes = el('unitBoxes');
+    if(!boxes) return;
+    boxes.querySelectorAll('.picker-drop.open').forEach(function(d){ d.classList.remove('open'); });
+  }
+  window.onAuxUnitInput = function(inp){
+    var i = parseInt(inp.getAttribute('data-unit-idx'), 10);
+    renderAuxUnitList(i, false);
+    var d = auxDropEl(i);
+    if(d && !d.classList.contains('open')) d.classList.add('open');
+  };
+  function renderAuxUnitList(idx, showAll){
+    var d = auxDropEl(idx);
+    if(!d) return;
+    var inp = auxInputEl(idx);
+    var kw = showAll ? '' : (inp ? inp.value.trim().toLowerCase() : '');
+    var list = (meta.units || []).filter(function(u){ return textMatch(u.name, kw); });
+    var h = '';
+    list.forEach(function(u){
+      var sel = form.units[idx] && form.units[idx].unit_name === u.name;
+      h += '<div class="picker-opt' + (sel ? ' selected' : '') + '" data-name="' + esc(u.name) + '">'
+        + esc(u.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
+    });
+    if(!h) h = '<div class="picker-opt empty">暂无单位</div>';
+    h += '<div class="picker-opt add" data-act="add">+ 新增单位</div>';
+    d.innerHTML = h;
+    d.querySelectorAll('.picker-opt:not(.empty):not(.add)').forEach(function(opt){
+      opt.addEventListener('click', function(e){
+        e.stopPropagation();
+        pickAuxUnit(idx, opt.getAttribute('data-name'));
+      });
+    });
+    var addBtn = d.querySelector('.picker-opt.add');
+    if(addBtn) addBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      closeAllAuxDrops();
+      openUnitModal();
+    });
+  }
+  window.pickAuxUnit = function(idx, name){
+    if(!form.units[idx]) return;
+    readUnits();
+    form.units[idx].unit_name = name;
+    var m = meta.units.filter(function(x){ return x.name === name; })[0];
+    form.units[idx].unit_id = m ? m.id : null;
+    renderUnits();
+    syncDefaultUnitOptions();
+    refreshSpecDependents();
+  };
+  window.clearAuxUnit = function(idx){
+    if(!form.units[idx]) return;
+    readUnits();
+    form.units[idx].unit_name = '';
+    form.units[idx].unit_id = null;
+    renderUnits();
+    syncDefaultUnitOptions();
+    refreshSpecDependents();
+  };
   window.onMainUnitChange = function(){
     if(checked('fMultiUnit')){ readUnits(); renderUnits(); }
   };
   window.addUnitRow = function(){
-    if(form.units.length >= 5){ showToast('最多 5 个单位', 'error'); return; }
+    if(form.units.length >= 2){ showToast('最多 2 个辅单位', 'error'); return; }
     readUnits();
     form.units.push({ unit_name:'', rel:1 });
     renderUnits();
@@ -1106,27 +1894,63 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var boxes = el('unitBoxes').querySelectorAll('.unit-box');
     boxes.forEach(function(box, i){
       if(!form.units[i]) return;
-      var sel = box.querySelector('select');
+      var inp = box.querySelector('.picker-field');
       var fac = box.querySelector('.ub-factor');
-      if(sel) form.units[i].unit_name = sel.value;
+      if(inp) form.units[i].unit_name = inp.value.trim();
       if(fac) form.units[i].rel = parseFloat(fac.value) || 1;
       var m = meta.units.filter(function(x){ return x.name === form.units[i].unit_name; })[0];
       form.units[i].unit_id = m ? m.id : null;
     });
   }
   // 开单默认单位下拉：主单位 + 全部辅单位
-  function syncDefaultUnitOptions(){
+  function duNames(){
     var names = [];
     var m = mainUnitName();
     if(m) names.push(m);
     form.units.forEach(function(u){ if(u.unit_name && names.indexOf(u.unit_name) < 0) names.push(u.unit_name); });
-    ['fSalesUnit','fPurchaseUnit'].forEach(function(id){
-      var s = el(id); if(!s) return;
-      var cur = s.value;
-      s.innerHTML = names.map(function(n){ return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('');
-      if(cur && names.indexOf(cur) >= 0) s.value = cur;
-      else if(form[id === 'fSalesUnit' ? 'salesUnit' : 'purchaseUnit']) s.value = form[id === 'fSalesUnit' ? 'salesUnit' : 'purchaseUnit'];
+    return names;
+  }
+  function duId(which){ return which === 'sales' ? 'fSalesUnit' : 'fPurchaseUnit'; }
+  function duDropId(which){ return which === 'sales' ? 'duDropSales' : 'duDropPurchase'; }
+  function duListId(which){ return which === 'sales' ? 'duListSales' : 'duListPurchase'; }
+  window.closeAllDUDrops = function(){
+    ['duDropSales','duDropPurchase'].forEach(function(id){ var e = el(id); if(e) e.classList.remove('open'); });
+  };
+  window.toggleDU = function(which){
+    var d = el(duDropId(which));
+    var was = d && d.classList.contains('open');
+    closeAllDUDrops();
+    if(was) return;
+    renderDUList(which);
+    if(d) d.classList.add('open');
+  };
+  function renderDUList(which){
+    var c = el(duListId(which)); if(!c) return;
+    var inp = el(duId(which));
+    var cur = inp ? inp.value : '';
+    var h = '';
+    duNames().forEach(function(n){
+      h += '<div class="picker-opt' + (n===cur?' selected':'') + '" onclick="pickDU(\'' + which + '\',\'' + jsesc(n) + '\')">'
+        + esc(n) + '<span class="opt-check">' + checkSVG() + '</span></div>';
     });
+    c.innerHTML = h || '<div class="picker-opt empty">暂无单位</div>';
+  }
+  window.pickDU = function(which, name){
+    var inp = el(duId(which)); if(inp) inp.value = name;
+    form[which === 'sales' ? 'salesUnit' : 'purchaseUnit'] = name;
+    closeAllDUDrops();
+  };
+  function syncDefaultUnitOptions(){
+    var names = duNames();
+    [['sales','fSalesUnit','salesUnit'],['purchase','fPurchaseUnit','purchaseUnit']].forEach(function(t){
+      var inp = el(t[1]); if(!inp) return;
+      if(names.indexOf(inp.value) < 0){
+        if(form[t[2]] && names.indexOf(form[t[2]]) >= 0) inp.value = form[t[2]];
+        else inp.value = names.length ? names[0] : '';
+      }
+      form[t[2]] = inp.value;
+    });
+    renderDUList('sales'); renderDUList('purchase');
   }
   // 相对换算率（界面） ⇄ 绝对换算率（相对主单位，存储）
   function relToAbs(rels){
@@ -1154,7 +1978,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
   function renderSpecGroups(){
     var c = el('specGroups');
-    if(!form.specGroups.length){ c.innerHTML = ''; return; }
+    if(!form.specGroups.length){ c.innerHTML = ''; refreshSpecDependents(); return; }
     var h = '';
     form.specGroups.forEach(function(g, i){
       var used = form.specGroups.filter(function(x,j){ return j!==i && x.name; }).map(function(x){ return x.name; });
@@ -1186,7 +2010,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
         +   '<span class="spec-row-label">规格值</span>'
         +   '<div class="spec-values' + (specUI.valueIdx===i?' focus':'') + '" id="specValues' + i + '" onclick="focusSpecValue(' + i + ')">'
         +     '<span class="spec-chips" id="specChips' + i + '">' + specChipsHTML(i) + '</span>'
-        +     '<input class="spec-value-input" placeholder="' + (g.values.length?'':'请选择') + '" value="' + (specUI.valueIdx===i?esc(specUI.valueFilter):'') + '" oninput="onSpecValueInput(' + i + ',this.value)">'
+        +     '<input class="spec-value-input" placeholder="' + (g.values.length?'':'请选择') + '" value="' + (specUI.valueIdx===i?esc(specUI.valueFilter):'') + '" oninput="onSpecValueInput(' + i + ',this.value)" onkeydown="onSpecValueKeydown(event,' + i + ')">'
         +     '<div class="spec-value-drop' + (specUI.valueIdx===i?' open':'') + '" id="specValueDrop' + i + '">' + specValueDropHTML(i) + '</div>'
         +   '</div>'
         + '</div>'
@@ -1200,6 +2024,10 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var h = items.map(function(a){
       return '<div class="spec-drop-item' + (a.name===cur?' active':'') + '" onclick="selectSpecName(' + i + ',\'' + jsesc(a.name) + '\')">' + esc(a.name) + '</div>';
     }).join('');
+    var typed = (specUI.nameFilter || '').trim();
+    if(typed && !(meta.attributes || []).some(function(a){ return a.name === typed; })){
+      h += '<div class="spec-drop-item add" onclick="newSpecName(' + i + ',\'' + jsesc(typed) + '\')">+ 新增「' + esc(typed) + '」</div>';
+    }
     return h || '<div class="spec-drop-item" style="color:var(--gray-400);cursor:default">暂无规格</div>';
   }
 
@@ -1229,11 +2057,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       return '<div class="spec-value-opt' + (sel?' selected':'') + '" onclick="toggleSpecValue(' + i + ',\'' + jsesc(n) + '\')">' + esc(n)
         + '<span class="opt-check">' + checkSVG() + '</span></div>';
     }).join('');
-    var typed = (specUI.valueIdx===i ? (specUI.valueFilter||'').trim() : '');
-    if(typed && all.indexOf(typed) < 0){
-      h += '<div class="spec-value-opt add" onclick="toggleSpecValue(' + i + ',\'' + jsesc(typed) + '\')">+ 新增「' + esc(typed) + '」</div>';
-    }
-    return h || '<div class="spec-value-opt" style="color:var(--gray-400);cursor:default">暂无规格值</div>';
+    h += '<div class="spec-value-opt add" onclick="openSpecValueModal(' + i + ')">+ 新增规格内容</div>';
+    return h;
   }
 
   // 局部刷新
@@ -1245,9 +2070,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var avail = (meta.attributes || []).filter(function(a){ return used.indexOf(a.name) < 0; });
     var nf = (specUI.nameFilter||'').toLowerCase();
     var items = avail.filter(function(a){ return !nf || a.name.toLowerCase().indexOf(nf) >= 0; });
-    e.innerHTML = items.map(function(a){
-      return '<div class="spec-drop-item' + (a.name===form.specGroups[i].name?' active':'') + '" onclick="selectSpecName(' + i + ',\'' + jsesc(a.name) + '\')">' + esc(a.name) + '</div>';
-    }).join('') || '<div class="spec-drop-item" style="color:var(--gray-400);cursor:default">暂无规格</div>';
+    e.innerHTML = specNameListHTML(i, items, form.specGroups[i].name);
   }
   function closeAllSpecDrops(){
     document.querySelectorAll('.spec-drop.open,.spec-value-drop.open').forEach(function(d){ d.classList.remove('open'); });
@@ -1304,22 +2127,23 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     closeAllSpecDrops();
     renderSpecGroups();
   };
-  window.newSpecName = function(i){
-    var name = (prompt('请输入规格名称，如 颜色 / 尺码') || '').trim();
-    if(!name) return;
-    if(findAttr(name)){
-      form.specGroups[i].name = name;
-      closeAllSpecDrops(); renderSpecGroups(); return;
-    }
-    apiFetch('/api/shop/attribute', { method:'POST', body:{ name:name } }).then(function(res){
-      if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
-      return loadMeta(true).then(function(){
+  window.newSpecName = function(i, preset){
+    pisaPrompt('新增规格', { placeholder:'请输入规格名称', hint:'例如：颜色 / 尺码', value: preset || '' }).then(function(name){
+      if(!name) return;
+      if(findAttr(name)){
         form.specGroups[i].name = name;
-        form.specGroups[i].values = [];
-        closeAllSpecDrops(); renderSpecGroups();
-        showToast('规格已新增', 'success');
-      });
-    }).catch(function(e){ if(e.message !== 'Unauthorized') showToast('网络错误', 'error'); });
+        closeAllSpecDrops(); renderSpecGroups(); return;
+      }
+      apiFetch('/api/shop/attribute', { method:'POST', body:{ name:name } }).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '新增失败', 'error'); return; }
+        return loadMeta(true).then(function(){
+          form.specGroups[i].name = name;
+          form.specGroups[i].values = [];
+          closeAllSpecDrops(); renderSpecGroups();
+          showToast('规格已新增', 'success');
+        });
+      }).catch(function(e){ if(e.message !== 'Unauthorized') showToast('网络错误', 'error'); });
+    });
   };
   window.toggleSpecImage = function(i){
     form.specGroups[i].hasImage = !form.specGroups[i].hasImage;
@@ -1342,6 +2166,26 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     specUI.valueIdx = i; specUI.valueFilter = v;
     renderSpecValueDrop(i);
   };
+  window.onSpecValueKeydown = function(e, i){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    var typed = (specUI.valueIdx === i ? (specUI.valueFilter || '') : '').trim();
+    if(!typed) return;
+    var g = form.specGroups[i]; if(!g) return;
+    var all = attrValues(findAttr(g.name)).slice();
+    g.values.forEach(function(v){ if(all.indexOf(v.name) < 0) all.push(v.name); });
+    if(all.indexOf(typed) >= 0){ toggleSpecValue(i, typed); return; }
+    if(typed.length > 50){ showToast('规格内容不能超过50个字符', 'error'); return; }
+    g.values.push({ name:typed, image:'' });
+    persistSpecValue(g.name, typed);
+    specUI.valueFilter = '';
+    var box = el('specValues'+i);
+    var inp = box ? box.querySelector('.spec-value-input') : null;
+    if(inp) inp.value = '';
+    renderSpecChips(i); renderSpecValueDrop(i);
+    refreshSpecDependents();
+    if(inp) inp.focus();
+  };
   window.toggleSpecValue = function(i, name){
     var g = form.specGroups[i];
     var idx = -1;
@@ -1357,11 +2201,40 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var inp = box ? box.querySelector('.spec-value-input') : null;
     if(inp) inp.value = '';
     renderSpecChips(i); renderSpecValueDrop(i);
+    refreshSpecDependents();
     if(inp) inp.focus();
   };
   window.removeSpecValue = function(i, j){
     form.specGroups[i].values.splice(j, 1);
     renderSpecChips(i); renderSpecValueDrop(i);
+    refreshSpecDependents();
+  };
+  var specValueModalIdx = -1;
+  window.openSpecValueModal = function(i){
+    var g = form.specGroups[i]; if(!g || !g.name) return;
+    specValueModalIdx = i;
+    el('specValueName').textContent = g.name;
+    el('specValueInput').value = '';
+    el('specValueCounter').textContent = '0 / 50';
+    closeAllSpecDrops();
+    el('specValueModal').classList.add('show');
+    setTimeout(function(){ el('specValueInput').focus(); }, 60);
+  };
+  window.closeSpecValueModal = function(){ el('specValueModal').classList.remove('show'); };
+  window.onSpecValueModalInput = function(v){ el('specValueCounter').textContent = (v||'').length + ' / 50'; };
+  window.submitSpecValue = function(){
+    var i = specValueModalIdx;
+    var g = form.specGroups[i]; if(!g) return;
+    var name = (el('specValueInput').value || '').trim();
+    if(!name){ showToast('请输入规格内容', 'error'); return; }
+    if(name.length > 50){ showToast('规格内容不能超过50个字符', 'error'); return; }
+    if(!g.values.some(function(v){ return v.name === name; })){
+      g.values.push({ name:name, image:'' });
+      persistSpecValue(g.name, name);
+    }
+    closeSpecValueModal();
+    renderSpecChips(i); renderSpecValueDrop(i);
+    refreshSpecDependents();
   };
   function persistSpecValue(attrName, value){
     var attr = findAttr(attrName);
@@ -1470,6 +2343,24 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     });
     return combos;
   }
+  function specGroupsActive(){ return form.specGroups.filter(function(g){ return g.name && g.values.length; }); }
+  function specRunLengths(groups){
+    var counts = groups.map(function(g){ return g.values.length; });
+    return groups.map(function(g, gi){
+      var r = 1;
+      for(var j = gi + 1; j < counts.length; j++) r *= counts[j];
+      return r;
+    });
+  }
+  function specCellsHTML(groups, runs, c, ri){
+    var h = '';
+    groups.forEach(function(g, gi){
+      if(ri % runs[gi] === 0){
+        h += '<td class="spec-cell merged" rowspan="' + runs[gi] + '">' + esc(c.values[g.name] || '') + '</td>';
+      }
+    });
+    return h;
+  }
   function priceUnitNames(){
     var names = [];
     var m = mainUnitName();
@@ -1484,8 +2375,62 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var ref = idx === 0 ? mainUnitName() : form.units[idx-1].unit_name;
     return name + '(1' + name + '=' + (form.units[idx].rel || 1) + ref + ')';
   }
-  function blankPriceRow(){ return { code:'', barcode:'', purchase_price:'', retail_price:'', wholesale_price:'', disabled:false }; }
+  function blankPriceRow(){ return { code:'', barcode:'', purchase_price:'', retail_price:'', wholesale_price:'', disabled:false, custom:{} }; }
   function blankStockRow(){ return { stock:'', min_stock:'', safe_stock:'', max_stock:'', init_cost:'' }; }
+
+  function readSimplePrice(){
+    var map = { fPurchasePrice:'purchase_price', fRetailPrice:'retail_price', fWholesalePrice:'wholesale_price' };
+    Object.keys(map).forEach(function(id){ var e = el(id); if(e) form.simpleRow[map[id]] = e.value; });
+    var t = el('simplePriceTable');
+    if(t) t.querySelectorAll('[data-f^="custom:"]').forEach(function(inp){ form.simpleRow.custom[inp.getAttribute('data-f').slice(7)] = inp.value; });
+  }
+  function readSimpleStock(){
+    var map = { fStock:'stock', fInitCost:'init_cost', fMinStock:'min_stock', fMaxStock:'max_stock' };
+    Object.keys(map).forEach(function(id){ var e = el(id); if(e) form.simpleStock[map[id]] = e.value; });
+  }
+  function renderSimpleStock(){
+    var t = el('simpleStockTable'); if(!t) return;
+    var r = form.simpleStock;
+    var unit = mainUnitName() || '';
+    var alert = checked('fAlert');
+    var h = '<thead><tr><th>单位</th>'
+      + '<th>初始库存<span class="help-dot help-dot-ur" title="商品的期初库存数量">?</span></th>'
+      + '<th>初始成本<span class="help-dot help-dot-ur" title="商品的期初成本单价">?</span></th>';
+    if(alert) h += '<th>预警下限<span class="help-dot help-dot-ur" title="低于该库存时提醒">?</span></th>'
+      + '<th>预警上限<span class="help-dot help-dot-ur" title="高于该库存时提醒">?</span></th>';
+    h += '</tr></thead><tbody><tr>'
+      + '<td class="spec-cell">' + esc(unit || '—') + '</td>'
+      + '<td><input class="cell-input" type="number" min="0" id="fStock" value="' + escAttr(r.stock) + '"></td>'
+      + '<td><input class="cell-input" type="number" step="0.01" min="0" id="fInitCost" value="' + escAttr(r.init_cost) + '"></td>';
+    if(alert) h += '<td><input class="cell-input" type="number" min="0" id="fMinStock" value="' + escAttr(r.min_stock) + '"></td>'
+      + '<td><input class="cell-input" type="number" min="0" id="fMaxStock" value="' + escAttr(r.max_stock) + '"></td>';
+    h += '</tr></tbody>';
+    t.innerHTML = h;
+  }
+  function renderSimplePrice(){
+    var t = el('simplePriceTable'); if(!t) return;
+    var r = form.simpleRow;
+    var unit = mainUnitName() || '';
+    var h = '<thead><tr><th>单位</th>'
+      + '<th>进货价<span class="th-sub">批量</span></th>'
+      + '<th>零售价<span class="th-sub">批量</span></th>'
+      + '<th>批发价<span class="th-sub">批量</span></th>';
+    form.priceColumns.forEach(function(cn){
+      h += '<th><span class="th-custom-name">' + esc(cn)
+        + '<span class="th-del" onclick="removePriceLevel(\'' + jsesc(cn) + '\')" title="删除价格等级">×</span></span>'
+        + '<span class="th-sub">批量</span></th>';
+    });
+    h += '</tr></thead><tbody><tr>'
+      + '<td class="spec-cell">' + esc(unit || '—') + '</td>'
+      + '<td><input class="cell-input" type="number" step="0.01" min="0" id="fPurchasePrice" value="' + escAttr(r.purchase_price) + '"></td>'
+      + '<td><input class="cell-input" type="number" step="0.01" min="0" id="fRetailPrice" value="' + escAttr(r.retail_price) + '"></td>'
+      + '<td><input class="cell-input" type="number" step="0.01" min="0" id="fWholesalePrice" value="' + escAttr(r.wholesale_price) + '"></td>';
+    form.priceColumns.forEach(function(cn){
+      h += '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="custom:' + escAttr(cn) + '" value="' + escAttr(r.custom[cn] || '') + '"></td>';
+    });
+    h += '</tr></tbody>';
+    t.innerHTML = h;
+  }
 
   function refreshSpecDependents(){
     var on = checked('fMultiSpec');
@@ -1493,7 +2438,10 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     el('priceMulti').style.display  = on ? '' : 'none';
     el('stockSimple').style.display = on ? 'none' : '';
     el('stockMulti').style.display  = on ? '' : 'none';
+    readSimplePrice(); renderSimplePrice();
+    readSimpleStock(); renderSimpleStock();
     if(!on) return;
+    readPriceTable(); readStockTable();
     reconcileRows();
     renderPriceTabs();
     renderPriceTable();
@@ -1523,12 +2471,37 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     renderPriceTable();
   };
   window.addMorePrice = function(){
-    if(!checked('fMultiUnit')){
-      el('fMultiUnit').checked = true;
-      toggleMultiUnit();
-    }
-    addUnitRow();
-    showToast('请在「单位与规格」中设置新单位');
+    el('priceLevelInput').value = '';
+    el('priceLevelCounter').textContent = '0 / 20';
+    el('priceLevelModal').classList.add('show');
+    setTimeout(function(){ el('priceLevelInput').focus(); }, 60);
+  };
+  window.closePriceLevelModal = function(){ el('priceLevelModal').classList.remove('show'); };
+  window.onPriceLevelInput = function(v){ el('priceLevelCounter').textContent = (v || '').length + ' / 20'; };
+  window.submitPriceLevel = function(){
+    var name = (el('priceLevelInput').value || '').trim();
+    if(!name){ showToast('请输入价格等级名称', 'error'); return; }
+    if(name.length > 20){ showToast('价格等级名称不能超过20个字符', 'error'); return; }
+    if(form.priceColumns.indexOf(name) >= 0){ showToast('该价格等级已存在', 'error'); return; }
+    readSimplePrice(); readPriceTable();
+    form.priceColumns.push(name);
+    closePriceLevelModal();
+    renderSimplePrice(); renderPriceTable();
+  };
+  window.removePriceLevel = function(name){
+    if(form.priceColumns.indexOf(name) < 0) return;
+    if(!window.confirm('确定删除价格等级「' + name + '」？该等级已填的价格将一并删除')) return;
+    readSimplePrice(); readPriceTable();
+    form.priceColumns = form.priceColumns.filter(function(c){ return c !== name; });
+    if(form.simpleRow && form.simpleRow.custom) delete form.simpleRow.custom[name];
+    Object.keys(form.priceRows || {}).forEach(function(u){
+      Object.keys(form.priceRows[u] || {}).forEach(function(k){
+        var r = form.priceRows[u][k];
+        if(r && r.custom) delete r.custom[name];
+      });
+    });
+    renderSimplePrice(); renderPriceTable();
+    showToast('价格等级已删除', 'success');
   };
   function renderPriceTabs(){
     var units = priceUnitNames();
@@ -1538,7 +2511,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   }
   function renderPriceTable(){
     var combos = specCombos();
-    var groups = form.specGroups.filter(function(g){ return g.name; });
+    var groups = specGroupsActive();
+    var runs = specRunLengths(groups);
     var unit = form.priceUnit;
     var rows = form.priceRows[unit] || {};
     var h = '<thead><tr>';
@@ -1548,23 +2522,31 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       + '<th>条形码<span class="th-sub">自动生成</span></th>'
       + '<th>进货价<span class="th-sub">批量</span></th>'
       + '<th>零售价<span class="th-sub">批量</span></th>'
-      + '<th>批发价<span class="th-sub">批量</span></th>'
-      + '<th>停用</th></tr></thead><tbody>';
-    combos.forEach(function(c){
+      + '<th>批发价<span class="th-sub">批量</span></th>';
+    form.priceColumns.forEach(function(cn){
+      h += '<th><span class="th-custom-name">' + esc(cn)
+        + '<span class="th-del" onclick="removePriceLevel(\'' + jsesc(cn) + '\')" title="删除价格等级">×</span></span>'
+        + '<span class="th-sub">批量</span></th>';
+    });
+    h += '<th>停用</th></tr></thead><tbody>';
+    combos.forEach(function(c, ri){
       var r = rows[c.key] || blankPriceRow();
       h += '<tr data-key="' + esc(c.key) + '">';
-      groups.forEach(function(g){ h += '<td class="spec-cell">' + esc(c.values[g.name] || '') + '</td>'; });
+      h += specCellsHTML(groups, runs, c, ri);
       h += '<td class="spec-cell">' + esc(unit) + '</td>'
         + '<td><input class="cell-input" data-f="code" value="' + esc(r.code) + '"></td>'
         + '<td><input class="cell-input" data-f="barcode" value="' + esc(r.barcode) + '"></td>'
         + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="purchase_price" value="' + (r.purchase_price || '') + '"></td>'
         + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="retail_price" value="' + (r.retail_price || '') + '"></td>'
-        + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="wholesale_price" value="' + (r.wholesale_price || '') + '"></td>'
-        + '<td><label class="switch"><input type="checkbox" data-f="disabled" ' + (r.disabled ? 'checked' : '') + '><span class="slider"></span></label></td>'
+        + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="wholesale_price" value="' + (r.wholesale_price || '') + '"></td>';
+      form.priceColumns.forEach(function(cn){
+        var v = (r.custom && r.custom[cn]) || '';
+        h += '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="custom:' + escAttr(cn) + '" value="' + esc(v) + '"></td>';
+      });
+      h += '<td><label class="switch"><input type="checkbox" data-f="disabled" ' + (r.disabled ? 'checked' : '') + '><span class="slider"></span></label></td>'
         + '</tr>';
     });
     h += '</tbody>';
-    if(!combos.length){ h += ''; }
     el('priceTable').innerHTML = h;
   }
   function readPriceTable(){
@@ -1575,14 +2557,20 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       var r = form.priceRows[unit][key] || blankPriceRow();
       tr.querySelectorAll('[data-f]').forEach(function(inp){
         var f = inp.getAttribute('data-f');
-        r[f] = inp.type === 'checkbox' ? inp.checked : inp.value;
+        if(f.indexOf('custom:') === 0){
+          if(!r.custom) r.custom = {};
+          r.custom[f.slice(7)] = inp.value;
+        }else{
+          r[f] = inp.type === 'checkbox' ? inp.checked : inp.value;
+        }
       });
       form.priceRows[unit][key] = r;
     });
   }
   function renderStockTable(){
     var combos = specCombos();
-    var groups = form.specGroups.filter(function(g){ return g.name; });
+    var groups = specGroupsActive();
+    var runs = specRunLengths(groups);
     var unit = mainUnitName();
     var rows = form.stockRows || {};
     var alert = checked('fAlert');
@@ -1595,10 +2583,10 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
         + '<th>最高库存<span class="th-sub">批量</span></th>';
     }
     h += '<th>初始成本<span class="th-sub">批量</span></th></tr></thead><tbody>';
-    combos.forEach(function(c){
+    combos.forEach(function(c, ri){
       var r = rows[c.key] || blankStockRow();
       h += '<tr data-key="' + esc(c.key) + '">';
-      groups.forEach(function(g){ h += '<td class="spec-cell">' + esc(c.values[g.name] || '') + '</td>'; });
+      h += specCellsHTML(groups, runs, c, ri);
       h += '<td class="spec-cell">' + esc(unit || '—') + '</td>'
         + '<td><input class="cell-input" type="number" min="0" data-f="stock" value="' + (r.stock || '') + '"></td>';
       if(alert){
@@ -1631,6 +2619,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(!name){ showToast('请输入货品名称', 'error'); el('fName').focus(); return; }
 
     readUnits();
+    readSimplePrice();
+    readSimpleStock();
     if(checked('fMultiUnit')){
       if(!mainUnitName()){ showToast('请先选择主单位', 'error'); return; }
       form.units = form.units.filter(function(u){ return (u.unit_name||'').trim() !== ''; });
@@ -1656,8 +2646,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       spec: '',
       brand: form.brand || '',
       origin: el('fOrigin').value.trim(),
-      category_id: el('fCategory').value ? parseInt(el('fCategory').value,10) : null,
-      unit_id: el('fUnit').value ? parseInt(el('fUnit').value,10) : null,
+      category_id: form.categoryId ? parseInt(form.categoryId, 10) : null,
+      unit_id: form.unitId ? parseInt(form.unitId, 10) : null,
       supplier_id: form.suppliers.length ? form.suppliers[0] : null,
       suppliers: JSON.stringify(form.suppliers),
       has_multi_unit: checked('fMultiUnit') ? 1 : 0,
@@ -1689,8 +2679,14 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       })(),
       specs: [],
       spec_groups: checked('fMultiSpec') ? JSON.stringify(form.specGroups) : '',
-      price_rows: checked('fMultiSpec') ? JSON.stringify(form.priceRows) : '',
-      stock_rows: checked('fMultiSpec') ? JSON.stringify(form.stockRows) : ''
+      price_rows: JSON.stringify((function(){
+        var pr = {};
+        Object.keys(form.priceRows || {}).forEach(function(u){ pr[u] = form.priceRows[u]; });
+        pr['__simple__'] = { '': form.simpleRow };
+        return pr;
+      })()),
+      stock_rows: checked('fMultiSpec') ? JSON.stringify(form.stockRows) : '',
+      price_columns: JSON.stringify(form.priceColumns)
     };
 
     var isEdit = form.editId != null;
@@ -1757,6 +2753,13 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     d.appendChild(document.createTextNode(s));
     return d.innerHTML;
   }
+  function escAttr(s){ return esc(s == null ? '' : String(s)).replace(/"/g, '&quot;'); }
+  function textMatch(name, kw){
+    if(!kw) return true;
+    var n = String(name == null ? '' : name);
+    if(n.toLowerCase().indexOf(kw) !== -1) return true;
+    try{ return !!(window.PinyinMatch && PinyinMatch.match(n, kw)); }catch(e){ return false; }
+  }
   function fmtPrice(v){
     if(v == null || v === '') return '0.00';
     return parseFloat(v).toFixed(2);
@@ -1764,8 +2767,26 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
   // --- Keyboard shortcut ---
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape') closeDrawer();
+    if(e.key !== 'Escape') return;
+    if(el('categoryModal') && el('categoryModal').classList.contains('show')){ closeCategoryModal(); return; }
+    if(el('unitModal') && el('unitModal').classList.contains('show')){ closeUnitModal(); return; }
+    if(el('specValueModal') && el('specValueModal').classList.contains('show')){ closeSpecValueModal(); return; }
+    if(el('priceLevelModal') && el('priceLevelModal').classList.contains('show')){ closePriceLevelModal(); return; }
+    closeAllAuxDrops();
+    closeDrawer();
   });
+
+  // 点击遮罩关闭弹窗
+  (function(){
+    [['categoryModal','closeCategoryModal'], ['unitModal','closeUnitModal'], ['specValueModal','closeSpecValueModal'], ['priceLevelModal','closePriceLevelModal']].forEach(function(p){
+      var ov = el(p[0]);
+      if(ov) ov.addEventListener('click', function(e){ if(e.target === ov) window[p[1]](); });
+    });
+    var sv = el('specValueInput');
+    if(sv) sv.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); submitSpecValue(); } });
+    var pl = el('priceLevelInput');
+    if(pl) pl.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); submitPriceLevel(); } });
+  })();
 
   function checkAuth() {
   if (!localStorage.getItem('pisa_token')) { location.href = '/login.html'; }
@@ -1773,14 +2794,32 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
 // --- Init ---
   checkAuth();
-  loadMeta().then(function(){
-    loadData(1);
-    // 通过标签页回到「添加货品」时，自动打开抽屉
-    if(location.hash === '#goods:add') showCreate();
+
+  // 同页标签切换（仅 hash 变化，不刷新页面）时同步视图
+  window.addEventListener('hashchange', function(){
+    if(location.hash === '#goods:add'){
+      if(formInited) openDrawer();
+      else showCreate();
+    }else if(el('formView').style.display !== 'none'){
+      showListView();
+    }
   });
+
+  function bootGoods(){
+    if(location.hash === '#goods:add'){
+      showCreate();
+    } else {
+      loadMeta().then(function(){ loadData(1); });
+    }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bootGoods);
+  } else {
+    bootGoods();
+  }
 })();
 </script>
-<script src="/js/tabs.js?v=20260925"></script>
-<script src="/js/app-shell.js?v=20260925"></script>
+<script src="/js/tabs.js?v=20260972"></script>
+<script src="/js/app-shell.js?v=20260972"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ server
 *.test
 *.out
 coverage.html
+tests/.mock_created.json
 
 # Dependency
 vendor/

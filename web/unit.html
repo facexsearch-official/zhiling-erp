@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单位管理 - PISA 进销存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary-50:#EFF6FF;--primary-500:#3B82F6;
+--accent-400:#34D399;--accent-500:#10B981;--accent-600:#059669;--accent-700:#047857;
+--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;
+--danger-50:#FEF2F2;--danger-500:#EF4444;
+--success-500:#22C55E;
+--radius-sm:4px;--radius-md:6px;--radius-lg:8px;
+--sidebar-width:252px;--topbar-height:60px;
+}
+html,body{height:100%;font-family:'Noto Sans SC','Inter',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font:inherit}
+input{font:inherit}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent}
+.btn-accent{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.btn-accent:hover{background:var(--accent-700);border-color:var(--accent-700)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-text{background:none;color:var(--accent-600);padding:0 6px;border:none}
+.btn-text:hover{color:var(--accent-700);text-decoration:underline}
+.btn-text.danger{color:var(--danger-500)}
+.btn-text.danger:hover{color:#dc2626}
+
+.toolbar{margin-bottom:16px}
+.table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--gray-100)}
+th{padding:12px 20px;font-size:13px;font-weight:500;color:var(--gray-600);border-bottom:1px solid var(--gray-200);white-space:nowrap}
+th.c-idx{text-align:left;width:120px}
+th.c-name{text-align:center}
+th.c-act{text-align:right;width:160px}
+td{padding:14px 20px;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-700);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--gray-50)}
+td.c-idx{text-align:left;color:var(--gray-600)}
+td.c-name{text-align:center;color:var(--gray-800)}
+td.c-act{text-align:right}
+td.c-act .btn-text{margin-left:6px}
+
+.empty{padding:60px 0;text-align:center;color:var(--gray-400)}
+.empty svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.2;margin-bottom:12px}
+.empty p{font-size:14px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.modal-overlay.show{opacity:1;visibility:visible}
+.modal{width:640px;max-width:calc(100vw - 40px);background:#fff;border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(20px) scale(.97);transition:transform .2s}
+.modal-overlay.show .modal{transform:translateY(0) scale(1)}
+.modal-header{position:relative;display:flex;align-items:center;justify-content:center;padding:22px 24px;border-bottom:1px solid var(--gray-100)}
+.modal-header h2{font-size:18px;font-weight:500;color:var(--gray-800)}
+.modal-close{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);transition:background .15s;color:var(--gray-400)}
+.modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
+.modal-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.modal-body{padding:28px 28px 8px}
+.form-row{display:flex;align-items:center;gap:16px}
+.form-label{font-size:14px;color:var(--gray-700);white-space:nowrap;width:76px;text-align:right;flex-shrink:0}
+.input-wrap{position:relative;flex:1}
+.form-input{width:100%;height:44px;border:1px solid var(--accent-400);border-radius:var(--radius-md);padding:0 64px 0 14px;font-size:14px;color:var(--gray-800);outline:none;transition:border-color .15s,box-shadow .15s}
+.form-input:focus{border-color:var(--accent-500);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.form-input::placeholder{color:var(--gray-400)}
+.input-counter{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray-400);pointer-events:none}
+.modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:20px 28px 28px}
+.btn-lg{padding:10px 22px;font-size:14px}
+
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:var(--radius-md);font-size:14px;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:toastIn .3s ease}
+.toast.success{background:var(--success-500)}
+.toast.error{background:var(--danger-500)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
+<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+</head>
+<body>
+
+<div class="app">
+  <div class="app-body">
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+    </aside>
+    <div class="main">
+      <div class="content">
+        <div class="toolbar">
+          <button class="btn btn-accent" onclick="openAdd()">+ 新增单位</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="c-idx">序号</th>
+                <th class="c-name">单位名称</th>
+                <th class="c-act">操作</th>
+              </tr>
+            </thead>
+            <tbody id="unitBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="unitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">新增单位</h2>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">单位名称</label>
+        <div class="input-wrap">
+          <input class="form-input" id="unitName" placeholder="请输入单位名称" maxlength="20" oninput="updateCounter()" onkeydown="if(event.key==='Enter')submitUnit()">
+          <span class="input-counter" id="unitCounter">0 / 20</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-lg" onclick="closeModal()">取 消</button>
+      <button class="btn btn-accent btn-lg" id="modalPrimary" onclick="submitUnit()">保存并新增</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/tabs.js?v=20260972"></script>
+<script src="/js/app-shell.js?v=20260972"></script>
+<script>
+var units=[];
+var editId=0;
+
+function apiFetch(url,opts){
+  var t=localStorage.getItem('pisa_token');
+  var headers={'Content-Type':'application/json'};
+  if(t) headers['Authorization']='Bearer '+t;
+  return fetch(url,Object.assign({headers:headers},opts||{})).then(function(r){
+    if(r.status===401){showToast('登录已过期','error');return Promise.reject('Unauthorized');}
+    return r.json();
+  });
+}
+function showToast(msg,type){
+  var c=document.getElementById('toastContainer');
+  var d=document.createElement('div');
+  d.className='toast '+(type||'info');
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(function(){d.style.animation='toastIn .3s ease reverse';setTimeout(function(){d.remove();},300);},2500);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function loadData(){
+  apiFetch('/api/shop/unit/all').then(function(res){
+    if(res.code!==0){showToast(res.message||'加载失败','error');return;}
+    units=res.data||[];
+    renderList();
+  }).catch(function(){});
+}
+
+function renderList(){
+  var b=document.getElementById('unitBody');
+  if(units.length===0){
+    b.innerHTML='<tr><td colspan="3"><div class="empty"><svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg><p>暂无单位数据</p></div></td></tr>';
+    return;
+  }
+  var h='';
+  units.forEach(function(u,i){
+    h+='<tr>'
+      +'<td class="c-idx">'+(i+1)+'</td>'
+      +'<td class="c-name">'+esc(u.name)+'</td>'
+      +'<td class="c-act">'
+      +'<button class="btn-text" onclick="openEdit('+u.id+')">修改</button>'
+      +'<button class="btn-text danger" onclick="deleteUnit('+u.id+',\''+esc(u.name)+'\')">删除</button>'
+      +'</td></tr>';
+  });
+  b.innerHTML=h;
+}
+
+function updateCounter(){
+  var v=document.getElementById('unitName').value||'';
+  document.getElementById('unitCounter').textContent=v.length+' / 20';
+}
+
+function openAdd(){
+  editId=0;
+  document.getElementById('modalTitle').textContent='新增单位';
+  document.getElementById('modalPrimary').textContent='保存并新增';
+  document.getElementById('unitName').value='';
+  updateCounter();
+  showModal();
+}
+function openEdit(id){
+  var u=units.filter(function(x){return x.id===id;})[0];
+  if(!u) return;
+  editId=id;
+  document.getElementById('modalTitle').textContent='编辑单位';
+  document.getElementById('modalPrimary').textContent='保存';
+  document.getElementById('unitName').value=u.name;
+  updateCounter();
+  showModal();
+}
+function showModal(){
+  document.getElementById('unitModal').classList.add('show');
+  setTimeout(function(){document.getElementById('unitName').focus();},100);
+}
+function closeModal(){
+  document.getElementById('unitModal').classList.remove('show');
+}
+function submitUnit(){
+  var name=(document.getElementById('unitName').value||'').trim();
+  if(!name){showToast('请输入单位名称','error');return;}
+  var isEdit=!!editId;
+  var url=isEdit?'/api/shop/unit/'+editId:'/api/shop/unit';
+  var method=isEdit?'PUT':'POST';
+  apiFetch(url,{method:method,body:JSON.stringify({name:name})}).then(function(res){
+    if(res.code!==0){showToast(res.message||'保存失败','error');return;}
+    showToast(isEdit?'修改成功':'新增成功','success');
+    if(isEdit){
+      closeModal();
+      loadData();
+    } else {
+      document.getElementById('unitName').value='';
+      updateCounter();
+      document.getElementById('unitName').focus();
+      loadData();
+    }
+  });
+}
+function deleteUnit(id,name){
+  if(!confirm('确认删除单位「'+name+'」？')) return;
+  apiFetch('/api/shop/unit/'+id,{method:'DELETE'}).then(function(res){
+    if(res.code!==0){showToast(res.message||'删除失败','error');return;}
+    showToast('删除成功','success');loadData();
+  });
+}
+
+document.getElementById('unitModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeModal();
+});
+
+loadData();
+</script>
+</body>
+</html>

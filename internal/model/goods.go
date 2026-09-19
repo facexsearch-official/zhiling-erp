@@ -6,8 +6,8 @@ import "time"
 type GoodsCategory struct {
 	ID       int64  `json:"id" gorm:"primaryKey"`
 	TenantID int64  `json:"tenant_id" gorm:"index"`
-	Name     string `json:"name" gorm:"size:128"`
-	ParentID int64  `json:"parent_id"`
+	Name     string `json:"name" gorm:"size:30"`
+	ParentID int64  `json:"parent_id" gorm:"index"`
 	Sort     int    `json:"sort"`
 }
 
@@ -15,7 +15,7 @@ type GoodsCategory struct {
 type Unit struct {
 	ID       int64     `json:"id" gorm:"primaryKey"`
 	TenantID int64     `json:"tenant_id" gorm:"index"`
-	Name     string    `json:"name" gorm:"size:32"`
+	Name     string    `json:"name" gorm:"size:20"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -27,6 +27,18 @@ type GoodsAttribute struct {
 	Values   string `json:"values" gorm:"type:text"`
 	Sort     int    `json:"sort"`
 	Status   int8   `json:"status" gorm:"default:1"`
+}
+
+// GoodsProperty 货品属性（品牌/产地/材质等）
+type GoodsProperty struct {
+	ID        int64     `json:"id" gorm:"primaryKey"`
+	TenantID  int64     `json:"tenant_id" gorm:"index"`
+	Name      string    `json:"name" gorm:"size:64"`
+	Type      int8      `json:"type" gorm:"default:1"` // 1=选择型 2=输入型
+	Values    string    `json:"values" gorm:"type:text"`
+	Sort      int       `json:"sort"`
+	Status    int8      `json:"status" gorm:"default:1"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // Warehouse 仓库
@@ -78,8 +90,9 @@ type Goods struct {
 	InitCost         float64 `json:"init_cost"`
 	Images           string  `json:"images" gorm:"type:text"`      // JSON 数组
 	SpecGroups       string  `json:"spec_groups" gorm:"type:text"` // JSON: [{name,has_image,values:[{name,image}]}]
-	PriceRows        string  `json:"price_rows" gorm:"type:text"`  // JSON: {unitName:[{code,barcode,purchase_price,retail_price,wholesale_price,disabled}]}
-	StockRows        string  `json:"stock_rows" gorm:"type:text"`  // JSON: {specKey:{stock,min_stock,safe_stock,max_stock,init_cost}}
+	PriceRows        string  `json:"price_rows" gorm:"type:text"`    // JSON: {unitName:[{code,barcode,purchase_price,retail_price,wholesale_price,disabled}]}
+	StockRows        string  `json:"stock_rows" gorm:"type:text"`    // JSON: {specKey:{stock,min_stock,safe_stock,max_stock,init_cost}}
+	PriceColumns     string  `json:"price_columns" gorm:"type:text"` // JSON: [自定义价格等级名]
 
 	// 非持久化：随详情一起返回
 	Units []GoodsUnit `json:"units" gorm:"-"`

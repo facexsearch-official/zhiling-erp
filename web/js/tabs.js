@@ -40,6 +40,10 @@ window.PisaTabs = (function(){
     var map = {
       '/':'home','/index.html':'home',
       '/goods.html':'goods:list',
+      '/spec.html':'goods:spec',
+      '/unit.html':'goods:unit',
+      '/attr.html':'goods:attr',
+      '/price.html':'goods:price',
       '/customer.html':'customer:list',
       '/supplier.html':'purchase:supplier',
       '/warehouse.html':'stock:warehouse',

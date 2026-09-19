@@ -20,6 +20,7 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.GoodsCategory{},
 		&model.Unit{},
 		&model.GoodsAttribute{},
+		&model.GoodsProperty{},
 		&model.Warehouse{},
 		&model.Goods{},
 		&model.GoodsUnit{},

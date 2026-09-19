@@ -25,7 +25,7 @@ type Customer struct {
 type Supplier struct {
 	ID           int64     `json:"id" gorm:"primaryKey"`
 	TenantID     int64     `json:"tenant_id" gorm:"index"`
-	Name         string    `json:"name" gorm:"size:128"`
+	Name         string    `json:"name" gorm:"size:220"`
 	Code         string    `json:"code" gorm:"size:64"`
 	Contact      string    `json:"contact" gorm:"size:64"`
 	Phone        string    `json:"phone" gorm:"size:20"`

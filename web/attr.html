@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>货品属性 - PISA 进销存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary-500:#3B82F6;
+--accent-50:#ECFDF5;--accent-400:#34D399;--accent-500:#10B981;--accent-600:#059669;--accent-700:#047857;
+--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;
+--danger-50:#FEF2F2;--danger-500:#EF4444;
+--success-500:#22C55E;
+--radius-sm:4px;--radius-md:6px;--radius-lg:8px;
+--sidebar-width:252px;--topbar-height:60px;
+}
+html,body{height:100%;font-family:'Noto Sans SC','Inter',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font:inherit}
+input{font:inherit}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent}
+.btn-accent{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.btn-accent:hover{background:var(--accent-700);border-color:var(--accent-700)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-text{background:none;color:var(--accent-600);padding:0 6px;border:none}
+.btn-text:hover{color:var(--accent-700);text-decoration:underline}
+.btn-text.danger{color:var(--danger-500)}
+.btn-text.danger:hover{color:#dc2626}
+.btn-text.disabled{color:var(--gray-300);cursor:not-allowed;text-decoration:none}
+.btn-lg{padding:10px 24px;font-size:14px}
+
+.toolbar{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.toolbar .hint{font-size:13px;color:var(--gray-500)}
+
+.info-banner{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px 18px;font-size:14px;color:var(--gray-700);margin-bottom:16px}
+
+.table-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{padding:14px 20px;font-size:14px;border-bottom:1px solid var(--gray-200);border-right:1px solid var(--gray-200);text-align:left;vertical-align:middle}
+th:last-child,td:last-child{border-right:none}
+tr:last-child td{border-bottom:none}
+thead{background:var(--gray-50)}
+th{font-weight:600;color:var(--gray-800)}
+th.c-name{width:18%}
+th.c-type{width:16%}
+th.c-vals{width:auto}
+th.c-act{width:18%;text-align:center}
+td.c-type{color:var(--gray-700)}
+td.c-vals{color:var(--gray-700);word-break:break-all}
+td.c-act{text-align:center;white-space:nowrap}
+td.c-act .btn-text{margin:0 6px}
+
+.empty{padding:60px 0;text-align:center;color:var(--gray-400);border-bottom:none!important;border-right:none!important}
+.empty svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.2;margin-bottom:12px}
+.empty p{font-size:14px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.modal-overlay.show{opacity:1;visibility:visible}
+.modal{width:720px;max-width:calc(100vw - 40px);background:#fff;border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(20px) scale(.97);transition:transform .2s}
+.modal-overlay.show .modal{transform:translateY(0) scale(1)}
+.modal-header{position:relative;display:flex;align-items:center;justify-content:center;padding:22px 24px;border-bottom:1px solid var(--gray-100)}
+.modal-header h2{font-size:18px;font-weight:500;color:var(--gray-800)}
+.modal-close{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);transition:background .15s;color:var(--gray-400)}
+.modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
+.modal-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.modal-body{padding:28px 32px 8px}
+.form-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:26px}
+.form-label{font-size:14px;color:var(--gray-700);white-space:nowrap;width:84px;text-align:right;flex-shrink:0;padding-top:11px}
+.form-label .req{color:var(--danger-500);margin-left:2px}
+.form-label.plain{padding-top:11px}
+.form-control{flex:1;min-width:0}
+.form-input{width:100%;max-width:440px;height:44px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 14px;font-size:14px;color:var(--gray-800);outline:none;transition:border-color .15s,box-shadow .15s}
+.form-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.form-input::placeholder{color:var(--gray-400)}
+
+.radio-group{display:flex;align-items:center;gap:28px;padding-top:11px}
+.radio-item{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--gray-800);cursor:pointer}
+.radio-item input[type=radio]{width:18px;height:18px;accent-color:var(--accent-600);cursor:pointer}
+.radio-item.disabled{color:var(--gray-400);cursor:not-allowed}
+.radio-item.disabled input{cursor:not-allowed}
+.radio-hint{margin-top:12px;font-size:13px;color:var(--gray-400);line-height:1.9;max-width:420px}
+
+.val-chips{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px}
+.val-chip{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:120px;height:46px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 18px;font-size:14px;color:var(--gray-700);background:#fff}
+.val-chip .val-del{position:absolute;top:0;right:0;transform:translate(50%,-50%);width:20px;height:20px;border-radius:50%;background:var(--gray-300);color:#fff;font-size:13px;line-height:20px;text-align:center;padding:0;cursor:pointer;border:none;transition:background .15s}
+.val-chip .val-del:hover{background:var(--danger-500)}
+.type-text{font-size:14px;color:var(--gray-600);padding-top:11px}
+
+.modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:22px 32px 28px}
+
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:var(--radius-md);font-size:14px;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:toastIn .3s ease}
+.toast.success{background:var(--success-500)}
+.toast.error{background:var(--danger-500)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
+<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+</head>
+<body>
+
+<div class="app">
+  <div class="app-body">
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+    </aside>
+    <div class="main">
+      <div class="content">
+        <div class="toolbar">
+          <button class="btn btn-accent" onclick="openAdd()">+ 添加商品属性</button>
+          <span class="hint">最多可添加6项属性</span>
+        </div>
+
+        <div class="info-banner">指商品的属性信息，如品牌、产地、材质等，可在添加商品时选择或输入；商品属性支持独立打印在单据上</div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="c-name">属性名称</th>
+                <th class="c-type">属性类型</th>
+                <th class="c-vals">属性值</th>
+                <th class="c-act">操作</th>
+              </tr>
+            </thead>
+            <tbody id="attrBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="attrModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">新增商品属性</h2>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">属性名称:<span class="req">*</span></label>
+        <div class="form-control">
+          <input class="form-input" id="propName" placeholder="输入属性名称，如：材质" maxlength="20" onkeydown="if(event.key==='Enter')submitProp()">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label plain">属性类型:</label>
+        <div class="form-control">
+          <div class="radio-group">
+            <label class="radio-item" id="radioSelectWrap">
+              <input type="radio" name="propType" value="1" id="typeSelect" onchange="onTypeChange()"> 选择型
+            </label>
+            <label class="radio-item" id="radioInputWrap">
+              <input type="radio" name="propType" value="2" id="typeInput" onchange="onTypeChange()"> 输入型
+            </label>
+          </div>
+          <div class="radio-hint">新增商品时，单选择可选择属性值；文本型可直接输入具体属性值</div>
+        </div>
+      </div>
+
+      <div class="form-row" id="valueRow">
+        <label class="form-label">属性值:</label>
+        <div class="form-control">
+          <div id="valueSelectArea">
+            <input class="form-input" id="propValue" placeholder="输入属性值，回车新增" maxlength="30" onkeydown="onValueKeydown(event)">
+            <div class="val-chips" id="valChips"></div>
+          </div>
+          <div class="type-text" id="valueInputArea" style="display:none">文本型的属性，请在新增商品时填写属性值</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-lg" onclick="closeModal()">取 消</button>
+      <button class="btn btn-accent btn-lg" onclick="submitProp()">确 定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/tabs.js?v=20260972"></script>
+<script src="/js/app-shell.js?v=20260972"></script>
+<script>
+var props=[];
+var editId=0;
+var editing={type:1,values:[]};
+
+function apiFetch(url,opts){
+  var t=localStorage.getItem('pisa_token');
+  var headers={'Content-Type':'application/json'};
+  if(t) headers['Authorization']='Bearer '+t;
+  return fetch(url,Object.assign({headers:headers},opts||{})).then(function(r){
+    if(r.status===401){showToast('登录已过期','error');return Promise.reject('Unauthorized');}
+    return r.json();
+  });
+}
+function showToast(msg,type){
+  var c=document.getElementById('toastContainer');
+  var d=document.createElement('div');
+  d.className='toast '+(type||'info');
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(function(){d.style.animation='toastIn .3s ease reverse';setTimeout(function(){d.remove();},300);},2500);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function typeName(t){return t===2?'输入型':'选择型';}
+function parseValues(v){try{return JSON.parse(v)||[]}catch(e){return [];}}
+
+function loadData(){
+  apiFetch('/api/shop/property/all').then(function(res){
+    if(res.code!==0){showToast(res.message||'加载失败','error');return;}
+    props=res.data||[];
+    renderList();
+  }).catch(function(){});
+}
+
+function renderList(){
+  var b=document.getElementById('attrBody');
+  if(props.length===0){
+    b.innerHTML='<tr><td colspan="4"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品属性</p></div></td></tr>';
+    return;
+  }
+  var h='';
+  props.forEach(function(p){
+    var vals=parseValues(p.values);
+    var valText=p.type===2?'':vals.join('、');
+    h+='<tr>'
+      +'<td>'+esc(p.name)+'</td>'
+      +'<td class="c-type">'+typeName(p.type)+'</td>'
+      +'<td class="c-vals">'+esc(valText)+'</td>'
+      +'<td class="c-act">'
+      +'<button class="btn-text" onclick="openEdit('+p.id+')">编辑</button>'
+      +'<button class="btn-text danger" onclick="deleteProp('+p.id+',\''+esc(p.name)+'\')">删除</button>'
+      +'</td></tr>';
+  });
+  b.innerHTML=h;
+}
+
+function renderChips(){
+  var c=document.getElementById('valChips');
+  var h='';
+  editing.values.forEach(function(v,i){
+    h+='<span class="val-chip">'+esc(v)+'<button class="val-del" onclick="removeValue('+i+')">−</button></span>';
+  });
+  c.innerHTML=h;
+}
+function onTypeChange(){
+  var t=document.querySelector('input[name=propType]:checked');
+  editing.type=t?parseInt(t.value,10):1;
+  var isSelect=editing.type===1;
+  document.getElementById('valueSelectArea').style.display=isSelect?'':'none';
+  document.getElementById('valueInputArea').style.display=isSelect?'none':'';
+}
+function onValueKeydown(e){
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  var inp=document.getElementById('propValue');
+  var v=(inp.value||'').trim();
+  if(!v) return;
+  if(editing.values.indexOf(v)>=0){showToast('属性值已存在','error');return;}
+  editing.values.push(v);
+  inp.value='';
+  renderChips();
+}
+function removeValue(i){
+  editing.values.splice(i,1);
+  renderChips();
+}
+
+function openAdd(){
+  if(props.length>=6){showToast('最多可添加6项属性','error');return;}
+  editId=0;
+  editing={type:1,values:[]};
+  document.getElementById('modalTitle').textContent='新增商品属性';
+  document.getElementById('propName').value='';
+  document.getElementById('propValue').value='';
+  document.getElementById('typeSelect').checked=true;
+  document.getElementById('typeSelect').disabled=false;
+  document.getElementById('typeInput').disabled=false;
+  document.getElementById('radioSelectWrap').classList.remove('disabled');
+  document.getElementById('radioInputWrap').classList.remove('disabled');
+  renderChips();
+  onTypeChange();
+  showModal();
+}
+function openEdit(id){
+  var p=props.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  editId=id;
+  editing={type:p.type===2?2:1,values:parseValues(p.values)};
+  document.getElementById('modalTitle').textContent='编辑商品属性';
+  document.getElementById('propName').value=p.name;
+  document.getElementById('propValue').value='';
+  document.getElementById('typeSelect').checked=editing.type===1;
+  document.getElementById('typeInput').checked=editing.type===2;
+  document.getElementById('typeSelect').disabled=true;
+  document.getElementById('typeInput').disabled=true;
+  document.getElementById('radioSelectWrap').classList.add('disabled');
+  document.getElementById('radioInputWrap').classList.add('disabled');
+  renderChips();
+  onTypeChange();
+  showModal();
+}
+function showModal(){
+  document.getElementById('attrModal').classList.add('show');
+  setTimeout(function(){document.getElementById('propName').focus();},100);
+}
+function closeModal(){
+  document.getElementById('attrModal').classList.remove('show');
+}
+function submitProp(){
+  var name=(document.getElementById('propName').value||'').trim();
+  if(!name){showToast('请输入属性名称','error');return;}
+  var isEdit=!!editId;
+  var body={name:name,type:editing.type,values:editing.values};
+  var url=isEdit?'/api/shop/property/'+editId:'/api/shop/property';
+  var method=isEdit?'PUT':'POST';
+  apiFetch(url,{method:method,body:JSON.stringify(body)}).then(function(res){
+    if(res.code!==0){showToast(res.message||'保存失败','error');return;}
+    showToast(isEdit?'修改成功':'添加成功','success');
+    closeModal();
+    loadData();
+  });
+}
+function deleteProp(id,name){
+  if(!confirm('确认删除属性「'+name+'」？')) return;
+  apiFetch('/api/shop/property/'+id,{method:'DELETE'}).then(function(res){
+    if(res.code!==0){showToast(res.message||'删除失败','error');return;}
+    showToast('删除成功','success');loadData();
+  });
+}
+
+document.getElementById('attrModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeModal();
+});
+
+loadData();
+</script>
+</body>
+</html>

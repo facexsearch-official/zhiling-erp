@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Mock data seeder for PISA 进销存系统.
-Creates realistic test data for all settings modules via API calls.
+Mock data seeder for PISA 进销存系统 - 货品模块.
+
+Creates realistic test data via API calls, with proper dependency ordering:
+    单位 → 货品分类 → 规格 → 货品属性 → 供应商 → 货品
 
 Usage:
     python mock_data.py [--base-url http://localhost:8080]
+    python mock_data.py --cleanup
 """
 
 import argparse
 import json
-import random
 import sys
 import time
 
@@ -32,6 +34,9 @@ C = "\033[96m"  # cyan
 B = "\033[1m"   # bold
 D = "\033[0m"   # reset
 
+SESSION = requests.Session()
+CREATED = {}  # module -> [ids]
+
 
 def log(msg):
     print(f"{C}▸{D} {msg}")
@@ -49,14 +54,17 @@ def fail(msg):
     print(f"{R}  ✗ {msg}{D}")
 
 
-# ── Auth ────────────────────────────────────────────────────────────────
+def track(module, item_id):
+    if item_id:
+        CREATED.setdefault(module, []).append(item_id)
+    return item_id
 
-def login(session):
+
+# ── API ─────────────────────────────────────────────────────────────────
+
+def login():
     log("登录获取 Token...")
-    r = session.post(f"{BASE_URL}/api/auth/login", json={
-        "phone": PHONE,
-        "password": PASSWORD,
-    })
+    r = SESSION.post(f"{BASE_URL}/api/auth/login", json={"phone": PHONE, "password": PASSWORD})
     if r.status_code != 200:
         fail(f"登录失败: {r.status_code} {r.text}")
         sys.exit(1)
@@ -65,130 +73,458 @@ def login(session):
     if not token:
         fail(f"未获取到 Token: {json.dumps(data, ensure_ascii=False)}")
         sys.exit(1)
-    session.headers["Authorization"] = f"Bearer {token}"
+    SESSION.headers["Authorization"] = f"Bearer {token}"
+    SESSION.headers["Content-Type"] = "application/json"
     ok("登录成功，Token 已设置")
     return data
 
 
-def switch_tenant(session):
-    log("切换到演示商户...")
-    r = session.post(f"{BASE_URL}/api/auth/switch-tenant", json={
-        "tenant_id": 2,
-    })
-    if r.status_code != 200:
-        warn(f"切换商户失败 (可能已经是当前商户): {r.status_code}")
-    else:
-        ok("切换商户成功")
-    return r.json() if r.status_code == 200 else {}
+def create(module, path, payload):
+    r = SESSION.post(f"{BASE_URL}{path}", json=payload)
+    if r.status_code in (200, 201):
+        resp = r.json()
+        item_id = resp.get("id") or resp.get("data", {}).get("id")
+        track(module, item_id)
+        return resp.get("data") or resp
+    warn(f"  创建失败 [{payload.get('name', payload.get('code', '?'))}]: {r.status_code} {r.text[:120]}")
+    return None
 
 
-# ── CRUD Helper ─────────────────────────────────────────────────────────
-
-class ModuleSeeder:
-    def __init__(self, session, module_name, api_path, items):
-        self.session = session
-        self.module_name = module_name
-        self.api_path = api_path  # e.g. "/api/shop/supplier"
-        self.items = items
-        self.created_ids = []
-
-    def seed(self):
-        log(f"创建 {self.module_name} 数据 ({len(self.items)} 条)...")
-        created = 0
-        for item in self.items:
-            r = self.session.post(f"{BASE_URL}{self.api_path}", json=item)
-            if r.status_code in (200, 201):
-                resp = r.json()
-                item_id = resp.get("id") or resp.get("data", {}).get("id")
-                if item_id:
-                    self.created_ids.append(item_id)
-                created += 1
-            else:
-                warn(f"  创建失败 [{item.get('name', item.get('code', '?'))}]: {r.status_code} {r.text[:100]}")
-        ok(f"  成功创建 {created}/{len(self.items)} 条 {self.module_name}")
-        return self.created_ids
-
-    def cleanup(self):
-        log(f"清理 {self.module_name} 数据 ({len(self.created_ids)} 条)...")
-        deleted = 0
-        for item_id in self.created_ids:
-            r = self.session.delete(f"{BASE_URL}{self.api_path}/{item_id}")
-            if r.status_code in (200, 204):
-                deleted += 1
-        ok(f"  已清理 {deleted} 条 {self.module_name}")
+def list_all(path):
+    r = SESSION.get(f"{BASE_URL}{path}")
+    if r.status_code == 200:
+        d = r.json()
+        return d.get("data") or []
+    return []
 
 
 # ── Mock Data ───────────────────────────────────────────────────────────
 
+MOCK_UNITS = ["件", "盒", "包", "箱", "袋", "瓶", "斤", "打"]
+
+MOCK_CATEGORIES = [
+    {"name": "数码配件", "children": ["手机配件", "电脑配件", "音频设备"]},
+    {"name": "日用百货", "children": ["清洁用品", "厨房用品"]},
+    {"name": "食品饮料", "children": ["休闲零食", "冲调饮品"]},
+]
+
+MOCK_ATTRIBUTES = [
+    {"name": "颜色", "values": ["红色", "白色", "黑色", "蓝色", "米色"]},
+    {"name": "尺码", "values": ["S", "M", "L", "XL", "XXL"]},
+    {"name": "容量", "values": ["250ml", "500ml", "1L", "2L"]},
+    {"name": "材质", "values": ["塑料", "不锈钢", "玻璃", "陶瓷"]},
+    {"name": "口味", "values": ["原味", "盐焗", "奶油", "香辣"]},
+    {"name": "尺寸", "values": ["小号", "中号", "大号"]},
+]
+
+MOCK_PROPERTIES = [
+    {"name": "品牌", "type": 1, "values": ["华为", "小米", "苹果", "三星"]},
+    {"name": "产地", "type": 2},
+    {"name": "保质期", "type": 2},
+]
+
 MOCK_SUPPLIERS = [
-    {"name": "优品数码供应商", "contact": "王建国", "phone": "13800138001", "address": "深圳市华强北电子市场A区101", "bank_name": "工商银行深圳分行", "bank_account": "6222021234567890001"},
-    {"name": "金鑫电子配件", "contact": "李明华", "phone": "13800138002", "address": "广州市天河区天河路385号", "bank_name": "建设银行广州分行", "bank_account": "6227001234567890002"},
-    {"name": "恒达科技有限公司", "contact": "张伟东", "phone": "13800138003", "address": "东莞市南城区科技路88号", "bank_name": "农业银行东莞分行", "bank_account": "6228481234567890003"},
-    {"name": "瑞丰贸易有限公司", "contact": "陈志强", "phone": "13800138004", "address": "佛山市顺德区容桂大道168号", "bank_name": "中国银行佛山分行", "bank_account": "6216261234567890004"},
-    {"name": "华强电子市场", "contact": "刘国华", "phone": "13800138005", "address": "深圳市福田区华强北路1001号", "bank_name": "招商银行深圳分行", "bank_account": "6214831234567890005"},
-    {"name": "深圳市优联科技", "contact": "赵明辉", "phone": "13800138006", "address": "深圳市南山区科技园南区", "bank_name": "交通银行深圳分行", "bank_account": "6222601234567890006"},
-    {"name": "广州鑫达贸易", "contact": "孙丽萍", "phone": "13800138007", "address": "广州市白云区机场路168号", "bank_name": "浦发银行广州分行", "bank_account": "6225221234567890007"},
-    {"name": "东莞市宏发实业", "contact": "周大伟", "phone": "13800138008", "address": "东莞市长安镇乌沙社区", "bank_name": "民生银行东莞分行", "bank_account": "6226181234567890008"},
-    {"name": "佛山市顺德供应链", "contact": "吴小明", "phone": "13800138009", "address": "佛山市顺德区陈村镇", "bank_name": "光大银行佛山分行", "bank_account": "6226681234567890009"},
-    {"name": "中山市天成贸易", "contact": "郑海涛", "phone": "13800138010", "address": "中山市石岐区兴中道", "bank_name": "兴业银行中山分行", "bank_account": "6229081234567890010"},
+    {"name": "优品数码供应商", "contact": "王建国", "phone": "13800138001",
+     "address": "深圳市华强北电子市场A区101", "bank_name": "工商银行深圳分行",
+     "bank_account": "6222021234567890001"},
+    {"name": "金鑫电子配件", "contact": "李明华", "phone": "13800138002",
+     "address": "广州市天河区天河路385号", "bank_name": "建设银行广州分行",
+     "bank_account": "6227001234567890002"},
+    {"name": "恒达贸易有限公司", "contact": "张伟东", "phone": "13800138003",
+     "address": "东莞市南城区科技路88号", "bank_name": "农业银行东莞分行",
+     "bank_account": "6228481234567890003"},
 ]
 
-MOCK_CUSTOMERS = [
-    {"name": "张三五金店", "contact": "张三", "phone": "13900139001", "address": "深圳市罗湖区东门南路18号", "type": 1},
-    {"name": "李四便利店", "contact": "李四", "phone": "13900139002", "address": "深圳市福田区福华路88号", "type": 1},
-    {"name": "王五数码专营店", "contact": "王五", "phone": "13900139003", "address": "广州市天河区天河路228号", "type": 2},
-    {"name": "赵六手机配件城", "contact": "赵六", "phone": "13900139004", "address": "广州市越秀区中山五路66号", "type": 2},
-    {"name": "陈七电脑维修中心", "contact": "陈七", "phone": "13900139005", "address": "深圳市南山区深南大道9988号", "type": 1},
-    {"name": "刘八电器商行", "contact": "刘八", "phone": "13900139006", "address": "东莞市东城区东城大道100号", "type": 2},
-    {"name": "杨九日用百货", "contact": "杨九", "phone": "13900139007", "address": "佛山市禅城区汾江路88号", "type": 1},
-    {"name": "黄十建材市场", "contact": "黄十", "phone": "13900139008", "address": "中山市火炬开发区", "type": 2},
-    {"name": "周十一母婴用品", "contact": "周十一", "phone": "13900139009", "address": "深圳市宝安区西乡大道66号", "type": 1},
-    {"name": "吴十二服装批发", "contact": "吴十二", "phone": "13900139010", "address": "广州市白云区嘉禾望岗", "type": 2},
-    {"name": "郑十三食品商行", "contact": "郑十三", "phone": "13900139011", "address": "东莞市厚街镇家具大道", "type": 1},
-    {"name": "冯十四汽车配件", "contact": "冯十四", "phone": "13900139012", "address": "佛山市南海区桂城街道", "type": 2},
-    {"name": "朱十五文具办公", "contact": "朱十五", "phone": "13900139013", "address": "深圳市龙岗区布吉街道", "type": 1},
-    {"name": "秦十六家居建材", "contact": "秦十六", "phone": "13900139014", "address": "中山市小榄镇民安路", "type": 2},
-    {"name": "许十八宠物用品", "contact": "许十八", "phone": "13900139015", "address": "广州市番禺区市桥街", "type": 1},
-]
-
-MOCK_WAREHOUSES = [
-    {"name": "主仓库（深圳）", "type": 1, "address": "深圳市龙华区大浪街道华荣路148号", "keeper": "王管理", "sort": 1},
-    {"name": "分仓库（广州）", "type": 1, "address": "广州市花都区新华街工业区", "keeper": "李管理", "sort": 2},
-    {"name": "东莞仓", "type": 1, "address": "东莞市长安镇沙头社区", "keeper": "张管理", "sort": 3},
-    {"name": "临时仓", "type": 3, "address": "深圳市宝安区福永街道", "keeper": "赵管理", "sort": 4},
-    {"name": "退货仓", "type": 2, "address": "深圳市龙华区民治街道", "keeper": "刘管理", "sort": 5},
-]
-
-MOCK_ACCOUNTS = [
-    {"name": "现金账户", "type": 1, "sort": 1},
-    {"name": "工商银行", "type": 2, "sort": 2},
-    {"name": "建设银行", "type": 2, "sort": 3},
-    {"name": "支付宝", "type": 3, "sort": 4},
-    {"name": "微信支付", "type": 3, "sort": 5},
-]
-
+# 每个货品覆盖不同的能力组合：
+#   levels       自定义价格等级
+#   units        启用多单位（含换算系数 factor，相对主单位）
+#   specs        启用多规格（可多组，笛卡尔积）
+#   alert        启用库存预警（min/max）
 MOCK_GOODS = [
-    {"name": "iPhone 15 Pro Max", "code": "IP15PM", "barcode": "6901234567890", "buy_price": 8500, "sell_price": 9999, "wholesale_price": 9200, "stock_quantity": 50, "alert_quantity": 10},
-    {"name": "MacBook Pro 14", "code": "MBP14", "barcode": "6901234567891", "buy_price": 12000, "sell_price": 14999, "wholesale_price": 13500, "stock_quantity": 20, "alert_quantity": 5},
-    {"name": "iPad Air", "code": "IPADAIR", "barcode": "6901234567892", "buy_price": 3800, "sell_price": 4799, "wholesale_price": 4300, "stock_quantity": 30, "alert_quantity": 8},
-    {"name": "AirPods Pro 2", "code": "APP2", "barcode": "6901234567893", "buy_price": 1200, "sell_price": 1799, "wholesale_price": 1500, "stock_quantity": 100, "alert_quantity": 20},
-    {"name": "Apple Watch Series 9", "code": "AWS9", "barcode": "6901234567894", "buy_price": 2500, "sell_price": 3299, "wholesale_price": 2900, "stock_quantity": 40, "alert_quantity": 10},
-    {"name": "华为 Mate 60 Pro", "code": "HWM60P", "barcode": "6901234567895", "buy_price": 5500, "sell_price": 6999, "wholesale_price": 6200, "stock_quantity": 35, "alert_quantity": 10},
-    {"name": "小米 14 Pro", "code": "XM14P", "barcode": "6901234567896", "buy_price": 3200, "sell_price": 4299, "wholesale_price": 3800, "stock_quantity": 60, "alert_quantity": 15},
-    {"name": "ThinkPad X1 Carbon", "code": "TPX1C", "barcode": "6901234567897", "buy_price": 8000, "sell_price": 10999, "wholesale_price": 9500, "stock_quantity": 15, "alert_quantity": 3},
-    {"name": "戴尔显示器 27寸", "code": "DELL27", "barcode": "6901234567898", "buy_price": 1800, "sell_price": 2499, "wholesale_price": 2100, "stock_quantity": 25, "alert_quantity": 5},
-    {"name": "罗技鼠标 MX Master 3", "code": "LGMX3", "barcode": "6901234567899", "buy_price": 500, "sell_price": 799, "wholesale_price": 650, "stock_quantity": 80, "alert_quantity": 20},
-    {"name": "机械键盘 Cherry", "code": "MKBC", "barcode": "6901234567900", "buy_price": 350, "sell_price": 599, "wholesale_price": 480, "stock_quantity": 45, "alert_quantity": 10},
-    {"name": "USB-C扩展坞", "code": "USBC-HUB", "barcode": "6901234567901", "buy_price": 120, "sell_price": 249, "wholesale_price": 180, "stock_quantity": 120, "alert_quantity": 30},
-    {"name": "移动硬盘 1TB", "code": "HDD1T", "barcode": "6901234567902", "buy_price": 280, "sell_price": 429, "wholesale_price": 360, "stock_quantity": 50, "alert_quantity": 10},
-    {"name": "网线 CAT6 100米", "code": "CAT6-100", "barcode": "6901234567903", "buy_price": 80, "sell_price": 139, "wholesale_price": 110, "stock_quantity": 200, "alert_quantity": 50},
-    {"name": "电源适配器 65W", "code": "PD65W", "barcode": "6901234567904", "buy_price": 60, "sell_price": 129, "wholesale_price": 95, "stock_quantity": 150, "alert_quantity": 30},
-    {"name": "手机壳 iPhone15", "code": "CASE-IP15", "barcode": "6901234567905", "buy_price": 8, "sell_price": 29, "wholesale_price": 18, "stock_quantity": 500, "alert_quantity": 100},
-    {"name": "钢化膜 通用", "code": "FILM-UNI", "barcode": "6901234567906", "buy_price": 3, "sell_price": 15, "wholesale_price": 8, "stock_quantity": 1000, "alert_quantity": 200},
-    {"name": "数据线 Type-C", "code": "CABLE-TYP", "barcode": "6901234567907", "buy_price": 5, "sell_price": 19, "wholesale_price": 12, "stock_quantity": 800, "alert_quantity": 150},
-    {"name": "充电宝 20000mAh", "code": "PB20K", "barcode": "6901234567908", "buy_price": 45, "sell_price": 99, "wholesale_price": 75, "stock_quantity": 100, "alert_quantity": 20},
-    {"name": "蓝牙音箱", "code": "BTSPEAKER", "barcode": "6901234567909", "buy_price": 80, "sell_price": 169, "wholesale_price": 130, "stock_quantity": 60, "alert_quantity": 15},
+    # ① 单单位 + 单规格 + 自定义价格等级 + 库存预警
+    {"name": "手机壳 iPhone15", "code": "CASE-IP15", "barcode": "6900000000011",
+     "category": "手机配件", "unit": "件", "brand": "苹果", "origin": "深圳",
+     "remark": "热销款", "purchase": 8, "retail": 29, "wholesale": 18,
+     "levels": {"VIP": 25, "批发": 16}, "alert": {"min": 20, "max": 500}, "stock": 300},
+
+    # ② 单单位 + 单规格 + 自定义价格等级
+    {"name": "钢化膜 通用", "code": "FILM-UNI", "barcode": "6900000000012",
+     "category": "手机配件", "unit": "件", "brand": "华为", "origin": "广州",
+     "purchase": 3, "retail": 15, "wholesale": 8,
+     "levels": {"VIP": 12}, "stock": 1000},
+
+    # ③ 单单位 + 单规格（无价格等级）
+    {"name": "数据线 Type-C", "code": "CABLE-TYP", "barcode": "6900000000013",
+     "category": "手机配件", "unit": "件", "brand": "小米", "origin": "东莞",
+     "purchase": 5, "retail": 19, "wholesale": 12, "stock": 800},
+
+    # ④ 多单位（2 辅单位）+ 单规格 + 自定义价格等级
+    {"name": "充电宝 20000mAh", "code": "PB20K", "barcode": "6900000000014",
+     "category": "手机配件", "unit": "件", "brand": "小米", "origin": "深圳",
+     "purchase": 45, "retail": 99, "wholesale": 75,
+     "levels": {"VIP": 89, "批发": 70},
+     "units": [{"name": "盒", "factor": 20}, {"name": "箱", "factor": 400}],
+     "alert": {"min": 10, "max": 200}, "stock": 150},
+
+    # ⑤ 多单位（1 辅单位）+ 单规格 + 自定义价格等级
+    {"name": "蓝牙音箱", "code": "BTSPEAKER", "barcode": "6900000000015",
+     "category": "音频设备", "unit": "件", "brand": "华为", "origin": "东莞",
+     "purchase": 80, "retail": 169, "wholesale": 130,
+     "levels": {"VIP": 150}, "units": [{"name": "盒", "factor": 10}], "stock": 60},
+
+    # ⑥ 单单位 + 单规格 + 价格等级 + 预警
+    {"name": "无线鼠标", "code": "WIRELESS-M", "barcode": "6900000000016",
+     "category": "电脑配件", "unit": "件", "brand": "小米", "origin": "深圳",
+     "purchase": 35, "retail": 79, "wholesale": 60,
+     "levels": {"VIP": 72}, "alert": {"min": 15, "max": 300}, "stock": 120},
+
+    # ⑦ 单单位 + 多规格（2 组：颜色×尺码）+ 价格等级
+    {"name": "纯棉 T恤", "code": "TSHIRT-COT", "barcode": "6900000000017",
+     "category": "日用百货", "unit": "件", "brand": "", "origin": "广州",
+     "purchase": 18, "retail": 59, "wholesale": 40,
+     "levels": {"VIP": 50, "批发": 38},
+     "specs": [
+         {"group": "颜色", "values": ["红色", "白色", "黑色"]},
+         {"group": "尺码", "values": ["S", "M", "L", "XL"]},
+     ],
+     "stock": 40},
+
+    # ⑧ 单单位 + 多规格（2 组）+ 价格等级 + 预警
+    {"name": "运动跑鞋", "code": "RUNSHOE", "barcode": "6900000000018",
+     "category": "日用百货", "unit": "件", "brand": "", "origin": "福建",
+     "purchase": 120, "retail": 299, "wholesale": 220,
+     "levels": {"VIP": 260},
+     "specs": [
+         {"group": "颜色", "values": ["黑色", "白色"]},
+         {"group": "尺码", "values": ["S", "M", "L"]},
+     ],
+     "alert": {"min": 5, "max": 100}, "stock": 25},
+
+    # ⑨ 单单位 + 多规格（1 组：容量）+ 价格等级
+    {"name": "保温杯 不锈钢", "code": "THERMOS", "barcode": "6900000000019",
+     "category": "厨房用品", "unit": "件", "brand": "", "origin": "潮州",
+     "purchase": 25, "retail": 59, "wholesale": 42,
+     "levels": {"VIP": 50},
+     "specs": [{"group": "容量", "values": ["250ml", "500ml", "1L"]}],
+     "stock": 80},
+
+    # ⑩ 多单位 + 单规格
+    {"name": "洗洁精 500ml", "code": "DETERGENT", "barcode": "6900000000020",
+     "category": "清洁用品", "unit": "瓶", "brand": "", "origin": "佛山",
+     "purchase": 6, "retail": 12.5, "wholesale": 9,
+     "units": [{"name": "箱", "factor": 24}], "stock": 500},
+
+    # ⑪ 多单位 + 多规格（1 组）+ 价格等级 + 预警
+    {"name": "每日坚果 750g", "code": "NUTS750", "barcode": "6900000000021",
+     "category": "休闲零食", "unit": "袋", "brand": "", "origin": "杭州",
+     "purchase": 38, "retail": 69, "wholesale": 55,
+     "levels": {"VIP": 62},
+     "units": [{"name": "箱", "factor": 12}],
+     "specs": [{"group": "口味", "values": ["原味", "盐焗"]}],
+     "alert": {"min": 10, "max": 200}, "stock": 60},
+
+    # ⑫ 多单位 + 多规格（1 组）+ 价格等级
+    {"name": "速溶咖啡 100条", "code": "COFFEE100", "barcode": "6900000000022",
+     "category": "冲调饮品", "unit": "盒", "brand": "", "origin": "昆明",
+     "purchase": 45, "retail": 89, "wholesale": 70,
+     "levels": {"VIP": 82},
+     "units": [{"name": "箱", "factor": 6}],
+     "specs": [{"group": "口味", "values": ["原味", "香辣", "奶油"]}],
+     "stock": 90},
+
+    # ⑬ 多单位（2 辅单位）+ 多规格（2 组）+ 价格等级 + 预警（最全组合）
+    {"name": "厨房收纳盒", "code": "STORAGE-BOX", "barcode": "6900000000023",
+     "category": "厨房用品", "unit": "件", "brand": "", "origin": "台州",
+     "purchase": 12, "retail": 39, "wholesale": 26,
+     "levels": {"VIP": 34, "批发": 24},
+     "units": [{"name": "盒", "factor": 12}, {"name": "箱", "factor": 144}],
+     "specs": [
+         {"group": "材质", "values": ["塑料", "玻璃"]},
+         {"group": "尺寸", "values": ["小号", "中号", "大号"]},
+     ],
+     "alert": {"min": 20, "max": 600}, "stock": 200},
+
+    # ⑭ 单单位 + 单规格（无价格等级）
+    {"name": "矿泉水 550ml", "code": "WATER550", "barcode": "6900000000024",
+     "category": "冲调饮品", "unit": "瓶", "brand": "", "origin": "河源",
+     "purchase": 1, "retail": 2.5, "wholesale": 1.8,
+     "units": [{"name": "箱", "factor": 24}], "stock": 2000},
 ]
+
+
+# ── Seeders（幂等：同名/同编码已存在则复用，不重复创建） ──────────────────
+
+def _existing_by_name(path):
+    return {x.get("name"): x for x in list_all(path)}
+
+
+def seed_units():
+    log(f"创建 单位 ({len(MOCK_UNITS)} 条)...")
+    existing = _existing_by_name("/api/shop/unit/all")
+    result = {}
+    added = 0
+    for name in MOCK_UNITS:
+        if name in existing:
+            result[name] = existing[name]["id"]
+            continue
+        item = create("unit", "/api/shop/unit", {"name": name})
+        if item:
+            result[name] = item["id"]
+            added += 1
+    ok(f"  新增 {added} 条，复用 {len(result) - added} 条 单位")
+    return result
+
+
+def seed_categories():
+    log("创建 货品分类...")
+    existing = _existing_by_name("/api/shop/category/all")
+    result = {}
+    added = 0
+    for top in MOCK_CATEGORIES:
+        parent = existing.get(top["name"])
+        if not parent:
+            parent = create("category", "/api/shop/category", {"name": top["name"]})
+            added += 1
+        if not parent:
+            continue
+        result[top["name"]] = parent["id"]
+        for child in top["children"]:
+            c = existing.get(child)
+            if not c:
+                c = create("category", "/api/shop/category",
+                           {"name": child, "parent_id": parent["id"]})
+                added += 1
+            if c:
+                result[child] = c["id"]
+    ok(f"  新增 {added} 条，复用 {len(result) - added} 条 分类（含子分类）")
+    return result
+
+
+def seed_attributes():
+    log(f"创建 规格 ({len(MOCK_ATTRIBUTES)} 条)...")
+    existing = _existing_by_name("/api/shop/attribute/all")
+    created = []
+    for a in MOCK_ATTRIBUTES:
+        if a["name"] in existing:
+            continue
+        item = create("attribute", "/api/shop/attribute", a)
+        if item:
+            created.append(item)
+    ok(f"  成功创建 {len(created)} 条 规格（跳过已存在 {len(MOCK_ATTRIBUTES) - len(created)} 条）")
+    return created
+
+
+def seed_properties():
+    log(f"创建 货品属性 ({len(MOCK_PROPERTIES)} 条)...")
+    existing = _existing_by_name("/api/shop/property/all")
+    created = []
+    for p in MOCK_PROPERTIES:
+        if p["name"] in existing:
+            continue
+        item = create("property", "/api/shop/property", p)
+        if item:
+            created.append(item)
+    ok(f"  成功创建 {len(created)} 条 货品属性（跳过已存在 {len(MOCK_PROPERTIES) - len(created)} 条）")
+    return created
+
+
+def seed_suppliers():
+    log(f"创建 供应商 ({len(MOCK_SUPPLIERS)} 条)...")
+    existing = _existing_by_name("/api/shop/supplier/all")
+    result = []
+    added = 0
+    for s in MOCK_SUPPLIERS:
+        if s["name"] in existing:
+            result.append(existing[s["name"]])
+            continue
+        item = create("supplier", "/api/shop/supplier", s)
+        if item:
+            result.append(item)
+            added += 1
+    ok(f"  新增 {added} 条，复用 {len(result) - added} 条 供应商")
+    return result
+
+
+def _price_row(purchase, retail, wholesale, levels, code="", disabled=False):
+    return {
+        "code": code,
+        "barcode": "",
+        "purchase_price": str(round(purchase, 2)),
+        "retail_price": str(round(retail, 2)),
+        "wholesale_price": str(round(wholesale, 2)),
+        "custom": {k: str(round(v, 2)) for k, v in levels.items()},
+        "disabled": disabled,
+    }
+
+
+def _combos(specs):
+    """笛卡尔积，键使用前端一致的 ' / ' 连接。"""
+    combos = [""]
+    for s in specs:
+        combos = [(c + (" / " if c else "") + v) for c in combos for v in s["values"]]
+    return combos or [""]
+
+
+def build_goods_payload(g, units_map, cats_map, suppliers):
+    base_p = g["purchase"]
+    base_r = g["retail"]
+    base_w = g["wholesale"]
+    levels = g.get("levels") or {}
+    cols = list(levels.keys())
+    aux_units = g.get("units") or []
+    specs = g.get("specs") or []
+    is_multi_unit = len(aux_units) > 0
+    is_multi_spec = len(specs) > 0
+
+    unit_defs = [{"name": g["unit"], "factor": 1.0}]
+    for u in aux_units:
+        unit_defs.append({"name": u["name"], "factor": float(u["factor"])})
+
+    combos = _combos(specs)
+
+    spec_groups = [
+        {"name": s["group"], "has_image": False,
+         "values": [{"name": v, "image": ""} for v in s["values"]]}
+        for s in specs
+    ]
+
+    price_rows = {}
+    stock_rows = {}
+
+    if is_multi_spec:
+        # 多规格：按单位 → 规格组合
+        for ud in unit_defs:
+            f = ud["factor"]
+            price_rows[ud["name"]] = {}
+            for ci, combo in enumerate(combos):
+                lv = {k: v * f for k, v in levels.items()}
+                price_rows[ud["name"]][combo] = _price_row(
+                    base_p * f, base_r * f + ci, base_w * f, lv,
+                    code=f'{g["code"]}-{ud["name"]}-{ci + 1}')
+        alert = g.get("alert") or {}
+        for ci, combo in enumerate(combos):
+            stock_rows[combo] = {
+                "stock": str(10 + ci * 3),
+                "init_cost": str(base_p),
+                "min_stock": str(alert.get("min", 0)),
+                "safe_stock": str(alert.get("min", 0)),
+                "max_stock": str(alert.get("max", 0)),
+            }
+    elif is_multi_unit:
+        # 多单位：按单位，单组合
+        for ud in unit_defs:
+            f = ud["factor"]
+            lv = {k: v * f for k, v in levels.items()}
+            price_rows[ud["name"]] = {
+                "": _price_row(base_p * f, base_r * f, base_w * f, lv,
+                               code=f'{g["code"]}-{ud["name"]}')
+            }
+    else:
+        # 单单位单规格
+        price_rows = {"__simple__": {"": _price_row(base_p, base_r, base_w, levels)}}
+
+    alert = g.get("alert") or {}
+    stock = g.get("stock", 0)
+    payload = {
+        "name": g["name"],
+        "code": g["code"],
+        "barcode": g.get("barcode", ""),
+        "brand": g.get("brand", ""),
+        "origin": g.get("origin", ""),
+        "remark": g.get("remark", ""),
+        "spec": "" if is_multi_spec else "",
+        "category_id": cats_map.get(g.get("category")),
+        "unit_id": units_map.get(g.get("unit")),
+        "purchase_price": base_p,
+        "retail_price": base_r,
+        "wholesale_price": base_w,
+        "has_multi_unit": 1 if is_multi_unit else 0,
+        "has_multi_spec": 1 if is_multi_spec else 0,
+        "enable_stock_alert": 1 if alert else 0,
+        "min_stock": alert.get("min", 0),
+        "max_stock": alert.get("max", 0),
+        "init_cost": base_p,
+        "current_stock": stock,
+        "sales_unit": g["unit"],
+        "purchase_unit": g["unit"],
+        "images": json.dumps([], ensure_ascii=False),
+        "image_url": "",
+        "suppliers": json.dumps([s["id"] for s in suppliers[:1]], ensure_ascii=False),
+        "supplier_id": suppliers[0]["id"] if suppliers else None,
+        "spec_groups": json.dumps(spec_groups, ensure_ascii=False),
+        "price_columns": json.dumps(cols, ensure_ascii=False),
+        "price_rows": json.dumps(price_rows, ensure_ascii=False),
+        "stock_rows": json.dumps(stock_rows, ensure_ascii=False),
+        "specs": [],
+    }
+    if is_multi_unit:
+        payload["units"] = [
+            {"unit_id": units_map.get(u["name"]), "unit_name": u["name"],
+             "factor": u["factor"], "is_main": 0}
+            for u in aux_units
+        ]
+    return payload
+
+
+def seed_goods(units, categories, suppliers):
+    log(f"创建 货品 ({len(MOCK_GOODS)} 条，覆盖单/多单位、单/多规格等组合)...")
+    resp = list_all("/api/shop/goods/list?page_size=500")
+    rows = resp.get("list") if isinstance(resp, dict) else resp
+    existing_codes = {g.get("code") for g in (rows or [])}
+    created = 0
+    skipped = 0
+    for g in MOCK_GOODS:
+        if g["code"] in existing_codes:
+            skipped += 1
+            continue
+        payload = build_goods_payload(g, units, categories, suppliers)
+        item = create("goods", "/api/shop/goods", payload)
+        if item:
+            created += 1
+    ok(f"  成功创建 {created} 条，跳过已存在 {skipped} 条 货品")
+
+
+# ── Cleanup ─────────────────────────────────────────────────────────────
+
+import os
+
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".mock_created.json")
+
+CLEANUP_ORDER = [
+    ("goods", "/api/shop/goods"),
+    ("attribute", "/api/shop/attribute"),
+    ("category", "/api/shop/category"),
+    ("unit", "/api/shop/unit"),
+    ("property", "/api/shop/property"),
+    ("supplier", "/api/shop/supplier"),
+]
+
+
+def save_state():
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(CREATED, f, ensure_ascii=False)
+
+
+def cleanup():
+    """按上次播种记录的 ID 精确清理，避免误删既有数据。"""
+    if not os.path.exists(STATE_FILE):
+        warn("未找到 .mock_created.json，无法按记录清理（请先运行播种）")
+        return
+    with open(STATE_FILE, encoding="utf-8") as f:
+        state = json.load(f)
+
+    log("清理 mock 数据（按记录 ID）...")
+    total = 0
+    for module, path in CLEANUP_ORDER:
+        ids = list(state.get(module, []))
+        if module == "category":
+            ids = list(reversed(ids))  # 子级优先
+        for item_id in ids:
+            r = SESSION.delete(f"{BASE_URL}{path}/{item_id}")
+            if r.status_code in (200, 204, 404):
+                total += 1
+    os.remove(STATE_FILE)
+    ok(f"  已清理 {total} 条数据")
 
 
 # ── Main ────────────────────────────────────────────────────────────────
@@ -196,57 +532,37 @@ MOCK_GOODS = [
 def main():
     global BASE_URL
 
-    parser = argparse.ArgumentParser(description="PISA Mock Data Seeder")
+    parser = argparse.ArgumentParser(description="PISA 货品模块 Mock 数据")
     parser.add_argument("--base-url", default=BASE_URL, help="API base URL")
-    parser.add_argument("--cleanup", action="store_true", help="Cleanup seeded data instead of creating")
+    parser.add_argument("--cleanup", action="store_true", help="删除本脚本创建的 mock 数据")
     args = parser.parse_args()
-
     BASE_URL = args.base_url.rstrip("/")
 
-    session = requests.Session()
-    session.headers["Content-Type"] = "application/json"
-
     print(f"\n{B}═══════════════════════════════════════════════{D}")
-    print(f"{B}  PISA 进销存系统 - Mock Data Seeder{D}")
+    print(f"{B}  PISA 进销存系统 - 货品模块 Mock Data{D}")
     print(f"{B}═══════════════════════════════════════════════{D}\n")
 
-    # Auth
-    login(session)
-    switch_tenant(session)
+    login()
     print()
 
-    seeders = [
-        ModuleSeeder(session, "供应商", "/api/shop/supplier", MOCK_SUPPLIERS),
-        ModuleSeeder(session, "客户", "/api/shop/customer", MOCK_CUSTOMERS),
-        ModuleSeeder(session, "仓库", "/api/shop/warehouse", MOCK_WAREHOUSES),
-        ModuleSeeder(session, "结算账户", "/api/shop/account", MOCK_ACCOUNTS),
-        ModuleSeeder(session, "货品", "/api/shop/goods", MOCK_GOODS),
-    ]
-
     if args.cleanup:
-        print(f"\n{B}── 清理模式 ──{D}")
-        for s in seeders:
-            s.cleanup()
-        print(f"\n{G}{B}清理完成 ✓{D}\n")
-    else:
-        print(f"{B}── 创建数据 ──{D}")
-        for s in seeders:
-            s.seed()
+        cleanup()
+        print()
+        return
 
-        # Print summary
-        print(f"\n{B}── 数据统计 ──{D}")
-        for s in seeders:
-            count = len(s.created_ids)
-            print(f"  {s.module_name}: {G}{count}{D} 条")
+    units = seed_units()
+    categories = seed_categories()
+    seed_attributes()
+    seed_properties()
+    suppliers = seed_suppliers()
+    seed_goods(units, categories, suppliers)
+    save_state()
 
-        print(f"\n{G}{B}Mock 数据创建完成 ✓{D}")
-        print(f"  供应商: {len(MOCK_SUPPLIERS)} 条")
-        print(f"  客户:   {len(MOCK_CUSTOMERS)} 条")
-        print(f"  仓库:   {len(MOCK_WAREHOUSES)} 条")
-        print(f"  账户:   {len(MOCK_ACCOUNTS)} 条")
-        print(f"  货品:   {len(MOCK_GOODS)} 条")
-        print(f"  合计:   {len(MOCK_SUPPLIERS) + len(MOCK_CUSTOMERS) + len(MOCK_WAREHOUSES) + len(MOCK_ACCOUNTS) + len(MOCK_GOODS)} 条")
-        print(f"\n  提示: 运行 {C}python mock_data.py --cleanup{D} 可清理所有 mock 数据\n")
+    print(f"\n{B}── 数据统计 ──{D}")
+    for module in ("goods", "attribute", "category", "unit", "property", "supplier"):
+        print(f"  {module}: {G}{len(CREATED.get(module, []))}{D} 条")
+    print(f"\n{G}{B}Mock 数据创建完成 ✓{D}")
+    print(f"  提示: 运行 {C}python mock_data.py --cleanup{D} 可删除本次创建的数据。\n")
 
 
 if __name__ == "__main__":

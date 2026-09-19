@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>规格管理 - PISA 进销存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary-50:#EFF6FF;--primary-100:#DBEAFE;--primary-400:#60A5FA;--primary-500:#3B82F6;--primary-600:#2563EB;--primary-700:#1D4ED8;
+--accent-400:#34D399;--accent-500:#10B981;--accent-600:#059669;--accent-700:#047857;
+--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;
+--danger-50:#FEF2F2;--danger-500:#EF4444;
+--success-500:#22C55E;
+--radius-sm:4px;--radius-md:6px;--radius-lg:8px;
+--sidebar-width:252px;--topbar-height:60px;
+}
+html,body{height:100%;font-family:'Noto Sans SC','Inter',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font:inherit}
+input{font:inherit}
+
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-head h1{font-size:18px;font-weight:600;color:var(--gray-800)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent}
+.btn-accent{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.btn-accent:hover{background:var(--accent-700);border-color:var(--accent-700)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-text{background:none;color:var(--accent-600);padding:0 6px;border:none}
+.btn-text:hover{color:var(--accent-700);text-decoration:underline}
+.btn-text.danger{color:var(--danger-500)}
+.btn-text.danger:hover{color:#dc2626}
+.btn-accent-outline{background:#fff;color:var(--accent-600);border:1px solid var(--accent-500)}
+.btn-accent-outline:hover{background:#ECFDF5;border-color:var(--accent-600)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar label{font-size:13px;color:var(--gray-600);white-space:nowrap}
+.filter-bar input{height:36px;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:0 12px;font-size:13px;color:var(--gray-800);outline:none;min-width:180px;transition:border-color .15s,box-shadow .15s}
+.filter-bar input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.10)}
+.filter-bar input::placeholder{color:var(--gray-400)}
+.filter-bar .spacer{flex:1}
+.filter-actions{display:flex;gap:8px}
+
+.spec-group{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);margin-bottom:12px;padding:16px 20px;transition:border-color .15s}
+.spec-group:hover{border-color:var(--gray-300)}
+.spec-group.editing{border-color:var(--accent-400)}
+.spec-group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.spec-group-name{font-size:15px;font-weight:600;color:var(--gray-800)}
+.spec-name-input{
+  height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);
+  padding:0 12px;font-size:15px;font-weight:600;color:var(--gray-800);outline:none;
+  width:160px;transition:border-color .15s,box-shadow .15s;
+}
+.spec-name-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.10)}
+.spec-name-input::placeholder{color:var(--gray-400);font-weight:400}
+.spec-group.editing .spec-chip .chip-del{display:block}
+.spec-group-actions{display:flex;gap:4px;flex-shrink:0;align-items:center}
+.spec-values{display:flex;flex-wrap:wrap;gap:8px}
+.spec-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);
+  font-size:13px;color:var(--gray-700);
+}
+.spec-chip .chip-del{
+  width:16px;height:16px;border-radius:50%;border:none;background:var(--gray-300);color:#fff;
+  font-size:10px;line-height:16px;text-align:center;padding:0;cursor:pointer;display:none;
+  transition:background .15s;
+}
+.spec-chip:hover .chip-del{display:block}
+.spec-chip .chip-del:hover{background:var(--danger-500)}
+
+.spec-edit-form{background:#fff;border:1px solid var(--accent-400);border-radius:var(--radius-lg);margin-bottom:16px;padding:16px 20px}
+.spec-edit-input-simple{
+  width:160px;height:40px;border:1px solid var(--accent-400);border-radius:var(--radius-md);
+  padding:0 14px;font-size:14px;color:var(--gray-800);outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.spec-edit-input-simple:focus{border-color:var(--accent-500);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.spec-edit-input-simple::placeholder{color:var(--gray-400);font-weight:500}
+.spec-edit-values{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:34px}
+.spec-add-box{
+  width:90px;height:40px;border:1.5px dashed var(--gray-300);border-radius:var(--radius-md);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--gray-400);cursor:pointer;transition:border-color .15s,color .15s;
+}
+.spec-add-box:hover{border-color:var(--accent-400);color:var(--accent-600)}
+.spec-add-input{
+  width:90px;height:40px;border:1.5px dashed var(--gray-300);border-radius:var(--radius-md);
+  padding:0 8px;font-size:13px;color:var(--gray-800);outline:none;text-align:center;
+  transition:border-color .15s,color .15s;
+}
+.spec-add-input::placeholder{color:var(--gray-400)}
+.spec-add-input:focus{border-color:var(--accent-400);color:var(--gray-800)}
+.spec-edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+.empty{padding:60px 0;text-align:center;color:var(--gray-400)}
+.empty svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.2;margin-bottom:12px}
+.empty p{font-size:14px}
+
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:var(--radius-md);font-size:14px;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:toastIn .3s ease}
+.toast.success{background:var(--success-500)}
+.toast.error{background:var(--danger-500)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
+<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+</head>
+<body>
+
+<div class="app">
+  <div class="app-body">
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+    </aside>
+    <div class="main">
+      <div class="content">
+        <div class="page-head">
+          <h1>规格管理</h1>
+        </div>
+
+        <div class="filter-bar">
+          <label>规格名称</label>
+          <input type="text" id="fName" placeholder="请输入规格名称" onkeydown="if(event.key==='Enter')loadData()">
+          <label>规格内容</label>
+          <input type="text" id="fContent" placeholder="请输入规格内容" onkeydown="if(event.key==='Enter')loadData()">
+          <div class="spacer"></div>
+          <div class="filter-actions">
+            <button class="btn btn-secondary" onclick="clearFilter()">清空</button>
+            <button class="btn btn-accent" onclick="loadData()">查询</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <button class="btn btn-accent" onclick="startAdd()">+ 新增规格</button>
+        </div>
+
+        <div id="editFormWrap"></div>
+
+        <div id="specList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/tabs.js?v=20260972"></script>
+<script src="/js/app-shell.js?v=20260972"></script>
+<script>
+var meta={attributes:[]};
+var editing={active:false,id:0,name:'',values:[],adding:false};
+
+function apiFetch(url,opts){
+  var t=localStorage.getItem('pisa_token');
+  var headers={'Content-Type':'application/json'};
+  if(t) headers['Authorization']='Bearer '+t;
+  return fetch(url,Object.assign({headers:headers},opts||{})).then(function(r){
+    if(r.status===401){showToast('登录已过期','error');return Promise.reject('Unauthorized');}
+    return r.json();
+  });
+}
+function showToast(msg,type){
+  var c=document.getElementById('toastContainer');
+  var d=document.createElement('div');
+  d.className='toast '+(type||'info');
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(function(){d.style.animation='toastIn .3s ease reverse';setTimeout(function(){d.remove();},300);},2500);
+}
+
+function loadData(){
+  var name=(document.getElementById('fName').value||'').trim();
+  var content=(document.getElementById('fContent').value||'').trim();
+  var params=new URLSearchParams();
+  if(name) params.set('name',name);
+  if(content) params.set('content',content);
+  apiFetch('/api/shop/attribute/list?'+params.toString()).then(function(res){
+    if(res.code!==0){showToast(res.message||'加载失败','error');return;}
+    meta.attributes=res.data||[];
+    renderList();
+  }).catch(function(){});
+}
+
+function buildValueEditor(){
+  var h='';
+  editing.values.forEach(function(v,i){
+    h+='<span class="spec-chip">'+esc(v)+'<button class="chip-del" onclick="removeEditValue('+i+')">×</button></span>';
+  });
+  if(editing.adding){
+    h+='<input class="spec-add-input" id="editNewValue" placeholder="输入规格值" maxlength="64" onkeydown="onValueKeydown(event)" onblur="onValueBlur()">'
+      +'<span class="spec-add-box" onmousedown="event.preventDefault()" onclick="startAddValue()">+</span>';
+  } else {
+    h+='<span class="spec-add-box" onclick="startAddValue()">+</span>';
+  }
+  return h;
+}
+
+function renderList(){
+  var c=document.getElementById('specList');
+  if(meta.attributes.length===0){
+    c.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无规格数据</p></div>';
+    return;
+  }
+  syncName();
+  var inlineEdit=editing.active&&editing.id>0;
+  var h='';
+  meta.attributes.forEach(function(a){
+    if(inlineEdit&&editing.id===a.id){
+      h+='<div class="spec-group editing" data-id="'+a.id+'">'
+        +'<div class="spec-group-head">'
+        +'<input class="spec-name-input" id="editNameInput" placeholder="规格名称" value="'+esc(editing.name)+'" maxlength="64">'
+        +'<div class="spec-group-actions">'
+        +'<button class="btn btn-accent-outline btn-sm" onmousedown="event.preventDefault()" onclick="saveSpec()">保存</button>'
+        +'<button class="btn btn-secondary btn-sm" onmousedown="event.preventDefault()" onclick="cancelEdit()">取消</button>'
+        +'</div></div>'
+        +'<div class="spec-values">'+buildValueEditor()+'</div>'
+        +'</div>';
+      return;
+    }
+    var values=[];
+    try{values=JSON.parse(a.values)||[]}catch(e){values=[];}
+    h+='<div class="spec-group" data-id="'+a.id+'">'
+      +'<div class="spec-group-head">'
+      +'<div class="spec-group-name">'+esc(a.name)+'</div>'
+      +'<div class="spec-group-actions">'
+      +'<button class="btn-text" onclick="startEdit('+a.id+')">修改</button>'
+      +'<button class="btn-text danger" onclick="deleteSpec('+a.id+',\''+esc(a.name)+'\')">删除</button>'
+      +'</div></div>'
+      +'<div class="spec-values">';
+    values.forEach(function(v){
+      h+='<span class="spec-chip">'+esc(v)+'</span>';
+    });
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+  if(inlineEdit){
+    setTimeout(function(){
+      var inp=editing.adding?document.getElementById('editNewValue'):document.getElementById('editNameInput');
+      if(inp)inp.focus();
+    },50);
+  }
+}
+
+function syncName(){
+  var el=document.getElementById('editNameInput');
+  if(el&&editing.active) editing.name=el.value;
+}
+
+function renderEditForm(){
+  var w=document.getElementById('editFormWrap');
+  if(!editing.active||editing.id!==0){
+    w.innerHTML='';
+    return;
+  }
+  syncName();
+  var h='<div class="spec-edit-form">'
+    +'<input class="spec-edit-input-simple" id="editNameInput" placeholder="规格名称" value="'+esc(editing.name)+'" maxlength="64">'
+    +'<div class="spec-edit-values" id="editValuesWrap" style="margin-top:12px">'+buildValueEditor()+'</div>'
+    +'<div class="spec-edit-actions">'
+    +'<button class="btn btn-secondary" onmousedown="event.preventDefault()" onclick="cancelEdit()">取消</button>'
+    +'<button class="btn btn-accent" onmousedown="event.preventDefault()" onclick="saveSpec()">保存</button>'
+    +'</div></div>';
+  w.innerHTML=h;
+  setTimeout(function(){
+    var inp=editing.adding?document.getElementById('editNewValue'):document.getElementById('editNameInput');
+    if(inp)inp.focus();
+  },50);
+}
+
+function refresh(){ renderList(); renderEditForm(); }
+
+function startAdd(){
+  editing={active:true,id:0,name:'',values:[],adding:false};
+  refresh();
+}
+function startEdit(id){
+  var a=meta.attributes.filter(function(x){return x.id===id;})[0];
+  if(!a) return;
+  var values=[];
+  try{values=JSON.parse(a.values)||[]}catch(e){values=[];}
+  editing={active:true,id:a.id,name:a.name,values:values,adding:false};
+  refresh();
+}
+function cancelEdit(){
+  editing={active:false,id:0,name:'',values:[],adding:false};
+  refresh();
+}
+function removeEditValue(idx){
+  editing.values.splice(idx,1);
+  refresh();
+}
+function startAddValue(){
+  if(editing.adding){
+    var inp=document.getElementById('editNewValue');
+    if(inp){
+      if((inp.value||'').trim()){
+        commitValue();
+        suppressBlur=true;
+        refresh();
+        setTimeout(function(){suppressBlur=false;},100);
+      } else {
+        inp.focus();
+      }
+    }
+    return;
+  }
+  editing.adding=true;
+  refresh();
+}
+var suppressBlur=false;
+function commitValue(){
+  var inp=document.getElementById('editNewValue');
+  if(!inp) return false;
+  var v=(inp.value||'').trim();
+  if(!v) return false;
+  if(editing.values.indexOf(v)>=0){showToast('规格值已存在','error');return false;}
+  editing.values.push(v);
+  return true;
+}
+function onValueKeydown(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(commitValue()){
+      suppressBlur=true;
+      refresh();
+      setTimeout(function(){suppressBlur=false;},100);
+    }
+  } else if(e.key==='Escape'){
+    e.preventDefault();
+    suppressBlur=true;
+    editing.adding=false;
+    refresh();
+    setTimeout(function(){suppressBlur=false;},100);
+  }
+}
+function onValueBlur(){
+  if(suppressBlur) return;
+  var inp=document.getElementById('editNewValue');
+  var v=inp?(inp.value||'').trim():'';
+  if(v){
+    if(commitValue()){
+      refresh();
+    } else {
+      editing.adding=false;
+      refresh();
+    }
+  } else {
+    editing.adding=false;
+    refresh();
+  }
+}
+function saveSpec(){
+  var name=(document.getElementById('editNameInput').value||'').trim();
+  if(!name){showToast('请输入规格名称','error');return;}
+  commitValue();
+  var body={name:name,values:editing.values};
+  if(editing.id){
+    apiFetch('/api/shop/attribute/'+editing.id,{method:'PUT',body:JSON.stringify(body)}).then(function(res){
+      if(res.code!==0){showToast(res.message||'修改失败','error');return;}
+      editing={active:false,id:0,name:'',values:[],adding:false};refresh();
+      showToast('修改成功','success');loadData();
+    });
+  } else {
+    apiFetch('/api/shop/attribute',{method:'POST',body:JSON.stringify(body)}).then(function(res){
+      if(res.code!==0){showToast(res.message||'新增失败','error');return;}
+      editing={active:false,id:0,name:'',values:[],adding:false};refresh();
+      showToast('新增成功','success');loadData();
+    });
+  }
+}
+function deleteSpec(id,name){
+  if(!confirm('确认删除规格「'+name+'」？')) return;
+  apiFetch('/api/shop/attribute/'+id,{method:'DELETE'}).then(function(res){
+    if(res.code!==0){showToast(res.message||'删除失败','error');return;}
+    showToast('删除成功','success');loadData();
+  });
+}
+function clearFilter(){
+  document.getElementById('fName').value='';
+  document.getElementById('fContent').value='';
+  loadData();
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+loadData();
+</script>
+</body>
+</html>

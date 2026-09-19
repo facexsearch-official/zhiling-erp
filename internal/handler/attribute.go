@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
@@ -21,7 +22,6 @@ func NewAttributeHandler(repo *repository.AttributeRepository) *AttributeHandler
 	return &AttributeHandler{repo: repo}
 }
 
-// ListAll 返回当前商户所有规格（辅助属性）
 func (h *AttributeHandler) ListAll(c *gin.Context) {
 	list, err := h.repo.ListAll(c.Request.Context())
 	if err != nil {
@@ -31,7 +31,17 @@ func (h *AttributeHandler) ListAll(c *gin.Context) {
 	response.OK(c, list)
 }
 
-// Create 新增规格（可同时带入初始规格值）
+func (h *AttributeHandler) List(c *gin.Context) {
+	name := c.Query("name")
+	content := c.Query("content")
+	list, err := h.repo.List(c.Request.Context(), name, content)
+	if err != nil {
+		response.ServerError(c, "查询规格失败")
+		return
+	}
+	response.OK(c, list)
+}
+
 func (h *AttributeHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	var body struct {
@@ -45,6 +55,10 @@ func (h *AttributeHandler) Create(c *gin.Context) {
 	body.Name = strings.TrimSpace(body.Name)
 	if body.Name == "" {
 		response.BadRequest(c, "规格名称不能为空")
+		return
+	}
+	if utf8.RuneCountInString(body.Name) > 64 {
+		response.BadRequest(c, "规格名称不能超过64个字符")
 		return
 	}
 	values := body.Values
@@ -65,7 +79,62 @@ func (h *AttributeHandler) Create(c *gin.Context) {
 	response.OK(c, a)
 }
 
-// AddValue 为指定规格追加一个规格值
+func (h *AttributeHandler) Update(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	a, err := h.repo.GetByID(ctx, id)
+	if err != nil {
+		response.NotFound(c, "规格不存在")
+		return
+	}
+	var body struct {
+		Name   string   `json:"name"`
+		Values []string `json:"values"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	body.Name = strings.TrimSpace(body.Name)
+	if body.Name == "" {
+		response.BadRequest(c, "规格名称不能为空")
+		return
+	}
+	if utf8.RuneCountInString(body.Name) > 64 {
+		response.BadRequest(c, "规格名称不能超过64个字符")
+		return
+	}
+	a.Name = body.Name
+	if body.Values != nil {
+		raw, _ := json.Marshal(body.Values)
+		a.Values = string(raw)
+	}
+	if err := h.repo.Save(ctx, a); err != nil {
+		response.ServerError(c, "更新规格失败")
+		return
+	}
+	response.OK(c, a)
+}
+
+func (h *AttributeHandler) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	a, err := h.repo.GetByID(ctx, id)
+	if err != nil {
+		response.NotFound(c, "规格不存在")
+		return
+	}
+	if h.repo.HasGoods(ctx, a.Name) {
+		response.BadRequest(c, "该规格已被货品使用，无法删除")
+		return
+	}
+	if err := h.repo.Delete(ctx, id); err != nil {
+		response.ServerError(c, "删除规格失败")
+		return
+	}
+	response.OKMsg(c, "删除成功")
+}
+
 func (h *AttributeHandler) AddValue(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)

@@ -6,6 +6,7 @@ import (
 	"pisa_server/internal/pkg/response"
 	"pisa_server/internal/repository"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 )
@@ -59,6 +60,10 @@ func (h *SupplierHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "供应商名称不能为空")
 		return
 	}
+	if utf8.RuneCountInString(supplier.Name) > 220 {
+		response.BadRequest(c, "供应商名称不能超过220个字符")
+		return
+	}
 	supplier.Status = 1
 	supplier.TenantID = context.GetTenantID(ctx)
 	if err := h.repo.Create(ctx, &supplier); err != nil {
@@ -78,6 +83,14 @@ func (h *SupplierHandler) Update(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(existing); err != nil {
 		response.BadRequest(c, "参数错误")
+		return
+	}
+	if existing.Name == "" {
+		response.BadRequest(c, "供应商名称不能为空")
+		return
+	}
+	if utf8.RuneCountInString(existing.Name) > 220 {
+		response.BadRequest(c, "供应商名称不能超过220个字符")
 		return
 	}
 	if err := h.repo.Update(ctx, existing); err != nil {

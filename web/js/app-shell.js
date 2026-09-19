@@ -1,7 +1,7 @@
 /* ============================================================
    PISA App Shell — shared chrome
    Renders: topbar (brand/search/tenant/actions) · sidebar + flyout
-            · help panel · tabbar mount · unified navigation
+            · tabbar mount · unified navigation
    ============================================================ */
 (function(){
   'use strict';
@@ -19,7 +19,6 @@
     analysis:'<svg '+S+'><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
     settings:'<svg '+S+'><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.7a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9 2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
     search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-    help:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
     bell:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
     chevron:'<svg class="ts-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>',
     guide:'<svg viewBox="0 0 24 24"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>',
@@ -36,13 +35,10 @@
     {key:'goods', label:'货品', icon:IC.goods, cols:[
       {title:'货品', items:[
         {key:'goods:list',  label:'货品',     href:'/goods.html'},
-        {key:'goods:spec',  label:'规格管理'},
-        {key:'goods:unit',  label:'单位管理'},
-        {key:'goods:attr',  label:'货品属性'},
-        {key:'goods:price', label:'价格管理'}
-      ]},
-      {title:'套餐', items:[
-        {key:'goods:combo', label:'套餐'}
+        {key:'goods:spec',  label:'规格管理', href:'/spec.html'},
+        {key:'goods:unit',  label:'单位管理', href:'/unit.html'},
+        {key:'goods:attr',  label:'货品属性', href:'/attr.html'},
+        {key:'goods:price', label:'价格管理', href:'/price.html'}
       ]}
     ]},
 
@@ -174,6 +170,10 @@
   var PATH_KEY = {
     '/':'home', '/index.html':'home',
     '/goods.html':'goods:list',
+    '/spec.html':'goods:spec',
+    '/unit.html':'goods:unit',
+    '/attr.html':'goods:attr',
+    '/price.html':'goods:price',
     '/customer.html':'customer:list',
     '/supplier.html':'purchase:supplier',
     '/warehouse.html':'stock:warehouse',
@@ -231,7 +231,6 @@
       +     IC.chevron
       +     '<div class="tenant-menu" id="tenantMenu"></div>'
       +   '</div>'
-      +   '<button class="topbar-icon-btn" title="帮助中心" onclick="pisaToggleHelp(true)">' + IC.help + '</button>'
       +   '<button class="topbar-icon-btn" title="消息">' + IC.bell + '<span class="dot">8</span></button>'
       +   '<div class="topbar-user" id="topbarUser" onclick="pisaUserMenu(event)">'
       +     '<div class="avatar" id="userAvatar">U</div>'
@@ -375,49 +374,6 @@
   }
   window.pisaNavGo = navGo;
 
-  /* ── Help panel ────────────────────────────────────────── */
-  var HELP_LINKS = ['库存预警','商品基础管理指南','批量修改商品基础信息','库存预警设置','商品多单位管理','商品批量导入'];
-  function renderHelp(){
-    var p = byId('helpPanel');
-    if(!p) return;
-    p.innerHTML =
-      '<div class="help-head">'
-      + '<span class="help-title">帮助中心 »</span>'
-      + '<button class="help-collapse" title="收起" onclick="pisaToggleHelp(false)">' + IC.x + '</button>'
-      + '</div>'
-      + '<div class="help-section">'
-      +   '<div class="help-section-title">相关问题</div>'
-      +   HELP_LINKS.map(function(t){ return '<span class="help-link" onclick="pisaHelpLink(\'' + esc(t) + '\')">' + esc(t) + '</span>'; }).join('')
-      + '</div>'
-      + '<div class="help-section">'
-      +   '<div class="help-section-title">服务推荐</div>'
-      +   '<div class="help-card" onclick="pisaToast(\'订阅版本功能开发中\')">'
-      +     '<div class="help-card-icon">' + IC.box + '</div>'
-      +     '<div><div class="help-card-title">订阅版本</div><div class="help-card-sub">多仓库管理</div></div>'
-      +   '</div>'
-      + '</div>';
-
-    if(!byId('helpReopen')){
-      var btn = document.createElement('button');
-      btn.className = 'help-reopen';
-      btn.id = 'helpReopen';
-      btn.title = '展开帮助中心';
-      btn.innerHTML = IC.help;
-      btn.setAttribute('onclick','pisaToggleHelp(true)');
-      document.body.appendChild(btn);
-    }
-    var collapsed = localStorage.getItem('pisa_help_collapsed') === '1';
-    applyHelp(!collapsed);
-  }
-  function applyHelp(open){
-    var p = byId('helpPanel'), r = byId('helpReopen');
-    if(p) p.classList.toggle('collapsed', !open);
-    if(r) r.classList.toggle('show', !open);
-    localStorage.setItem('pisa_help_collapsed', open ? '0' : '1');
-  }
-  window.pisaToggleHelp = function(open){ applyHelp(!!open); };
-  window.pisaHelpLink = function(t){ toast('「' + t + '」帮助文档开发中'); };
-
   /* ── Sidebar collapse ──────────────────────────────────── */
   function renderCollapseBtn(){
     var nav = byId('sidebarNav');
@@ -533,11 +489,13 @@
 
   /* ── Boot ──────────────────────────────────────────────── */
   /* 清理旧版导航遗留的标签（key 已不在新 NAV 中） */
+  var DYNAMIC_TAB_KEYS = ['goods:add'];
   function pruneTabs(){
     try{
       var raw = JSON.parse(localStorage.getItem('pisa_tabs') || '[]');
       if(!Array.isArray(raw)) return;
       var valid = {home:1};
+      DYNAMIC_TAB_KEYS.forEach(function(k){ valid[k] = 1; });
       NAV.forEach(function(m){
         if(m.key) valid[m.key] = 1;
         if(m.cols) m.cols.forEach(function(c){
@@ -560,13 +518,12 @@
     renderTopbar();
     renderSidebar();
     renderCollapseBtn();
-    renderHelp();
     loadUser();
     loadTenant();
     if(window.PisaTabs){
       var ck = currentKey();
       var cf = findItem(ck);
-      var clabel = (cf && cf.item && cf.item.label) || ck;
+      var clabel = (cf && cf.item && cf.item.label) || '';
       var chref = (cf && cf.item && cf.item.href) || (location.pathname + location.hash);
       window.PisaTabs.init({key:ck, label:clabel, href:chref});
     }
