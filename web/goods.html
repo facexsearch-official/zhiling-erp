@@ -62,6 +62,27 @@ tr:hover td{background:var(--gray-50)}
 td.text-right{text-align:right;font-family:'Inter',monospace}
 td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .actions{display:flex;gap:4px}
+.c-goods{min-width:200px}
+.goods-cell{display:flex;align-items:center;gap:10px}
+.goods-cell-txt{min-width:0}
+.list-thumb{width:40px;height:40px;border-radius:var(--radius-sm);object-fit:cover;background:var(--gray-100);display:block;flex-shrink:0}
+.list-thumb-ph{width:40px;height:40px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#DBEAFE,#BFDBFE);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.list-thumb-ph svg{width:20px;height:20px;stroke:#60A5FA;fill:none;stroke-width:1.6}
+.g-name{color:var(--gray-800);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.g-code{font-size:12px;color:var(--gray-400);margin-top:2px}
+.c-codes{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.unit-drop{display:inline-block}
+.unit-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;min-width:96px;height:34px;padding:0 10px 0 12px;border:1px solid var(--gray-300);border-radius:var(--radius-md);background:#fff;font-size:13px;color:var(--gray-700);cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.unit-trigger:hover{border-color:var(--gray-400)}
+.unit-trigger.open{border-color:#4EC5B5;box-shadow:0 0 0 3px rgba(78,197,181,.15)}
+.unit-trigger-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unit-caret{width:14px;height:14px;stroke:#4EC5B5;fill:none;stroke-width:2;flex-shrink:0;transition:transform .15s}
+.unit-trigger.open .unit-caret{transform:rotate(180deg)}
+.unit-drop-panel{position:fixed;z-index:3000;background:#fff;border-radius:var(--radius-lg);box-shadow:0 8px 28px rgba(0,0,0,.16);padding:6px;max-height:280px;overflow-y:auto;animation:unitDropIn .12s ease}
+@keyframes unitDropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.unit-drop-opt{padding:9px 14px;border-radius:var(--radius-md);font-size:14px;color:var(--gray-700);cursor:pointer;white-space:nowrap;transition:background .12s}
+.unit-drop-opt:hover{background:var(--gray-50)}
+.unit-drop-opt.active{background:#E7F7F3;color:var(--gray-800)}
 
 /* Pagination */
 .pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--gray-100)}
@@ -91,6 +112,17 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .modal-body{padding:24px}
 .prompt-hint{font-size:12px;color:var(--gray-400);margin-top:8px;min-height:16px}
 .modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--gray-100)}
+
+/* Confirm dialog */
+.confirm-body{display:flex;gap:16px;align-items:flex-start}
+.confirm-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.confirm-icon.warn{background:#FEF3C7;color:#F59E0B}
+.confirm-icon.danger{background:#FEE2E2;color:#EF4444}
+.confirm-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.confirm-text{flex:1;min-width:0}
+.confirm-text h3{font-size:15px;font-weight:600;color:var(--gray-800);margin-bottom:6px}
+.confirm-text p{font-size:13px;color:var(--gray-500);line-height:1.6}
+.confirm-text .detail{margin-top:8px;padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-md);font-size:12px;color:var(--gray-600);border:1px solid var(--gray-100)}
 
 /* Form */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -134,9 +166,52 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 /* Loading skeleton */
 .skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── 货品详情 ── */
+.detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.detail-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--gray-600);cursor:pointer;padding:6px 10px;border-radius:var(--radius-md);transition:background .15s}
+.detail-back:hover{background:var(--gray-100);color:var(--gray-800)}
+.detail-back svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.detail-top{display:flex;gap:28px;align-items:flex-start;margin-bottom:8px}
+.detail-gallery{width:260px;flex-shrink:0}
+.detail-main-img{width:260px;height:260px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.detail-main-img img{width:100%;height:100%;object-fit:cover}
+.detail-main-img .ph{color:var(--gray-300)}
+.detail-main-img .ph svg{width:56px;height:56px;stroke:currentColor;fill:none;stroke-width:1.2}
+.detail-thumbs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.detail-thumb{width:56px;height:56px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;background:var(--gray-50)}
+.detail-thumb.active{border-color:var(--primary-500)}
+.detail-thumb img{width:100%;height:100%;object-fit:cover}
+.detail-info{flex:1;min-width:0;padding-top:4px}
+.detail-title{font-size:20px;font-weight:600;color:var(--gray-800);margin-bottom:18px}
+.detail-meta{display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--gray-700)}
+.detail-meta .row{display:flex;gap:8px}
+.detail-meta .k{color:var(--gray-500);min-width:78px;flex-shrink:0}
+.detail-meta .v{color:var(--gray-800)}
+.detail-meta .attrs{display:flex;gap:28px;flex-wrap:wrap}
+.detail-section{margin-top:28px}
+.detail-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.detail-section-title{font-size:16px;font-weight:600;color:var(--gray-800)}
+.detail-link{font-size:13px;color:var(--primary-600);cursor:pointer}
+.detail-link:hover{text-decoration:underline}
+.detail-section .sub{font-size:14px;color:var(--gray-700);margin-bottom:12px}
+.detail-table-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow-x:auto}
+.detail-table-wrap table{width:100%;border-collapse:collapse;min-width:760px}
+.detail-table-wrap th,.detail-table-wrap td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--gray-200);border-right:1px solid var(--gray-200);text-align:center;vertical-align:middle;white-space:nowrap}
+.detail-table-wrap th>*,.detail-table-wrap td>*{vertical-align:middle}
+.detail-table-wrap th:last-child,.detail-table-wrap td:last-child{border-right:none}
+.detail-table-wrap tr:last-child td{border-bottom:none}
+.detail-table-wrap thead th{background:var(--gray-50);font-weight:600;color:var(--gray-800);vertical-align:middle}
+.detail-table-wrap td.num{text-align:center;font-family:'Inter',monospace}
+.detail-table-wrap td.left{text-align:left}
+.detail-table-wrap td .spec-cell{display:inline-block;vertical-align:middle;color:var(--gray-800)}
+.detail-table-wrap td .unit-drop,.detail-table-wrap td .unit-trigger{vertical-align:middle}
+.detail-table-wrap td.muted{color:var(--gray-500)}
+.detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;margin:36px 0 12px}
+.detail-foot .btn{min-width:110px;justify-content:center}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
-<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260974">
+<link rel="stylesheet" href="/css/tabs.css?v=20260974">
 <script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
@@ -191,15 +266,14 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       <table>
         <thead>
           <tr>
-            <th>编码</th>
-            <th style="min-width:160px">货品名称</th>
-            <th>类别</th>
-            <th>单位</th>
-            <th>条码</th>
-            <th style="text-align:right">进货价</th>
+            <th style="min-width:200px">商品</th>
+            <th>规格型号</th>
+            <th>编号/货号</th>
+            <th>单位(主)</th>
             <th style="text-align:right">零售价</th>
             <th style="text-align:right">批发价</th>
-            <th style="width:140px">操作</th>
+            <th style="text-align:right">库存数量</th>
+            <th style="width:200px">操作</th>
           </tr>
         </thead>
         <tbody id="tableBody">
@@ -268,10 +342,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
                 <input class="picker-field" id="catInput" placeholder="未分类" readonly>
                 <span class="picker-clear" onclick="clearCategory()">×</span>
               </div>
-              <div class="cat-drop" id="catDrop">
-                <div class="cat-col" id="catColParent"></div>
-                <div class="cat-col" id="catColChild"></div>
-              </div>
+              <div class="cat-drop" id="catDrop" onmouseleave="cancelHoverCat()"></div>
             </div>
             <span class="flink cat-add-link" onclick="openCategoryModal()">新增类别</span>
           </div>
@@ -410,6 +481,53 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   
     </div>
   </div><!-- /formView -->
+
+  <!-- 详情视图 -->
+  <div id="detailView" style="display:none">
+    <div class="detail-head">
+      <span class="detail-back" onclick="closeDetail()">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> 返回列表
+      </span>
+    </div>
+
+    <div class="detail-top">
+      <div class="detail-gallery">
+        <div class="detail-main-img" id="detailMainImg"></div>
+        <div class="detail-thumbs" id="detailThumbs"></div>
+      </div>
+      <div class="detail-info" id="detailInfo"></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-head">
+        <div class="detail-section-title">商品价格</div>
+        <span class="detail-link" onclick="printLabels()">批量打印标签</span>
+      </div>
+      <div class="detail-table-wrap"><table id="detailPriceTable"></table></div>
+    </div>
+
+    <div class="detail-section" id="detailCurrentSection">
+      <div class="detail-section-title" style="margin-bottom:12px">当前库存</div>
+      <div class="detail-table-wrap"><table id="detailCurrentTable"></table></div>
+    </div>
+
+    <div class="detail-section" id="detailInitSection">
+      <div class="detail-section-title" style="margin-bottom:12px">初始库存</div>
+      <div class="detail-table-wrap"><table id="detailInitTable"></table></div>
+    </div>
+
+    <div class="detail-section" id="detailAlertSection">
+      <div class="detail-section-title" style="margin-bottom:8px">库存预警</div>
+      <div class="sub">库存预警：<span id="detailAlertState">未开启</span></div>
+      <div class="detail-table-wrap"><table id="detailAlertTable"></table></div>
+    </div>
+
+    <div class="detail-foot">
+      <button class="btn btn-secondary" onclick="closeDetail()">返回列表</button>
+      <button class="btn btn-secondary" onclick="copyFromDetail()">复 制</button>
+      <button class="btn btn-primary" onclick="editFromDetail()">编 辑</button>
+    </div>
+  </div><!-- /detailView -->
 </div>
 </div>
   </div>
@@ -461,6 +579,56 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   </div>
 </div>
 
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2 id="confirmTitle">确认操作</h2>
+      <button class="modal-close" onclick="closeConfirm()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon warn" id="confirmIcon">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="confirm-text">
+          <h3 id="confirmMsg">确定要删除吗？</h3>
+          <p id="confirmDesc"></p>
+          <div class="detail" id="confirmDetail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirmOkBtn" onclick="doConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 提示弹窗 -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2 id="alertTitle">提示</h2>
+      <button class="modal-close" onclick="closeAlert()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon danger" id="alertIcon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="confirm-text">
+          <h3 id="alertMsg">操作失败</h3>
+          <p id="alertDesc"></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeAlert()">我知道了</button>
+    </div>
+  </div>
+</div>
+
 <!-- 新增/编辑类别弹窗 -->
 <div class="modal-overlay" id="categoryModal">
   <div class="modal" style="width:560px">
@@ -483,10 +651,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
             <input class="picker-field" id="catParentInput" placeholder="无" readonly>
             <svg class="cat-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <div class="cat-drop" id="catParentDrop">
-            <div class="cat-col" id="catParentColLeft"></div>
-            <div class="cat-col" id="catParentColRight"></div>
-          </div>
+          <div class="cat-drop" id="catParentDrop" onmouseleave="cancelHoverCat()"></div>
         </div>
       </div>
     </div>
@@ -570,12 +735,36 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     </div>
   </div>
 </div>
+
+<!-- 批量修改弹窗 -->
+<div class="modal-overlay" id="batchEditModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center" id="batchEditTitle">批量修改</h2>
+      <button class="modal-close" onclick="closeBatchEdit()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form-row" style="margin-bottom:6px">
+        <label class="cat-form-label wide" id="batchEditLabel">单位</label>
+        <select class="cat-input" id="batchEditUnit" style="min-width:200px"></select>
+      </div>
+      <div class="cat-form-row">
+        <label class="cat-form-label wide" id="batchEditFieldLabel">进货价</label>
+        <input class="cat-input" id="batchEditInput" placeholder="请输入" autocomplete="off" onkeydown="if(event.key==='Enter')submitBatchEdit();if(event.key==='Escape')closeBatchEdit();">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBatchEdit()">取消</button>
+      <button class="btn btn-primary" onclick="submitBatchEdit()">确定</button>
+    </div>
+  </div>
+</div>
 <script>
 (function(){
   var token = localStorage.getItem('pisa_token');
   if(!token){ location.href='/login.html'; return; }
 
-  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null };
+  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{} };
   var searchTimer = null;
 
   // --- Auth fetch helper ---
@@ -594,54 +783,63 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   // --- Category tree ---
-  var catUI = { activeParent: 0, editMode: false, searchMode: false, searchKw: '', collapsed: {}, editingId: 0 };
+  var catUI = { hoverPath: [], editMode: false, searchMode: false, searchKw: '', collapsed: {}, editingId: 0 };
 
   function renderCatTree(){
     var c = document.getElementById('catTree');
     if(!c) return;
     var kw = catUI.searchKw.toLowerCase();
     function matchKw(name){ return !kw || name.toLowerCase().indexOf(kw) >= 0; }
+    function anyChildMatch(catIds, kw){
+      for(var i=0;i<catIds.length;i++){
+        var ch = catById(catIds[i]);
+        if(ch && matchKw(ch.name)) return true;
+      }
+      return false;
+    }
     var h = '';
     var allOpen = kw ? true : !catUI.collapsed['all'];
-    // 全部（根节点，展开后显示全部一级分类）
     h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="pickCat(this,0)">'
       + '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (allOpen ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'all\')"><polyline points="9 18 15 12 9 6"/></svg>'
       + '<span>全部</span>';
     if(catUI.editMode) h += '<div class="cat-actions-row"><button class="cat-node-actions" title="新增分类" onclick="event.stopPropagation();catAddChild(0)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>';
     h += '</div>';
+    function renderNode(cat, level, parentMatched){
+      var kids = catChildren(cat.id);
+      var matchT = matchKw(cat.name);
+      var hasKids = kids.length > 0;
+      var expanded = kw ? true : !catUI.collapsed[cat.id];
+      var depthClass = level === 1 ? ' child' : level === 2 ? ' child2' : level === 3 ? ' child3' : ' child4';
+      h += '<div class="cat-node' + depthClass + (String(state.catId) === String(cat.id) ? ' active' : '') + '" onclick="pickCat(this,' + cat.id + ')">';
+      if(hasKids){
+        h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(' + cat.id + ')"><polyline points="9 18 15 12 9 6"/></svg>';
+      } else {
+        h += '<span class="cat-caret"></span>';
+      }
+      h += '<span>' + esc(cat.name) + '</span>';
+      if(catUI.editMode){
+        h += '<div class="cat-actions-row">';
+        if(level < 5) h += '<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();catAddChild(' + cat.id + ')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+        h += '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + cat.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+          + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + cat.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+          + '</div>';
+      }
+      h += '</div>';
+      if(expanded && hasKids && level < 5){
+        kids.forEach(function(ch){
+          if(!parentMatched && !matchT && !matchKw(ch.name)) return;
+          renderNode(ch, level + 1, parentMatched || matchT || matchKw(ch.name));
+        });
+      }
+    }
     if(allOpen){
       catTopLevels().forEach(function(t){
         var kids = catChildren(t.id);
         var matchT = matchKw(t.name);
         if(kw && !matchT && !kids.some(function(ch){ return matchKw(ch.name); })) return;
-        var expanded = kw ? true : !catUI.collapsed[t.id];
-        h += '<div class="cat-node child' + (String(state.catId) === String(t.id) ? ' active' : '') + '" onclick="pickCat(this,' + t.id + ')">';
-        if(kids.length){
-          h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(' + t.id + ')"><polyline points="9 18 15 12 9 6"/></svg>';
-        } else {
-          h += '<span class="cat-caret"></span>';
-        }
-        h += '<span>' + esc(t.name) + '</span>';
-        if(catUI.editMode) h += '<div class="cat-actions-row">'
-          + '<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();catAddChild(' + t.id + ')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
-          + '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + t.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-          + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + t.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
-          + '</div>';
-        h += '</div>';
-        if(expanded){
-          kids.forEach(function(ch){
-            if(kw && !matchT && !matchKw(ch.name)) return;
-            h += '<div class="cat-node child2' + (String(state.catId) === String(ch.id) ? ' active' : '') + '" onclick="pickCat(this,' + ch.id + ')"><span class="cat-caret"></span><span>' + esc(ch.name) + '</span>';
-            if(catUI.editMode) h += '<div class="cat-actions-row">'
-              + '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + ch.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-              + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + ch.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
-              + '</div>';
-            h += '</div>';
-          });
-        }
+        renderNode(t, 1, matchT);
       });
     }
-    // 未分类（根节点，搜索时仅名称匹配才显示）
     if(!kw || matchKw('未分类')){
       h += '<div class="cat-node' + (state.catId === -1 ? ' active' : '') + '" onclick="pickCat(this,-1)"><span class="cat-caret"></span><span>未分类</span></div>';
     }
@@ -700,7 +898,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   window.catAddChild = function(parentId){
     catUI.editingId = 0;
     catParentUI.value = parentId;
-    catParentUI.activeParent = parentId ? (catById(parentId) || {}).parent_id || 0 : 0;
+    catParentUI.hoverPath = parentId ? catAncestorPath(parentId).slice(0, -1) : [];
     el('categoryModalTitle').textContent = '新增商品分类';
     el('categorySubmitBtn').textContent = '保存';
     el('catNameInput').value = '';
@@ -715,7 +913,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(!cat) return;
     catUI.editingId = catId;
     catParentUI.value = cat.parent_id || 0;
-    catParentUI.activeParent = cat.parent_id || 0;
+    catParentUI.hoverPath = cat.parent_id ? catAncestorPath(cat.parent_id).slice(0, -1) : [];
     el('categoryModalTitle').textContent = '编辑商品分类';
     el('categorySubmitBtn').textContent = '保存';
     el('catNameInput').value = cat.name;
@@ -728,15 +926,39 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   window.catDelete = function(catId){
     var cat = catById(catId);
     if(!cat) return;
-    if(!confirm('确认删除分类"' + cat.name + '"？')) return;
-    apiFetch('/api/shop/category/' + catId, { method:'DELETE' }).then(function(res){
-      if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
-      meta.loaded = false;
-      loadMeta(true).then(function(){
-        if(state.catId === catId) state.catId = 0;
-        renderCatTree();
-        loadData(1);
-        showToast('删除成功', 'success');
+    showConfirm({
+      title: '删除分类',
+      message: '确定要删除分类"' + cat.name + '"吗？',
+      desc: '删除后将无法恢复，请谨慎操作。',
+      iconType: 'warn',
+      okText: '删除',
+      okClass: 'btn-danger'
+    }).then(function(ok){
+      if(!ok) return;
+      apiFetch('/api/shop/category/' + catId, { method:'DELETE' }).then(function(res){
+        if(res.code !== 0){
+          var msg = res.message || '删除失败';
+          var detail = '';
+          if(msg.indexOf('子分类') !== -1){
+            detail = '该分类下包含子分类，请先删除子分类后再尝试删除。';
+          } else if(msg.indexOf('商品') !== -1){
+            detail = '该分类下包含商品，请先移除或重新分类相关商品后再尝试删除。';
+          }
+          showAlert({
+            title: '无法删除',
+            message: msg,
+            detail: detail,
+            iconType: 'danger'
+          });
+          return;
+        }
+        meta.loaded = false;
+        loadMeta(true).then(function(){
+          if(state.catId === catId) state.catId = 0;
+          renderCatTree();
+          loadData(1);
+          showToast('删除成功', 'success');
+        });
       });
     });
   };
@@ -777,30 +999,124 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   function renderTable(){
     var tbody = document.getElementById('tableBody');
     if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
       return;
     }
     var html = '';
-    state.list.forEach(function(item){
-      var tags = '';
-      if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
-      if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
-      html += '<tr>'
-        + '<td>' + esc(item.code || '') + '</td>'
-        + '<td>' + esc(item.name || '') + tags + '</td>'
-        + '<td>' + esc(nameOf(meta.categories, item.category_id)) + '</td>'
-        + '<td>' + esc(nameOf(meta.units, item.unit_id)) + '</td>'
-        + '<td>' + esc(item.barcode || '') + '</td>'
-        + '<td class="text-right"><span class="yen">¥</span>' + fmtPrice(item.purchase_price) + '</td>'
-        + '<td class="text-right"><span class="yen">¥</span>' + fmtPrice(item.retail_price) + '</td>'
-        + '<td class="text-right"><span class="yen">¥</span>' + fmtPrice(item.wholesale_price) + '</td>'
-        + '<td><div class="actions">'
-        + '<button class="btn btn-ghost btn-sm" onclick="showEdit(' + item.id + ')">编辑</button>'
-        + '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + item.id + ')">删除</button>'
-        + '</div></td></tr>';
-    });
+    state.list.forEach(function(item){ html += renderGoodsRow(item); });
     tbody.innerHTML = html;
   }
+
+  function priceRange(min, max){
+    if(min == null || max == null) return '0.00';
+    return min === max ? fmtPrice(min) : fmtPrice(min) + '~' + fmtPrice(max);
+  }
+  function specGroupNames(item){
+    try{
+      var gs = JSON.parse(item.spec_groups || '[]') || [];
+      return gs.map(function(g){ return g.name; }).filter(Boolean).join('/');
+    }catch(e){ return ''; }
+  }
+  function renderGoodsRow(item){
+    var tags = '';
+    if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
+    if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
+    var img = item.image_url
+      ? '<img class="list-thumb" src="' + escAttr(item.image_url) + '" alt="">'
+      : '<span class="list-thumb-ph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>';
+    var summaries = item.units_summary || [];
+    var base = summaries[0] || null;
+    var selName = state.unitSel[item.id] || (base && base.unit_name) || '';
+    var sel = summaries.filter(function(u){ return u.unit_name === selName; })[0] || base;
+    var unitCell;
+    if(item.has_multi_unit && summaries.length > 1){
+      unitCell = '<div class="unit-drop" data-id="' + item.id + '">'
+        + '<button type="button" class="unit-trigger" onclick="toggleUnitDrop(this, event)">'
+        + '<span class="unit-trigger-label">' + esc(selName) + '</span>'
+        + '<svg class="unit-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+        + '</button></div>';
+    } else {
+      unitCell = '<span>' + esc(sel ? sel.unit_name : (item.main_unit || '--')) + '</span>';
+    }
+    var factor = sel ? (sel.factor || 1) : 1;
+    var stockShown = fmtQty((item.total_stock || 0) / (factor || 1));
+    var codes = sel && sel.codes ? sel.codes : '';
+    var specNames = specGroupNames(item);
+    return '<tr data-row-id="' + item.id + '">'
+      + '<td class="c-goods"><div class="goods-cell">' + img + '<div class="goods-cell-txt"><div class="g-name">' + esc(item.name || '') + tags + '</div><div class="g-code">' + esc(item.code || '') + '</div></div></div></td>'
+      + '<td>' + esc(specNames || '--') + '</td>'
+      + '<td class="c-codes" title="' + escAttr(codes) + '">' + esc(codes || '--') + '</td>'
+      + '<td>' + unitCell + '</td>'
+      + '<td class="text-right"><span class="yen">¥</span>' + priceRange(sel && sel.retail_min, sel && sel.retail_max) + '</td>'
+      + '<td class="text-right"><span class="yen">¥</span>' + priceRange(sel && sel.wholesale_min, sel && sel.wholesale_max) + '</td>'
+      + '<td class="text-right">' + stockShown + esc(sel ? sel.unit_name : '') + '</td>'
+      + '<td><div class="actions">'
+      + '<button class="btn btn-ghost btn-sm" onclick="showDetail(' + item.id + ')">查看</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="showEdit(' + item.id + ')">编辑</button>'
+      + '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + item.id + ')">删除</button>'
+      + '</div></td></tr>';
+  }
+
+  function unitOptionLabel(u, base){
+    var label = u.unit_name;
+    if(base && u.factor && u.factor > 1){
+      label += '(1' + u.unit_name + '=' + fmtQty(u.factor) + base.unit_name + ')';
+    }
+    return label;
+  }
+
+  window.toggleUnitDrop = function(btn, ev){
+    if(ev) ev.stopPropagation();
+    var opened = btn.classList.contains('open');
+    closeUnitDrop();
+    if(opened) return;
+    var wrap = btn.closest('.unit-drop');
+    var id = parseInt(wrap.getAttribute('data-id'), 10);
+    var item = state.list.filter(function(x){ return x.id === id; })[0];
+    if(!item) return;
+    var summaries = item.units_summary || [];
+    var base = summaries[0] || null;
+    var selName = state.unitSel[id] || (base && base.unit_name) || '';
+    var panel = document.createElement('div');
+    panel.className = 'unit-drop-panel';
+    panel.setAttribute('data-id', id);
+    panel.innerHTML = summaries.map(function(u){
+      return '<div class="unit-drop-opt' + (u.unit_name === selName ? ' active' : '') + '"'
+        + ' data-unit="' + escAttr(u.unit_name) + '" onclick="pickUnitOption(this, event)">'
+        + esc(unitOptionLabel(u, base)) + '</div>';
+    }).join('');
+    document.body.appendChild(panel);
+    var r = btn.getBoundingClientRect();
+    panel.style.left = Math.round(r.left) + 'px';
+    panel.style.top = Math.round(r.bottom + 4) + 'px';
+    panel.style.minWidth = Math.round(r.width) + 'px';
+    btn.classList.add('open');
+  };
+
+  window.pickUnitOption = function(opt, ev){
+    if(ev) ev.stopPropagation();
+    var panel = opt.closest('.unit-drop-panel');
+    var id = parseInt(panel.getAttribute('data-id'), 10);
+    var unit = opt.getAttribute('data-unit');
+    state.unitSel[id] = unit;
+    closeUnitDrop();
+    var item = state.list.filter(function(x){ return x.id === id; })[0];
+    if(!item) return;
+    var tr = document.querySelector('tr[data-row-id="' + id + '"]');
+    if(tr) tr.outerHTML = renderGoodsRow(item);
+  };
+
+  function closeUnitDrop(){
+    document.querySelectorAll('.unit-drop-panel').forEach(function(p){ p.remove(); });
+    document.querySelectorAll('.unit-trigger.open').forEach(function(b){ b.classList.remove('open'); });
+  }
+  window.closeUnitDrop = closeUnitDrop;
+  document.addEventListener('click', function(e){
+    if(e.target.closest('.unit-drop') || e.target.closest('.unit-drop-panel')) return;
+    closeUnitDrop();
+  });
+  window.addEventListener('scroll', closeUnitDrop, true);
+  window.addEventListener('resize', closeUnitDrop);
 
   function renderPagination(){
     var pag = document.getElementById('pagination');
@@ -892,6 +1208,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   // --- 抽屉开关 ---
   var ADD_KEY = 'goods:add';
   var LIST_KEY = 'goods:list';
+  var VIEW_KEY = 'goods:view';
 
   function addFormTab(){
     if(window.PisaTabs) PisaTabs.touch(ADD_KEY, '添加货品', '/goods.html#goods:add');
@@ -908,6 +1225,26 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(location.hash === '#goods:add'){
       try{ history.replaceState(null, '', '/goods.html'); }catch(e){}
     }
+  }
+
+  function addViewTab(id){
+    if(id != null){ try{ localStorage.setItem('pisa_goods_view_id', String(id)); }catch(e){} }
+    if(window.PisaTabs) PisaTabs.touch(VIEW_KEY, '查看商品', '/goods.html#goods:view');
+    if(location.hash !== '#goods:view'){
+      try{ history.replaceState(null, '', '#goods:view'); }catch(e){ location.hash = 'goods:view'; }
+    }
+  }
+  function removeViewTab(){
+    if(window.PisaTabs){
+      PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
+      PisaTabs.close(VIEW_KEY);
+    }
+    if(location.hash === '#goods:view'){
+      try{ history.replaceState(null, '', '/goods.html'); }catch(e){}
+    }
+  }
+  function storedViewId(){
+    try{ return parseInt(localStorage.getItem('pisa_goods_view_id'), 10) || 0; }catch(e){ return 0; }
   }
 
   var formInited = false;
@@ -943,18 +1280,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     loadMeta();
   };
 
-  window.showEdit = function(id){
-    loadMeta().then(function(){
-      return apiFetch('/api/shop/goods/' + id);
-    }).then(function(res){
-      if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
-      var d = res.data;
-      form.editId = id;
-      state.editId = id;
-      el('formTitle').textContent = '编辑货品';
-      el('saveMoreBtn').style.display = 'none';
-      resetForm();
-
+  function fillFormFromGoods(d){
       el('fName').value        = d.name || '';
       el('fCode').value        = d.code || '';
       el('fBarcode').value     = d.barcode || '';
@@ -1009,28 +1335,422 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
           return (typeof v === 'string') ? { name:v, image:'' } : { name:v.name||'', image:v.image||'' };
         });
       });
-      try{ form.priceRows = JSON.parse(d.price_rows || '{}') || {}; }catch(e){ form.priceRows = {}; }
-      if(typeof form.priceRows !== 'object' || form.priceRows === null) form.priceRows = {};
-      try{ form.stockRows = JSON.parse(d.stock_rows || '{}') || {}; }catch(e){ form.stockRows = {}; }
-      if(typeof form.stockRows !== 'object' || form.stockRows === null) form.stockRows = {};
+      form.priceRows = {};
+      (d.prices || []).forEach(function(p){
+        var uk = p.unit_key || '';
+        if(!form.priceRows[uk]) form.priceRows[uk] = {};
+        form.priceRows[uk][p.spec_key || ''] = {
+          code: p.code || '', barcode: p.barcode || '',
+          purchase_price: p.purchase_price, retail_price: p.retail_price, wholesale_price: p.wholesale_price,
+          disabled: !!p.disabled, custom: parseCustom(p.custom)
+        };
+      });
+      form.stockRows = {};
+      (d.stocks || []).forEach(function(s){
+        form.stockRows[s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
+      });
       form.priceUnit = '';
       try{ form.priceColumns = JSON.parse(d.price_columns || '[]') || []; }catch(e){ form.priceColumns = []; }
       if(!Array.isArray(form.priceColumns)) form.priceColumns = [];
       form.simpleRow = { purchase_price: (d.purchase_price || ''), retail_price: (d.retail_price || ''), wholesale_price: (d.wholesale_price || ''), custom:{} };
-      var _simple = form.priceRows['__simple__'] && form.priceRows['__simple__'][''];
+      var _mainU = detailMainUnitName(d) || '';
+      var _simple = (form.priceRows[_mainU] || {})[''] || (form.priceRows[''] || {})[''];
       if(_simple){ form.simpleRow.purchase_price = _simple.purchase_price || form.simpleRow.purchase_price; form.simpleRow.retail_price = _simple.retail_price || form.simpleRow.retail_price; form.simpleRow.wholesale_price = _simple.wholesale_price || form.simpleRow.wholesale_price; form.simpleRow.custom = _simple.custom || {}; }
-      delete form.priceRows['__simple__'];
       form.simpleStock = { stock: (d.current_stock == null ? '' : d.current_stock), init_cost: (d.init_cost == null ? '' : d.init_cost), min_stock: (d.min_stock == null ? '' : d.min_stock), max_stock: (d.max_stock == null ? '' : d.max_stock) };
+      var _ss = form.stockRows[''];
+      if(_ss){ form.simpleStock = { stock: (_ss.stock==null?'':_ss.stock), init_cost: (_ss.init_cost==null?'':_ss.init_cost), min_stock: (_ss.min_stock==null?'':_ss.min_stock), max_stock: (_ss.max_stock==null?'':_ss.max_stock) }; }
       try{ form.images = JSON.parse(d.images || '[]') || []; }catch(e){ form.images = []; }
       if(!form.images.length && d.image_url) form.images = [d.image_url];
       renderSimplePrice(); renderSimpleStock();
       renderImages(); renderUnits(); renderSpecGroups();
+  }
+
+  window.showEdit = function(id){
+    loadMeta().then(function(){
+      return apiFetch('/api/shop/goods/' + id);
+    }).then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
+      form.editId = id;
+      state.editId = id;
+      el('formTitle').textContent = '编辑货品';
+      el('saveMoreBtn').style.display = 'none';
+      resetForm();
+      fillFormFromGoods(res.data);
       formInited = true;
       openDrawer();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
     });
   };
+
+  window.copyFromDetail = function(){
+    var id = state.detailId;
+    if(!id) return;
+    loadMeta().then(function(){
+      return apiFetch('/api/shop/goods/' + id);
+    }).then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
+      var d = res.data;
+      form.editId = null;
+      state.editId = null;
+      el('formTitle').textContent = '新增货品';
+      el('saveMoreBtn').style.display = '';
+      resetForm();
+      fillFormFromGoods(d);
+      // 复制时清空唯一标识，避免冲突
+      el('fCode').value = '';
+      el('fBarcode').value = '';
+      el('fName').value = (d.name || '') + '(副本)';
+      formInited = true;
+      openDrawer();
+      removeViewTab();
+      addFormTab();
+    }).catch(function(e){
+      if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
+    });
+  };
+
+  // ═══════════ 货品详情 ═══════════
+  var detailData = null;
+
+  function fmtQty(v){ var n = parseFloat(v); if(isNaN(n)) return '0'; return String(Math.round(n*100)/100); }
+
+  function categoryPath(id){
+    if(!id) return '未分类';
+    var map = {}; (meta.categories || []).forEach(function(c){ map[c.id] = c; });
+    var parts = [], cur = map[id], guard = 0;
+    while(cur && guard++ < 20){ parts.unshift(cur.name); cur = cur.parent_id ? map[cur.parent_id] : null; }
+    return parts.length ? parts.join('/') : '未分类';
+  }
+
+  function detailMainUnitName(d){
+    var n = nameOf(meta.units, d.unit_id);
+    if(n === '-') n = d.sales_unit || '';
+    return n || '';
+  }
+  function detailUnitDefs(d){
+    var defs = [{ name: detailMainUnitName(d), factor: 1 }];
+    (d.units || []).filter(function(u){ return !u.is_main; }).forEach(function(u){
+      var n = u.unit_name || nameOf(meta.units, u.unit_id);
+      defs.push({ name: (n === '-' ? '' : n), factor: u.factor || 1 });
+    });
+    return defs;
+  }
+  function detailGroups(d){
+    var gs = [];
+    try{ gs = JSON.parse(d.spec_groups || '[]') || []; }catch(e){ gs = []; }
+    if(!Array.isArray(gs)) gs = [];
+    return gs.filter(function(g){ return g && g.name && (g.values || []).length; }).map(function(g){
+      return { name: g.name, values: (g.values || []).map(function(v){ return (typeof v === 'string') ? v : (v.name || ''); }) };
+    });
+  }
+  function detailCombos(groups){
+    var combos = [{ key: '', values: [] }];
+    groups.forEach(function(g){
+      var next = [];
+      combos.forEach(function(c){
+        g.values.forEach(function(v){
+          next.push({ key: (c.key ? c.key + ' / ' : '') + v, values: c.values.concat([v]) });
+        });
+      });
+      combos = next;
+    });
+    return combos;
+  }
+  function detailSpecCells(groups, counts, unitCount, combo, ri){
+    var h = '';
+    for(var gi = 0; gi < groups.length; gi++){
+      var span = unitCount;
+      for(var j = gi + 1; j < groups.length; j++) span *= counts[j];
+      if(ri % span === 0){
+        h += '<td rowspan="' + span + '"><span class="spec-cell">' + esc(combo.values[gi] || '') + '</span></td>';
+      }
+    }
+    return h;
+  }
+  function detailStockOf(d, comboKey, stockRows){
+    var s = stockRows[comboKey];
+    if(s) return s;
+    return { stock: d.current_stock, init_cost: d.init_cost, min_stock: d.min_stock, safe_stock: d.min_stock, max_stock: d.max_stock };
+  }
+
+  window.showDetail = function(id){
+    loadMeta().then(function(){
+      return apiFetch('/api/shop/goods/' + id);
+    }).then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
+      state.detailId = id;
+      state.detailStockUnits = {};
+      renderDetail(res.data);
+      el('listView').style.display = 'none';
+      el('formView').style.display = 'none';
+      el('detailView').style.display = '';
+      var c = document.querySelector('.content'); if(c) c.scrollTop = 0;
+      addViewTab(id);
+    }).catch(function(e){
+      if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
+    });
+  };
+
+  window.closeDetail = function(){
+    el('detailView').style.display = 'none';
+    el('listView').style.display = '';
+    state.detailId = null;
+    detailData = null;
+    removeViewTab();
+  };
+
+  window.editFromDetail = function(){
+    var id = state.detailId; if(!id) return;
+    el('detailView').style.display = 'none';
+    removeViewTab();
+    showEdit(id);
+  };
+
+  window.printLabels = function(){ showToast('批量打印标签功能开发中'); };
+
+  window.selectDetailImage = function(i){ renderDetailImages(i); };
+
+  function renderDetailImages(activeIdx){
+    var imgs = state.detailImages || [];
+    var main = el('detailMainImg');
+    if(imgs.length){
+      main.innerHTML = '<img src="' + escAttr(imgs[activeIdx] || imgs[0]) + '" alt="">';
+    }else{
+      main.innerHTML = '<span class="ph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>';
+    }
+    el('detailThumbs').innerHTML = imgs.map(function(u, i){
+      return '<span class="detail-thumb' + (i === activeIdx ? ' active' : '') + '" onclick="selectDetailImage(' + i + ')"><img src="' + escAttr(u) + '" alt=""></span>';
+    }).join('');
+  }
+
+  window.toggleDetailAll = function(checked){
+    document.querySelectorAll('#detailPriceTable .detail-row-check').forEach(function(cb){ cb.checked = checked; });
+  };
+
+  window.setDetailStockUnit = function(ci, unitName){
+    state.detailStockUnits[ci] = unitName;
+    renderCurrentStockTable();
+  };
+
+  function detailUnitLabel(unitDefs, i){
+    var u = unitDefs[i];
+    if(!u) return '';
+    var label = u.name;
+    if(i > 0){
+      var prev = unitDefs[i - 1];
+      var rel = (u.factor || 1) / (prev.factor || 1);
+      label += '(1' + u.name + '=' + fmtQty(rel) + prev.name + ')';
+    }
+    return label;
+  }
+
+  window.toggleDetailUnitDrop = function(btn, ev){
+    if(ev) ev.stopPropagation();
+    var opened = btn.classList.contains('open');
+    closeUnitDrop();
+    if(opened) return;
+    var d = detailData; if(!d) return;
+    var unitDefs = d._unitDefs || [];
+    var ci = parseInt(btn.getAttribute('data-ci'), 10);
+    var selName = state.detailStockUnits[ci] || (unitDefs[0] && unitDefs[0].name) || '';
+    var panel = document.createElement('div');
+    panel.className = 'unit-drop-panel';
+    panel.innerHTML = unitDefs.map(function(u, i){
+      return '<div class="unit-drop-opt' + (u.name === selName ? ' active' : '') + '"'
+        + ' data-ci="' + ci + '" data-unit="' + escAttr(u.name) + '" onclick="pickDetailUnitOption(this, event)">'
+        + esc(detailUnitLabel(unitDefs, i)) + '</div>';
+    }).join('');
+    document.body.appendChild(panel);
+    var r = btn.getBoundingClientRect();
+    panel.style.left = Math.round(r.left) + 'px';
+    panel.style.top = Math.round(r.bottom + 4) + 'px';
+    panel.style.minWidth = Math.round(r.width) + 'px';
+    btn.classList.add('open');
+  };
+
+  window.pickDetailUnitOption = function(opt, ev){
+    if(ev) ev.stopPropagation();
+    var ci = parseInt(opt.getAttribute('data-ci'), 10);
+    var unit = opt.getAttribute('data-unit');
+    closeUnitDrop();
+    setDetailStockUnit(ci, unit);
+  };
+
+  function renderDetail(d){
+    detailData = d;
+    var groups = detailGroups(d);
+    var counts = groups.map(function(g){ return g.values.length; });
+    var unitDefs = detailUnitDefs(d);
+    var combos = groups.length ? detailCombos(groups) : [{ key: '', values: [] }];
+    var priceColumns = [];
+    try{ priceColumns = JSON.parse(d.price_columns || '[]') || []; }catch(e){ priceColumns = []; }
+    if(!Array.isArray(priceColumns)) priceColumns = [];
+    var priceRows = {};
+    (d.prices || []).forEach(function(p){
+      var uk = p.unit_key || '';
+      if(!priceRows[uk]) priceRows[uk] = {};
+      priceRows[uk][p.spec_key || ''] = {
+        code: p.code || '', barcode: p.barcode || '',
+        purchase_price: p.purchase_price, retail_price: p.retail_price, wholesale_price: p.wholesale_price,
+        disabled: !!p.disabled, custom: parseCustom(p.custom)
+      };
+    });
+    var isSimple = !d.has_multi_unit && !d.has_multi_spec;
+    var stockRows = {};
+    (d.stocks || []).forEach(function(s){
+      stockRows[s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
+    });
+    if(!isSimple && !unitDefs.length) unitDefs = [{ name: detailMainUnitName(d), factor: 1 }];
+
+    d._unitDefs = unitDefs;
+    d._combos = combos;
+    d._groups = groups;
+    d._counts = counts;
+    d._priceRows = priceRows;
+    d._stockRows = stockRows;
+    d._isSimple = isSimple;
+
+    // ── 基本信息 ──
+    var imgs = [];
+    try{ imgs = JSON.parse(d.images || '[]') || []; }catch(e){ imgs = []; }
+    if(!imgs.length && d.image_url) imgs = [d.image_url];
+    state.detailImages = imgs;
+    renderDetailImages(0);
+
+    var supplierName = '-';
+    try{
+      var sids = JSON.parse(d.suppliers || '[]');
+      if(!Array.isArray(sids) || !sids.length){ if(d.supplier_id) sids = [d.supplier_id]; }
+      if(sids.length) supplierName = nameOf(meta.suppliers, sids[0]);
+    }catch(e){ if(d.supplier_id) supplierName = nameOf(meta.suppliers, d.supplier_id); }
+
+    function row(k, v){ return '<div class="row"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+    var h = '<div class="detail-title">商品名称：' + esc(d.name || '') + '</div><div class="detail-meta">';
+    h += row('商品类别', esc(categoryPath(d.category_id)));
+    h += row('主单位', esc(detailMainUnitName(d) || '--'));
+    unitDefs.forEach(function(u, i){
+      if(i === 0) return;
+      var prev = unitDefs[i - 1];
+      var rel = (u.factor || 1) / (prev.factor || 1);
+      h += row('辅单位' + i, esc(u.name) + ' (1' + esc(u.name) + ' = ' + fmtQty(rel) + esc(prev.name) + ')');
+    });
+    h += row('销售/进货', esc(d.sales_unit || detailMainUnitName(d) || '--') + '；' + esc(d.purchase_unit || detailMainUnitName(d) || '--'));
+    h += row('默认供应商', esc(supplierName));
+    h += row('备注', esc(d.remark || '--'));
+    var attrs = [];
+    if(d.brand) attrs.push('品牌：' + esc(d.brand));
+    if(d.origin) attrs.push('产地：' + esc(d.origin));
+    if(attrs.length) h += '<div class="row"><span class="k">商品属性</span><span class="v attrs">' + attrs.map(function(x){ return '<span>' + x + '</span>'; }).join('') + '</span></div>';
+    h += '</div>';
+    el('detailInfo').innerHTML = h;
+
+    // ── 商品价格 ──
+    var ph = '<thead><tr><th style="width:44px"><input type="checkbox" onchange="toggleDetailAll(this.checked)"></th>';
+    groups.forEach(function(g){ ph += '<th>' + esc(g.name) + '</th>'; });
+    ph += '<th>单位</th><th>编号/货号</th><th>条形码</th><th>进货价</th><th>零售价</th><th>批发价</th>';
+    priceColumns.forEach(function(c){ ph += '<th>' + esc(c) + '</th>'; });
+    ph += '</tr></thead><tbody>';
+    var ri = 0;
+    var unitCount = unitDefs.length;
+    combos.forEach(function(combo){
+      unitDefs.forEach(function(u){
+        var row = ((priceRows[u.name] || {})[combo.key]) || ((priceRows[''] || {})[combo.key]) || {};
+        ph += '<tr>';
+        ph += '<td><input type="checkbox" class="detail-row-check" data-key="' + escAttr(u.name + '|' + combo.key) + '"></td>';
+        ph += detailSpecCells(groups, counts, unitCount, combo, ri);
+        ph += '<td>' + esc(u.name || '--') + '</td>';
+        ph += '<td>' + esc(row.code || d.code || '--') + '</td>';
+        ph += '<td>' + esc(row.barcode || d.barcode || '--') + '</td>';
+        ph += '<td class="num">' + fmtPrice(row.purchase_price != null ? row.purchase_price : d.purchase_price) + '</td>';
+        ph += '<td class="num">' + fmtPrice(row.retail_price != null ? row.retail_price : d.retail_price) + '</td>';
+        ph += '<td class="num">' + fmtPrice(row.wholesale_price != null ? row.wholesale_price : d.wholesale_price) + '</td>';
+        priceColumns.forEach(function(c){
+          var cv = (row.custom && row.custom[c] != null) ? row.custom[c] : 0;
+          ph += '<td class="num">' + fmtPrice(cv) + '</td>';
+        });
+        ph += '</tr>';
+        ri++;
+      });
+    });
+    ph += '</tbody>';
+    el('detailPriceTable').innerHTML = ph;
+
+    renderCurrentStockTable();
+
+    // ── 初始库存 ──
+    var ih = '<thead><tr>';
+    groups.forEach(function(g){ ih += '<th>' + esc(g.name) + '</th>'; });
+    ih += '<th>单位</th><th>初始库存</th><th>初始成本价</th></tr></thead><tbody>';
+    combos.forEach(function(combo, ci){
+      var s = detailStockOf(d, combo.key, stockRows);
+      ih += '<tr>';
+      ih += detailSpecCells(groups, counts, 1, combo, ci);
+      ih += '<td>' + esc(detailMainUnitName(d) || '--') + '</td>';
+      ih += '<td class="num">' + fmtQty(s.stock) + '</td>';
+      ih += '<td class="num">' + fmtPrice(s.init_cost) + '</td>';
+      ih += '</tr>';
+    });
+    ih += '</tbody>';
+    el('detailInitTable').innerHTML = ih;
+
+    // ── 库存预警 ──
+    var alertOn = !!d.enable_stock_alert;
+    el('detailAlertState').textContent = alertOn ? '开启' : '未开启';
+    var aw = el('detailAlertTable').parentNode;
+    if(!alertOn){
+      aw.style.display = 'none';
+    }else{
+      aw.style.display = '';
+      var ah = '<thead><tr>';
+      groups.forEach(function(g){ ah += '<th>' + esc(g.name) + '</th>'; });
+      ah += '<th>单位</th><th>最低库存</th><th>安全库存</th><th>最高库存</th></tr></thead><tbody>';
+      combos.forEach(function(combo, ci){
+        var s = detailStockOf(d, combo.key, stockRows);
+        ah += '<tr>';
+        ah += detailSpecCells(groups, counts, 1, combo, ci);
+        ah += '<td>' + esc(detailMainUnitName(d) || '--') + '</td>';
+        ah += '<td class="num">' + fmtQty(s.min_stock) + '</td>';
+        ah += '<td class="num">' + fmtQty(s.safe_stock != null ? s.safe_stock : s.min_stock) + '</td>';
+        ah += '<td class="num">' + fmtQty(s.max_stock) + '</td>';
+        ah += '</tr>';
+      });
+      ah += '</tbody>';
+      el('detailAlertTable').innerHTML = ah;
+    }
+  }
+
+  function renderCurrentStockTable(){
+    var d = detailData; if(!d) return;
+    var groups = d._groups, counts = d._counts, combos = d._combos, unitDefs = d._unitDefs, stockRows = d._stockRows;
+    var ch = '<thead><tr>';
+    groups.forEach(function(g){ ch += '<th>' + esc(g.name) + '</th>'; });
+    ch += '<th>单位</th><th>当前库存</th></tr></thead><tbody>';
+    combos.forEach(function(combo, ci){
+      var s = detailStockOf(d, combo.key, stockRows);
+      var selName = state.detailStockUnits[ci] || (unitDefs[0] && unitDefs[0].name) || '';
+      var selDef = unitDefs.filter(function(u){ return u.name === selName; })[0] || unitDefs[0] || { factor: 1, name: '' };
+      var base = parseFloat(s.stock) || 0;
+      var shown = base / (selDef.factor || 1);
+      var unitCell;
+      if(unitDefs.length > 1){
+        unitCell = '<div class="unit-drop">'
+          + '<button type="button" class="unit-trigger" data-ci="' + ci + '" onclick="toggleDetailUnitDrop(this, event)">'
+          + '<span class="unit-trigger-label">' + esc(selDef.name) + '</span>'
+          + '<svg class="unit-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+          + '</button></div>';
+      } else {
+        unitCell = esc(selDef.name || '--');
+      }
+      ch += '<tr>';
+      ch += detailSpecCells(groups, counts, 1, combo, ci);
+      ch += '<td>' + unitCell + '</td>';
+      ch += '<td class="num">' + fmtQty(shown) + esc(selDef.name) + '</td>';
+      ch += '</tr>';
+    });
+    ch += '</tbody>';
+    el('detailCurrentTable').innerHTML = ch;
+  }
 
   function resetForm(){
     ['fName','fCode','fBarcode','fRemark','fOrigin','fPurchasePrice','fRetailPrice',
@@ -1131,6 +1851,65 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(ov) ov.addEventListener('click', function(e){ if(e.target === ov) closePrompt(); });
   })();
 
+  // --- Confirm dialog ---
+  var _confirmResolve = null;
+  window.showConfirm = function(opts){
+    return new Promise(function(resolve){
+      _confirmResolve = resolve;
+      el('confirmTitle').textContent = opts.title || '确认操作';
+      el('confirmMsg').textContent = opts.message || '确定要执行此操作吗？';
+      el('confirmDesc').textContent = opts.desc || '';
+      var detail = el('confirmDetail');
+      if(opts.detail){
+        detail.textContent = opts.detail;
+        detail.style.display = 'block';
+      } else {
+        detail.style.display = 'none';
+      }
+      var icon = el('confirmIcon');
+      icon.className = 'confirm-icon ' + (opts.iconType || 'warn');
+      var okBtn = el('confirmOkBtn');
+      okBtn.textContent = opts.okText || '确定';
+      okBtn.className = 'btn ' + (opts.okClass || 'btn-primary');
+      el('confirmModal').classList.add('show');
+    });
+  };
+  window.closeConfirm = function(){
+    el('confirmModal').classList.remove('show');
+    if(_confirmResolve){ var r = _confirmResolve; _confirmResolve = null; r(false); }
+  };
+  window.doConfirm = function(){
+    var r = _confirmResolve; _confirmResolve = null;
+    el('confirmModal').classList.remove('show');
+    if(r) r(true);
+  };
+  (function bindConfirm(){
+    var ov = el('confirmModal');
+    if(ov) ov.addEventListener('click', function(e){ if(e.target === ov) closeConfirm(); });
+  })();
+
+  // --- Alert dialog ---
+  window.showAlert = function(opts){
+    return new Promise(function(resolve){
+      el('alertTitle').textContent = opts.title || '提示';
+      el('alertMsg').textContent = opts.message || '操作失败';
+      el('alertDesc').textContent = opts.desc || '';
+      var icon = el('alertIcon');
+      icon.className = 'confirm-icon ' + (opts.iconType || 'danger');
+      el('alertModal').classList.add('show');
+      el('alertModal')._resolve = resolve;
+    });
+  };
+  window.closeAlert = function(){
+    var ov = el('alertModal');
+    ov.classList.remove('show');
+    if(ov._resolve){ var r = ov._resolve; ov._resolve = null; r(); }
+  };
+  (function bindAlert(){
+    var ov = el('alertModal');
+    if(ov) ov.addEventListener('click', function(e){ if(e.target === ov) closeAlert(); });
+  })();
+
   // --- 新增类别 / 单位 ---
   // --- 货品类别（两级级联）---
   function catById(id){
@@ -1156,56 +1935,86 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var w = el('catInputWrap');
     if(w) w.classList.toggle('filled', !!form.categoryId);
   }
-  function buildCascadeHTML(activeParent, selectedId, hoverFn, pickFn, noneLabel){
-    var left = '<div class="cat-opt' + (String(activeParent) === '0' ? ' active' : '') + (selectedId ? '' : ' selected') + '"'
-      + ' onmouseenter="' + hoverFn + '(0)" onclick="' + pickFn + '(0)">' + esc(noneLabel)
-      + '<span class="opt-check">' + checkSVG() + '</span></div>';
-    catTopLevels().forEach(function(c){
-      var active = String(activeParent) === String(c.id);
-      var sel = String(selectedId) === String(c.id);
-      left += '<div class="cat-opt' + (active ? ' active' : '') + (sel ? ' selected' : '') + '"'
-        + ' onmouseenter="' + hoverFn + '(' + c.id + ')" onclick="' + pickFn + '(' + c.id + ')">'
-        + esc(c.name)
-        + (catHasChild(c.id)
+  function catAncestorPath(id){
+    var path = [];
+    var c = id ? catById(id) : null;
+    while(c){
+      path.unshift(c.id);
+      c = c.parent_id ? catById(c.parent_id) : null;
+    }
+    return path;
+  }
+  function buildCascadeHTML(hoverPath, selectedId, hoverFn, pickFn, noneLabel){
+    hoverPath = hoverPath || [];
+    function opt(id, depth, label){
+      var active = String(hoverPath[depth]) === String(id);
+      var sel = String(selectedId) === String(id);
+      return '<div class="cat-opt' + (active ? ' active' : '') + (sel ? ' selected' : '') + '"'
+        + ' onmouseover="' + hoverFn + '(' + id + ',' + depth + ')" onclick="' + pickFn + '(' + id + ')">'
+        + esc(label)
+        + (id && catHasChild(id)
             ? '<svg class="cat-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>'
             : '<span class="opt-check">' + checkSVG() + '</span>')
         + '</div>';
-    });
-    var right;
-    if(!activeParent){
-      right = '<div class="cat-opt empty">请选择左侧类别</div>';
-    } else {
-      var kids = catChildren(activeParent);
-      right = kids.length
-        ? kids.map(function(c){
-            var sel = String(selectedId) === String(c.id);
-            return '<div class="cat-opt' + (sel ? ' selected' : '') + '" onclick="' + pickFn + '(' + c.id + ')">'
-              + esc(c.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
-          }).join('')
-        : '<div class="cat-opt empty">暂无子类别</div>';
     }
-    return { left: left, right: right };
+    var cols = [];
+    var col0 = opt(0, 0, noneLabel);
+    catTopLevels().forEach(function(c){ col0 += opt(c.id, 0, c.name); });
+    cols.push(col0);
+    for(var depth = 1; depth <= 5; depth++){
+      var parentId = hoverPath[depth - 1];
+      if(!parentId) break;
+      var kids = catChildren(parentId);
+      if(!kids.length){
+        cols.push('<div class="cat-opt empty">暂无子类别</div>');
+        break;
+      }
+      var html = '';
+      kids.forEach(function(c){ html += opt(c.id, depth, c.name); });
+      cols.push(html);
+    }
+    while(cols.length < 2) cols.push('<div class="cat-opt empty">请选择左侧类别</div>');
+    return cols;
+  }
+  function renderCascadeInto(container, hoverPath, selectedId, hoverFn, pickFn, noneLabel){
+    if(!container) return;
+    var cols = buildCascadeHTML(hoverPath, selectedId, hoverFn, pickFn, noneLabel);
+    container.innerHTML = cols.map(function(h){ return '<div class="cat-col">' + h + '</div>'; }).join('');
   }
   function renderCatCols(){
-    var pl = el('catColParent'), cl = el('catColChild');
-    if(!pl || !cl) return;
-    var html = buildCascadeHTML(catUI.activeParent, form.categoryId, 'hoverCat', 'selectCategory', '未分类');
-    pl.innerHTML = html.left;
-    cl.innerHTML = html.right;
+    renderCascadeInto(el('catDrop'), catUI.hoverPath, form.categoryId, 'hoverCat', 'selectCategory', '未分类');
   }
-  window.hoverCat = function(pid){
-    catUI.activeParent = pid || 0;
-    renderCatCols();
+  var _hoverCatTimer = null;
+  window.cancelHoverCat = function(){
+    if(_hoverCatTimer) clearTimeout(_hoverCatTimer);
+  };
+  function samePath(a, b){
+    if(a.length !== b.length) return false;
+    for(var i = 0; i < a.length; i++){ if(String(a[i]) !== String(b[i])) return false; }
+    return true;
+  }
+  function setHoverPath(ui, id, depth, renderFn){
+    id = id ? parseInt(id, 10) : 0;
+    var cur = ui.hoverPath || [];
+    var path = cur.slice(0, depth);
+    if(id !== 0) path[depth] = id;
+    if(samePath(path, cur)) return;
+    ui.hoverPath = path;
+    renderFn();
+  }
+  window.hoverCat = function(id, depth){
+    if(_hoverCatTimer) clearTimeout(_hoverCatTimer);
+    _hoverCatTimer = setTimeout(function(){ setHoverPath(catUI, id, depth, renderCatCols); }, 50);
   };
   window.openCategoryDrop = function(){
-    var c = catById(form.categoryId);
-    catUI.activeParent = (c && c.parent_id) ? c.parent_id : 0;
+    catUI.hoverPath = form.categoryId ? catAncestorPath(form.categoryId).slice(0, -1) : [];
     renderCatCols();
     var d = el('catDrop'), w = el('catInputWrap');
     if(d) d.classList.add('open');
     if(w) w.classList.add('open');
   };
   window.closeCategoryDrop = function(){
+    if(_hoverCatTimer) clearTimeout(_hoverCatTimer);
     var d = el('catDrop'), w = el('catInputWrap');
     if(d) d.classList.remove('open');
     if(w) w.classList.remove('open');
@@ -1221,35 +2030,31 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   };
 
   // 弹窗内「上级类别」级联
-  var catParentUI = { activeParent: 0, value: 0 };
+  var catParentUI = { hoverPath: [], value: 0 };
   function renderCatParentPicker(){
     var inp = el('catParentInput');
     if(!inp) return;
     inp.value = catParentUI.value ? catPath(catParentUI.value) : '无';
   }
   function renderCatParentCols(){
-    var L = el('catParentColLeft'), R = el('catParentColRight');
-    if(!L || !R) return;
-    var html = buildCascadeHTML(catParentUI.activeParent, catParentUI.value, 'hoverCatParent', 'selectCatParent', '无');
-    L.innerHTML = html.left;
-    R.innerHTML = html.right;
+    renderCascadeInto(el('catParentDrop'), catParentUI.hoverPath, catParentUI.value, 'hoverCatParent', 'selectCatParent', '无');
   }
   window.openCatParentDrop = function(){
-    var c = catById(catParentUI.value);
-    catParentUI.activeParent = (c && c.parent_id) ? c.parent_id : 0;
+    catParentUI.hoverPath = catParentUI.value ? catAncestorPath(catParentUI.value).slice(0, -1) : [];
     renderCatParentCols();
     var d = el('catParentDrop'), w = el('catParentInputWrap');
     if(d) d.classList.add('open');
     if(w) w.classList.add('open');
   };
   window.closeCatParentDrop = function(){
+    if(_hoverCatTimer) clearTimeout(_hoverCatTimer);
     var d = el('catParentDrop'), w = el('catParentInputWrap');
     if(d) d.classList.remove('open');
     if(w) w.classList.remove('open');
   };
-  window.hoverCatParent = function(pid){
-    catParentUI.activeParent = pid || 0;
-    renderCatParentCols();
+  window.hoverCatParent = function(id, depth){
+    if(_hoverCatTimer) clearTimeout(_hoverCatTimer);
+    _hoverCatTimer = setTimeout(function(){ setHoverPath(catParentUI, id, depth, renderCatParentCols); }, 50);
   };
   window.selectCatParent = function(id){
     catParentUI.value = id ? parseInt(id, 10) : 0;
@@ -1260,7 +2065,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   window.openCategoryModal = function(){
     catUI.editingId = 0;
     catParentUI.value = 0;
-    catParentUI.activeParent = 0;
+    catParentUI.hoverPath = [];
     el('categoryModalTitle').textContent = '新增商品分类';
     el('categorySubmitBtn').textContent = '保存';
     el('catNameInput').value = '';
@@ -1866,6 +2671,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     renderUnits();
     syncDefaultUnitOptions();
     refreshSpecDependents();
+    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
   };
   window.clearAuxUnit = function(idx){
     if(!form.units[idx]) return;
@@ -1875,9 +2681,15 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     renderUnits();
     syncDefaultUnitOptions();
     refreshSpecDependents();
+    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
   };
   window.onMainUnitChange = function(){
     if(checked('fMultiUnit')){ readUnits(); renderUnits(); }
+    else {
+      readSimplePrice(); renderSimplePrice();
+      readSimpleStock(); renderSimpleStock();
+      reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
+    }
   };
   window.addUnitRow = function(){
     if(form.units.length >= 2){ showToast('最多 2 个辅单位', 'error'); return; }
@@ -1889,6 +2701,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     readUnits();
     form.units.splice(i, 1);
     renderUnits();
+    syncDefaultUnitOptions();
+    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
   };
   function readUnits(){
     var boxes = el('unitBoxes').querySelectorAll('.unit-box');
@@ -2328,7 +3142,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   // --- 价格 / 库存 与 规格、单位 联动 ---
   function specCombos(){
     var groups = form.specGroups.filter(function(g){ return g.name && g.values.length; });
-    if(!groups.length) return [];
+    if(!groups.length) return [{ key:'', values:{} }];
     var combos = [{ key:'', values:{} }];
     groups.forEach(function(g){
       var next = [];
@@ -2433,14 +3247,16 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   }
 
   function refreshSpecDependents(){
-    var on = checked('fMultiSpec');
-    el('priceSimple').style.display = on ? 'none' : '';
-    el('priceMulti').style.display  = on ? '' : 'none';
-    el('stockSimple').style.display = on ? 'none' : '';
-    el('stockMulti').style.display  = on ? '' : 'none';
+    var multiSpec = checked('fMultiSpec');
+    var multiUnit = checked('fMultiUnit');
+    var priceMulti = multiSpec || multiUnit;
+    el('priceSimple').style.display = priceMulti ? 'none' : '';
+    el('priceMulti').style.display  = priceMulti ? '' : 'none';
+    el('stockSimple').style.display = multiSpec ? 'none' : '';
+    el('stockMulti').style.display  = multiSpec ? '' : 'none';
     readSimplePrice(); renderSimplePrice();
     readSimpleStock(); renderSimpleStock();
-    if(!on) return;
+    if(!priceMulti) return;
     readPriceTable(); readStockTable();
     reconcileRows();
     renderPriceTabs();
@@ -2503,6 +3319,74 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     renderSimplePrice(); renderPriceTable();
     showToast('价格等级已删除', 'success');
   };
+
+  // --- 批量修改 / 自动生成 ---
+  var _batchField = '';
+  var _batchFieldLabel = '';
+  window.batchEdit = function(field){
+    readPriceTable();
+    _batchField = field;
+    var fieldNames = {
+      code: '编号/货号', barcode: '条形码',
+      purchase_price: '进货价', retail_price: '零售价', wholesale_price: '批发价'
+    };
+    if(field.indexOf('custom:') === 0) _batchFieldLabel = '价格等级「' + field.slice(7) + '」';
+    else _batchFieldLabel = fieldNames[field] || field;
+    el('batchEditTitle').textContent = '批量修改' + _batchFieldLabel;
+    el('batchEditFieldLabel').textContent = _batchFieldLabel;
+    var isNum = field === 'purchase_price' || field === 'retail_price' || field === 'wholesale_price' || field.indexOf('custom:') === 0;
+    var inp = el('batchEditInput');
+    inp.type = isNum ? 'number' : 'text';
+    inp.step = isNum ? '0.01' : '';
+    inp.min = isNum ? '0' : '';
+    inp.value = '';
+    inp.placeholder = isNum ? '请输入' + _batchFieldLabel : '请输入';
+    var uSel = el('batchEditUnit');
+    var units = priceUnitNames();
+    uSel.innerHTML = units.map(function(u){
+      return '<option value="' + escAttr(u) + '"' + (u === form.priceUnit ? ' selected' : '') + '>' + esc(u) + '</option>';
+    }).join('');
+    uSel.closest('.cat-form-row').style.display = units.length > 1 ? '' : 'none';
+    el('batchEditModal').classList.add('show');
+    setTimeout(function(){ inp.focus(); }, 60);
+  };
+  window.closeBatchEdit = function(){ el('batchEditModal').classList.remove('show'); };
+  window.submitBatchEdit = function(){
+    var val = el('batchEditInput').value.trim();
+    if(val === '' && el('batchEditInput').type !== 'text'){ showToast('请输入内容', 'error'); return; }
+    var u = el('batchEditUnit').value || form.priceUnit;
+    var rows = form.priceRows[u] || {};
+    var n = 0;
+    Object.keys(rows).forEach(function(k){
+      var r = rows[k];
+      if(r.disabled) return;
+      if(_batchField.indexOf('custom:') === 0){
+        if(!r.custom) r.custom = {};
+        r.custom[_batchField.slice(7)] = val;
+      } else {
+        r[_batchField] = val;
+      }
+      n++;
+    });
+    form.priceRows[u] = rows;
+    closeBatchEdit();
+    renderPriceTable();
+    showToast('已批量修改 ' + n + ' 行' + _batchFieldLabel, 'success');
+  };
+  window.batchGenBarcode = function(){
+    readPriceTable();
+    var u = form.priceUnit;
+    var rows = form.priceRows[u] || {};
+    var n = 0;
+    Object.keys(rows).forEach(function(k){
+      var r = rows[k];
+      if(r.disabled) return;
+      if(!r.barcode){ r.barcode = ean13(); n++; }
+    });
+    form.priceRows[u] = rows;
+    renderPriceTable();
+    showToast('已生成 ' + n + ' 条条形码', 'success');
+  };
   function renderPriceTabs(){
     var units = priceUnitNames();
     el('priceUnitTabs').innerHTML = units.map(function(u){
@@ -2518,15 +3402,14 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var h = '<thead><tr>';
     groups.forEach(function(g){ h += '<th>' + esc(g.name) + '</th>'; });
     h += '<th>单位</th>'
-      + '<th>编号/货号<span class="th-sub">批量</span></th>'
-      + '<th>条形码<span class="th-sub">自动生成</span></th>'
-      + '<th>进货价<span class="th-sub">批量</span></th>'
-      + '<th>零售价<span class="th-sub">批量</span></th>'
-      + '<th>批发价<span class="th-sub">批量</span></th>';
+      + '<th>条形码<span class="th-sub th-sub-btn" onclick="batchGenBarcode()">自动生成</span></th>'
+      + '<th>进货价<span class="th-sub th-sub-btn" onclick="batchEdit(\'purchase_price\')">批量</span></th>'
+      + '<th>零售价<span class="th-sub th-sub-btn" onclick="batchEdit(\'retail_price\')">批量</span></th>'
+      + '<th>批发价<span class="th-sub th-sub-btn" onclick="batchEdit(\'wholesale_price\')">批量</span></th>';
     form.priceColumns.forEach(function(cn){
       h += '<th><span class="th-custom-name">' + esc(cn)
         + '<span class="th-del" onclick="removePriceLevel(\'' + jsesc(cn) + '\')" title="删除价格等级">×</span></span>'
-        + '<span class="th-sub">批量</span></th>';
+        + '<span class="th-sub th-sub-btn" onclick="batchEdit(\'custom:' + escAttr(cn) + '\')">批量</span></th>';
     });
     h += '<th>停用</th></tr></thead><tbody>';
     combos.forEach(function(c, ri){
@@ -2534,8 +3417,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       h += '<tr data-key="' + esc(c.key) + '">';
       h += specCellsHTML(groups, runs, c, ri);
       h += '<td class="spec-cell">' + esc(unit) + '</td>'
-        + '<td><input class="cell-input" data-f="code" value="' + esc(r.code) + '"></td>'
-        + '<td><input class="cell-input" data-f="barcode" value="' + esc(r.barcode) + '"></td>'
+        + '<td style="text-align:center"><input class="cell-input" data-f="barcode" value="' + esc(r.barcode) + '" style="text-align:center"></td>'
         + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="purchase_price" value="' + (r.purchase_price || '') + '"></td>'
         + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="retail_price" value="' + (r.retail_price || '') + '"></td>'
         + '<td><input class="cell-input" type="number" step="0.01" min="0" data-f="wholesale_price" value="' + (r.wholesale_price || '') + '"></td>';
@@ -2576,13 +3458,13 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     var alert = checked('fAlert');
     var h = '<thead><tr>';
     groups.forEach(function(g){ h += '<th>' + esc(g.name) + '</th>'; });
-    h += '<th>单位</th><th>初始库存<span class="th-sub">批量</span></th>';
+    h += '<th>单位</th><th>初始库存</th>';
     if(alert){
       h += '<th>最低库存<span class="th-sub">批量</span></th>'
         + '<th>安全库存<span class="th-sub">批量</span></th>'
         + '<th>最高库存<span class="th-sub">批量</span></th>';
     }
-    h += '<th>初始成本<span class="th-sub">批量</span></th></tr></thead><tbody>';
+    h += '<th>初始成本</th></tr></thead><tbody>';
     combos.forEach(function(c, ri){
       var r = rows[c.key] || blankStockRow();
       h += '<tr data-key="' + esc(c.key) + '">';
@@ -2635,7 +3517,12 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
           return;
         }
       }
-      readPriceTable(); readStockTable();
+    }
+    if(checked('fMultiUnit') || checked('fMultiSpec')){
+      readPriceTable();
+    }
+    if(checked('fMultiSpec')){
+      readStockTable();
     }
 
     var body = {
@@ -2764,6 +3651,11 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(v == null || v === '') return '0.00';
     return parseFloat(v).toFixed(2);
   }
+  function parseCustom(v){
+    if(!v) return {};
+    if(typeof v === 'object') return v;
+    try{ return JSON.parse(v) || {}; }catch(e){ return {}; }
+  }
 
   // --- Keyboard shortcut ---
   document.addEventListener('keydown', function(e){
@@ -2800,7 +3692,11 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     if(location.hash === '#goods:add'){
       if(formInited) openDrawer();
       else showCreate();
-    }else if(el('formView').style.display !== 'none'){
+    }else if(location.hash === '#goods:view'){
+      var vid = storedViewId();
+      if(vid) showDetail(vid);
+      else showListView();
+    }else if(el('formView').style.display !== 'none' || el('detailView').style.display !== 'none'){
       showListView();
     }
   });
@@ -2808,6 +3704,9 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   function bootGoods(){
     if(location.hash === '#goods:add'){
       showCreate();
+    } else if(location.hash === '#goods:view' && storedViewId()){
+      addViewTab(storedViewId());
+      loadMeta().then(function(){ loadData(1); showDetail(storedViewId()); });
     } else {
       loadMeta().then(function(){ loadData(1); });
     }
@@ -2819,7 +3718,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   }
 })();
 </script>
-<script src="/js/tabs.js?v=20260972"></script>
-<script src="/js/app-shell.js?v=20260972"></script>
+<script src="/js/tabs.js?v=20260974"></script>
+<script src="/js/app-shell.js?v=20260974"></script>
 </body>
 </html>

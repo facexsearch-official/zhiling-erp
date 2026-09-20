@@ -281,7 +281,16 @@
     nav.querySelectorAll('.snav-item').forEach(function(el){
       var key = el.getAttribute('data-nav');
       var mod = NAV.filter(function(m){ return m.key === key; })[0];
-      el.addEventListener('click', function(){ navGo(key); });
+      el.addEventListener('click', function(){
+        if(mod && mod.cols){
+          // 含子菜单的模块：优先跳到其第一个可访问页面，否则展开菜单（不再提示“开发中”）
+          var target = firstNavItem(mod);
+          if(target && target.href) navGo(target.key);
+          else showFlyout(mod, el);
+          return;
+        }
+        navGo(key);
+      });
       if(mod && mod.cols){
         el.addEventListener('mouseenter', function(){ showFlyout(mod, el); });
         el.addEventListener('mouseleave', scheduleHide);
@@ -289,6 +298,18 @@
         el.addEventListener('mouseenter', hideFlyoutNow);
       }
     });
+  }
+
+  /* 返回模块下第一个带 href 的菜单项 */
+  function firstNavItem(mod){
+    if(!mod || !mod.cols) return null;
+    for(var i = 0; i < mod.cols.length; i++){
+      var items = mod.cols[i].items || [];
+      for(var j = 0; j < items.length; j++){
+        if(items[j].href) return items[j];
+      }
+    }
+    return null;
   }
 
   /* ── Flyout ────────────────────────────────────────────── */
@@ -489,7 +510,7 @@
 
   /* ── Boot ──────────────────────────────────────────────── */
   /* 清理旧版导航遗留的标签（key 已不在新 NAV 中） */
-  var DYNAMIC_TAB_KEYS = ['goods:add'];
+  var DYNAMIC_TAB_KEYS = ['goods:add', 'goods:view'];
   function pruneTabs(){
     try{
       var raw = JSON.parse(localStorage.getItem('pisa_tabs') || '[]');

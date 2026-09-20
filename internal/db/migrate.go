@@ -24,7 +24,8 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.Warehouse{},
 		&model.Goods{},
 		&model.GoodsUnit{},
-		&model.GoodsSpec{},
+		&model.GoodsPrice{},
+		&model.GoodsStock{},
 		&model.Customer{},
 		&model.Supplier{},
 		&model.Account{},
@@ -33,6 +34,12 @@ func AutoCreateTables(db *gorm.DB) {
 	for _, t := range tables {
 		if err := db.AutoMigrate(t); err != nil {
 			log.Printf("auto migrate %T error: %v", t, err)
+		}
+	}
+	// 旧的货品多规格表已废弃，结构合并进 goods_prices / goods_stocks
+	if db.Migrator().HasTable("goods_specs") {
+		if err := db.Migrator().DropTable("goods_specs"); err != nil {
+			log.Printf("drop table goods_specs error: %v", err)
 		}
 	}
 	log.Println("db tables ready")

@@ -649,10 +649,11 @@ class GoodsTests:
         g = create("goods", self.PATH, {"name": f"查询货品{SUF}", "code": f"GET{SUF}"}, "查询货品")
         s, d = api("GET", f"{self.PATH}/{g['id']}")
         data = assert_ok(s, d, "按 ID 查询货品")
-        for field in ("id", "name", "code", "status", "units", "specs"):
+        for field in ("id", "name", "code", "status", "units", "prices", "stocks"):
             assert field in data, f"货品详情缺少字段 '{field}': {data}"
         assert isinstance(data["units"], list), "units 应为数组"
-        assert isinstance(data["specs"], list), "specs 应为数组"
+        assert isinstance(data["prices"], list), "prices 应为数组"
+        assert isinstance(data["stocks"], list), "stocks 应为数组"
 
     def test_get_nonexistent(self):
         s, d = api("GET", f"{self.PATH}/999999999")
@@ -772,30 +773,48 @@ class GoodsTests:
         }, "多单位货品")
         s, d = api("GET", f"{self.PATH}/{g['id']}")
         data = assert_ok(s, d, "多单位货品详情")
-        assert len(data["units"]) == 1, f"应有 1 个辅单位，实际 {len(data['units'])}"
-        assert float(data["units"][0]["factor"]) == 12, "辅单位换算系数错误"
+        assert len(data["units"]) == 2, f"应含主单位+辅单位共 2 个，实际 {len(data['units'])}"
+        aux = [u for u in data["units"] if not u["is_main"]]
+        assert len(aux) == 1, f"应有 1 个辅单位，实际 {len(aux)}"
+        assert float(aux[0]["factor"]) == 12, "辅单位换算系数错误"
+        assert data["main_unit"] == u1["name"], f"主单位聚合错误: {data['main_unit']}"
 
     def test_multi_spec(self):
+        u1 = create("unit", "/api/shop/unit", {"name": f"规格主单位{SUF}"}, "规格主单位")
+        spec_groups = [{"name": "颜色", "has_image": False,
+                        "values": [{"name": "米色", "image": ""}, {"name": "黑色", "image": ""}]}]
+        price_rows = {u1["name"]: {
+            "米色": {"purchase_price": "10", "retail_price": "20", "wholesale_price": "15"},
+            "黑色": {"purchase_price": "10", "retail_price": "25", "wholesale_price": "15"},
+        }}
+        stock_rows = {"米色": {"stock": "5", "init_cost": "10"},
+                      "黑色": {"stock": "3", "init_cost": "10"}}
         g = create("goods", self.PATH, {
             "name": f"多规格货品{SUF}", "code": f"MS{SUF}", "has_multi_spec": 1,
-            "specs": [
-                {"name": f"米色/XXL{SUF}", "code": f"MS{SUF}-1", "retail_price": 20, "stock": 5},
-                {"name": f"黑色/XXL{SUF}", "code": f"MS{SUF}-2", "retail_price": 25, "stock": 3},
-            ],
+            "unit_id": u1["id"],
+            "spec_groups": json.dumps(spec_groups, ensure_ascii=False),
+            "price_rows": json.dumps(price_rows, ensure_ascii=False),
+            "stock_rows": json.dumps(stock_rows, ensure_ascii=False),
         }, "多规格货品")
         s, d = api("GET", f"{self.PATH}/{g['id']}")
         data = assert_ok(s, d, "多规格货品详情")
-        assert len(data["specs"]) == 2, f"应有 2 个规格，实际 {len(data['specs'])}"
+        assert len(data["prices"]) == 2, f"应有 2 条价格，实际 {len(data['prices'])}"
+        assert len(data["stocks"]) == 2, f"应有 2 条库存，实际 {len(data['stocks'])}"
+        assert data["retail_min"] == 20 and data["retail_max"] == 25, \
+            f"零售价范围错误: {data['retail_min']}~{data['retail_max']}"
+        assert data["total_stock"] == 8, f"总库存应为 8，实际 {data['total_stock']}"
 
     def test_json_fields_roundtrip(self):
-        price_rows = {"__simple__": {"": {"purchase_price": "10", "retail_price": "20",
-                                          "wholesale_price": "15", "custom": {"等级A": "5"}}}}
-        price_columns = ["等级A", "等级B"]
+        u1 = create("unit", "/api/shop/unit", {"name": f"JSON主单位{SUF}"}, "JSON主单位")
+        col = f"等级{SUF}"
+        price_rows = {u1["name"]: {"": {"purchase_price": "10", "retail_price": "20",
+                                        "wholesale_price": "15", "custom": {col: "5"}}}}
+        price_columns = [col, "等级B"]
         stock_rows = {"": {"stock": "3", "init_cost": "10"}}
         spec_groups = [{"name": "颜色", "has_image": False, "values": [{"name": "红", "image": ""}]}]
         images = ["/uploads/x1.png", "/uploads/x2.png"]
         g = create("goods", self.PATH, {
-            "name": f"JSON货品{SUF}", "code": f"JS{SUF}",
+            "name": f"JSON货品{SUF}", "code": f"JS{SUF}", "unit_id": u1["id"],
             "price_rows": json.dumps(price_rows, ensure_ascii=False),
             "price_columns": json.dumps(price_columns, ensure_ascii=False),
             "stock_rows": json.dumps(stock_rows, ensure_ascii=False),
@@ -806,9 +825,43 @@ class GoodsTests:
         s, d = api("GET", f"{self.PATH}/{g['id']}")
         data = assert_ok(s, d, "JSON货品详情")
         assert json.loads(data["price_columns"]) == price_columns, "price_columns 往返不一致"
-        assert json.loads(data["price_rows"]) == price_rows, "price_rows 往返不一致"
         assert json.loads(data["spec_groups"]) == spec_groups, "spec_groups 往返不一致"
         assert json.loads(data["images"]) == images, "images 往返不一致"
+        # 价格 / 库存落到子表
+        assert len(data["prices"]) == 1, f"应有 1 条价格，实际 {len(data['prices'])}"
+        p = data["prices"][0]
+        assert p["unit_key"] == u1["name"], f"unit_key 错误: {p}"
+        assert p["purchase_price"] == 10 and p["retail_price"] == 20, f"价格错误: {p}"
+        assert json.loads(p["custom"]).get(col) == 5, f"自定义价错误: {p['custom']}"
+        assert len(data["stocks"]) == 1, f"应有 1 条库存，实际 {len(data['stocks'])}"
+        assert data["stocks"][0]["stock"] == 3, f"库存错误: {data['stocks'][0]}"
+
+    def test_list_units_summary(self):
+        u1 = create("unit", "/api/shop/unit", {"name": f"摘要主单位{SUF}"}, "摘要主单位")
+        u2 = create("unit", "/api/shop/unit", {"name": f"摘要辅单位{SUF}"}, "摘要辅单位")
+        price_rows = {
+            u1["name"]: {"": {"code": f"SUM{SUF}-1", "purchase_price": "10",
+                              "retail_price": "20", "wholesale_price": "15"}},
+            u2["name"]: {"": {"code": f"SUM{SUF}-2", "purchase_price": "100",
+                              "retail_price": "200", "wholesale_price": "150"}},
+        }
+        g = create("goods", self.PATH, {
+            "name": f"摘要货品{SUF}", "code": f"SUM{SUF}",
+            "unit_id": u1["id"], "has_multi_unit": 1,
+            "units": [{"unit_id": u2["id"], "unit_name": u2["name"], "factor": 10, "is_main": 0}],
+            "price_rows": json.dumps(price_rows, ensure_ascii=False),
+        }, "摘要货品")
+        s, d = api("GET", f"{self.PATH}/list", params={"keyword": f"SUM{SUF}", "page_size": 100})
+        data = assert_ok(s, d, "货品列表摘要")
+        item = next((x for x in data["list"] if x["id"] == g["id"]), None)
+        assert item is not None, "未找到摘要货品"
+        summaries = item.get("units_summary") or []
+        assert len(summaries) == 2, f"应有 2 个单位摘要，实际 {len(summaries)}"
+        by_name = {u["unit_name"]: u for u in summaries}
+        assert by_name[u1["name"]]["retail_min"] == 20, "主单位零售价摘要错误"
+        assert by_name[u2["name"]]["retail_min"] == 200, "辅单位零售价摘要错误"
+        assert f"SUM{SUF}-1" in by_name[u1["name"]]["codes"], "主单位编号摘要错误"
+        assert item["main_unit"] == u1["name"], "列表主单位错误"
 
     def test_plan_limit_route_present(self):
         # MaxGoods 限额中间件已挂载；当前套餐额度较大，仅验证创建仍可用。
@@ -820,7 +873,7 @@ class GoodsTests:
         test("[货品] 新增-空名称", self.test_create_empty_name)
         test("[货品] 新增-品牌超长", self.test_create_brand_too_long)
         test("[货品] 新增-完整字段", self.test_create_full)
-        test("[货品] 按ID查询(含units/specs)", self.test_get_by_id)
+        test("[货品] 按ID查询(含units/prices/stocks)", self.test_get_by_id)
         test("[货品] 查询-不存在", self.test_get_nonexistent)
         test("[货品] 列表结构", self.test_list_structure)
         test("[货品] 搜索-名称", self.test_search_by_name)
@@ -841,6 +894,7 @@ class GoodsTests:
         test("[货品] 多单位", self.test_multi_unit)
         test("[货品] 多规格", self.test_multi_spec)
         test("[货品] JSON字段往返", self.test_json_fields_roundtrip)
+        test("[货品] 列表单位摘要", self.test_list_units_summary)
         test("[货品] 套餐限额路由", self.test_plan_limit_route_present)
 
 
@@ -886,29 +940,42 @@ class PriceTests:
     LIST = "/api/shop/price/list"
     BATCH = "/api/shop/price/batch"
     ROWS = "/api/shop/price/rows"
+    _unit = None
+
+    def _main_unit(self):
+        if PriceTests._unit is None:
+            PriceTests._unit = create("unit", "/api/shop/unit",
+                                      {"name": f"价格主单位{SUF}"}, "价格主单位")
+        return PriceTests._unit
 
     def _make_simple(self, retail=100.0, wholesale=200.0, purchase=10.0, custom=50.0):
+        u = self._main_unit()
         col = f"等级{SUF}"
-        price_rows = {"__simple__": {"": {
+        price_rows = {u["name"]: {"": {
             "purchase_price": str(purchase), "retail_price": str(retail),
             "wholesale_price": str(wholesale), "custom": {col: str(custom)}}}}
         g = create("goods", "/api/shop/goods", {
             "name": f"价格货品{SUF}",
             "code": f"PR{SUF}",
+            "unit_id": u["id"],
             "purchase_price": purchase, "retail_price": retail, "wholesale_price": wholesale,
             "price_columns": json.dumps([col], ensure_ascii=False),
             "price_rows": json.dumps(price_rows, ensure_ascii=False),
         }, "价格货品")
         return g, col
 
-    def _find_row(self, goods_id, unit_key="__simple__", spec_key=""):
+    def _find_row(self, goods_id, unit_key=None, spec_key=None):
         s, d = api("GET", self.LIST, params={"page_size": 500})
         data = assert_ok(s, d, "价格列表")
-        key = f"{goods_id}|{unit_key}|{spec_key}"
         for r in data["list"]:
-            if r["key"] == key:
-                return r
-        raise AssertionError(f"未找到价格行 {key}")
+            if r["goods_id"] != goods_id:
+                continue
+            if unit_key is not None and r["unit_key"] != unit_key:
+                continue
+            if spec_key is not None and r["spec_key"] != spec_key:
+                continue
+            return r
+        raise AssertionError(f"未找到价格行 goods={goods_id} unit={unit_key} spec={spec_key}")
 
     def test_list_structure(self):
         s, d = api("GET", self.LIST)
@@ -930,26 +997,27 @@ class PriceTests:
         assert col in data["columns"], f"自定义列 {col} 未出现在 columns: {data['columns']}"
 
     def test_multi_unit_expansion(self):
-        u1 = create("unit", "/api/shop/unit", {"name": f"价主单位{SUF}"}, "价主单位")
+        u1 = create("unit", "/api/shop/unit", {"name": f"价主单位2{SUF}"}, "价主单位2")
+        u2 = create("unit", "/api/shop/unit", {"name": f"价辅单位2{SUF}"}, "价辅单位2")
         col = f"价等级{SUF}"
         price_rows = {
-            "件": {"规格A": {"code": f"PU{SUF}-1", "purchase_price": "10", "retail_price": "20",
-                            "wholesale_price": "15", "custom": {col: "1"}}},
-            "盒": {"规格A": {"code": f"PU{SUF}-2", "purchase_price": "100", "retail_price": "200",
-                            "wholesale_price": "150", "custom": {col: "2"}}},
+            u1["name"]: {"规格A": {"code": f"PU{SUF}-1", "purchase_price": "10", "retail_price": "20",
+                                   "wholesale_price": "15", "custom": {col: "1"}}},
+            u2["name"]: {"规格A": {"code": f"PU{SUF}-2", "purchase_price": "100", "retail_price": "200",
+                                   "wholesale_price": "150", "custom": {col: "2"}}},
         }
         g = create("goods", "/api/shop/goods", {
             "name": f"多单位价格货品{SUF}", "code": f"PU{SUF}",
             "unit_id": u1["id"], "has_multi_unit": 1,
-            "units": [{"unit_id": u1["id"], "unit_name": u1["name"], "factor": 10, "is_main": 0}],
+            "units": [{"unit_id": u2["id"], "unit_name": u2["name"], "factor": 10, "is_main": 0}],
             "price_columns": json.dumps([col], ensure_ascii=False),
             "price_rows": json.dumps(price_rows, ensure_ascii=False),
         }, "多单位价格货品")
         s, d = api("GET", self.LIST, params={"keyword": f"PU{SUF}", "page_size": 100})
         data = assert_ok(s, d, "多单位价格列表")
         keys = {r["key"] for r in data["list"]}
-        assert f"{g['id']}|件|规格A" in keys, f"缺少 件 行: {keys}"
-        assert f"{g['id']}|盒|规格A" in keys, f"缺少 盒 行: {keys}"
+        assert f"{g['id']}|{u1['name']}|规格A" in keys, f"缺少主单位行: {keys}"
+        assert f"{g['id']}|{u2['name']}|规格A" in keys, f"缺少辅单位行: {keys}"
 
     def test_filter_keyword(self):
         g, col = self._make_simple()
@@ -965,11 +1033,13 @@ class PriceTests:
 
     def test_filter_brand(self):
         brand = f"价格品牌{SUF}"
+        u = self._main_unit()
         col = f"等级{SUF}"
-        price_rows = {"__simple__": {"": {"purchase_price": "1", "retail_price": "2",
-                                          "wholesale_price": "3", "custom": {col: "0"}}}}
+        price_rows = {u["name"]: {"": {"purchase_price": "1", "retail_price": "2",
+                                       "wholesale_price": "3", "custom": {col: "0"}}}}
         g = create("goods", "/api/shop/goods", {
             "name": f"品牌价格货品{SUF}", "code": f"PB{SUF}", "brand": brand,
+            "unit_id": u["id"],
             "price_columns": json.dumps([col], ensure_ascii=False),
             "price_rows": json.dumps(price_rows, ensure_ascii=False),
         }, "品牌价格货品")
@@ -989,7 +1059,7 @@ class PriceTests:
     def test_batch_selected_up(self):
         g, col = self._make_simple(retail=100.0)
         s, d = api("PUT", self.BATCH, {
-            "scope": "selected", "keys": [f"{g['id']}|__simple__|"],
+            "scope": "selected", "keys": [f"{g['id']}|{self._main_unit()['name']}|"],
             "changes": [{"field": "retail_price", "mode": "up", "percent": 10}],
         })
         data = assert_ok(s, d, "批量改价-选中-上调")
@@ -1000,7 +1070,7 @@ class PriceTests:
     def test_batch_custom_down(self):
         g, col = self._make_simple(custom=50.0)
         s, d = api("PUT", self.BATCH, {
-            "scope": "selected", "keys": [f"{g['id']}|__simple__|"],
+            "scope": "selected", "keys": [f"{g['id']}|{self._main_unit()['name']}|"],
             "changes": [{"field": f"custom:{col}", "mode": "down", "percent": 50}],
         })
         assert_ok(s, d, "批量改价-自定义-下调")
@@ -1034,7 +1104,7 @@ class PriceTests:
     def test_rows_save_simple(self):
         g, col = self._make_simple(retail=100.0)
         s, d = api("PUT", self.ROWS, {"rows": [{
-            "goods_id": g["id"], "unit_key": "__simple__", "spec_key": "",
+            "goods_id": g["id"], "unit_key": self._main_unit()["name"], "spec_key": "",
             "purchase_price": 11, "retail_price": 250, "wholesale_price": 220,
             "custom": {col: 7},
         }]})
@@ -1049,22 +1119,24 @@ class PriceTests:
 
     def test_rows_save_multi_unit(self):
         u1 = create("unit", "/api/shop/unit", {"name": f"行保存主单位{SUF}"}, "行保存主单位")
+        u2 = create("unit", "/api/shop/unit", {"name": f"行保存辅单位{SUF}"}, "行保存辅单位")
         col = f"行等级{SUF}"
-        price_rows = {"件": {"规格B": {"code": f"RS{SUF}-1", "purchase_price": "10",
-                                       "retail_price": "20", "wholesale_price": "15", "custom": {col: "1"}}}}
+        price_rows = {u1["name"]: {"规格B": {"code": f"RS{SUF}-1", "purchase_price": "10",
+                                            "retail_price": "20", "wholesale_price": "15",
+                                            "custom": {col: "1"}}}}
         g = create("goods", "/api/shop/goods", {
             "name": f"行保存货品{SUF}", "code": f"RS{SUF}",
             "unit_id": u1["id"], "has_multi_unit": 1,
-            "units": [{"unit_id": u1["id"], "unit_name": u1["name"], "factor": 5, "is_main": 0}],
+            "units": [{"unit_id": u2["id"], "unit_name": u2["name"], "factor": 5, "is_main": 0}],
             "price_columns": json.dumps([col], ensure_ascii=False),
             "price_rows": json.dumps(price_rows, ensure_ascii=False),
         }, "行保存货品")
         s, d = api("PUT", self.ROWS, {"rows": [{
-            "goods_id": g["id"], "unit_key": "件", "spec_key": "规格B",
+            "goods_id": g["id"], "unit_key": u1["name"], "spec_key": "规格B",
             "purchase_price": 12, "retail_price": 33, "wholesale_price": 22, "custom": {col: 9},
         }]})
         assert_ok(s, d, "内联保存多单位价格")
-        row = self._find_row(g["id"], "件", "规格B")
+        row = self._find_row(g["id"], u1["name"], "规格B")
         assert row["retail_price"] == 33, f"多单位零售价应为 33，实际 {row['retail_price']}"
 
     def test_rows_empty(self):
@@ -1141,7 +1213,7 @@ class IntegrationTests:
         assert any(r["goods_id"] == g["id"] for r in data["list"]), "货品未出现在价格列表"
         # 批量改价后可见
         api("PUT", "/api/shop/price/batch", {
-            "scope": "selected", "keys": [f"{g['id']}|__simple__|"],
+            "scope": "selected", "keys": [f"{g['id']}||"],
             "changes": [{"field": "retail_price", "mode": "up", "percent": 100}],
         })
         s2, d2 = api("GET", "/api/shop/price/list", params={"keyword": f"IP{SUF}", "page_size": 100})

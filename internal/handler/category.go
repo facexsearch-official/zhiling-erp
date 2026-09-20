@@ -51,6 +51,15 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 			response.BadRequest(c, "上级类别不存在")
 			return
 		}
+		parentDepth, err := h.repo.GetDepth(ctx, cat.ParentID)
+		if err != nil {
+			response.ServerError(c, "查询分类层级失败")
+			return
+		}
+		if parentDepth >= 5 {
+			response.BadRequest(c, "最多支持5级分类")
+			return
+		}
 	}
 	cat.ID = 0
 	cat.TenantID = context.GetTenantID(ctx)
@@ -94,6 +103,17 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		if _, err := h.repo.GetByID(ctx, body.ParentID); err != nil {
 			response.BadRequest(c, "上级类别不存在")
 			return
+		}
+		if body.ParentID != existing.ParentID {
+			newParentDepth, err := h.repo.GetDepth(ctx, body.ParentID)
+			if err != nil {
+				response.ServerError(c, "查询分类层级失败")
+				return
+			}
+			if newParentDepth >= 5 {
+				response.BadRequest(c, "最多支持5级分类")
+				return
+			}
 		}
 	}
 	existing.Name = body.Name

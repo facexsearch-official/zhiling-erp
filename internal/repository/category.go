@@ -61,3 +61,21 @@ func (r *CategoryRepository) HasChildren(ctx context.Context, parentID int64) (b
 	err := r.Scoped(ctx).Model(&model.GoodsCategory{}).Where("parent_id = ?", parentID).Count(&count).Error
 	return count > 0, err
 }
+
+// GetDepth 计算分类层级深度（根节点=1）
+func (r *CategoryRepository) GetDepth(ctx context.Context, categoryID int64) (int, error) {
+	depth := 1
+	currentID := categoryID
+	for currentID != 0 {
+		var cat model.GoodsCategory
+		if err := r.Scoped(ctx).Where("id = ?", currentID).First(&cat).Error; err != nil {
+			return depth, err
+		}
+		if cat.ParentID == 0 {
+			break
+		}
+		depth++
+		currentID = cat.ParentID
+	}
+	return depth, nil
+}

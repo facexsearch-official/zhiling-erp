@@ -13,9 +13,9 @@ type GoodsCategory struct {
 
 // Unit 单位
 type Unit struct {
-	ID       int64     `json:"id" gorm:"primaryKey"`
-	TenantID int64     `json:"tenant_id" gorm:"index"`
-	Name     string    `json:"name" gorm:"size:20"`
+	ID        int64     `json:"id" gorm:"primaryKey"`
+	TenantID  int64     `json:"tenant_id" gorm:"index"`
+	Name      string    `json:"name" gorm:"size:20"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -43,14 +43,14 @@ type GoodsProperty struct {
 
 // Warehouse 仓库
 type Warehouse struct {
-	ID       int64     `json:"id" gorm:"primaryKey"`
-	TenantID int64     `json:"tenant_id" gorm:"index"`
-	Name     string    `json:"name" gorm:"size:128"`
-	Type     int8      `json:"type"` // 1=普通 2=原料仓 3=成品仓
-	Address  string    `json:"address" gorm:"size:255"`
-	Keeper   string    `json:"keeper" gorm:"size:64"`
-	Sort     int       `json:"sort"`
-	Status   int8      `json:"status" gorm:"default:1"`
+	ID        int64     `json:"id" gorm:"primaryKey"`
+	TenantID  int64     `json:"tenant_id" gorm:"index"`
+	Name      string    `json:"name" gorm:"size:128"`
+	Type      int8      `json:"type"` // 1=普通 2=原料仓 3=成品仓
+	Address   string    `json:"address" gorm:"size:255"`
+	Keeper    string    `json:"keeper" gorm:"size:64"`
+	Sort      int       `json:"sort"`
+	Status    int8      `json:"status" gorm:"default:1"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -88,44 +88,73 @@ type Goods struct {
 	PurchaseUnit     string  `json:"purchase_unit" gorm:"size:32"` // 开单默认进货单位
 	EnableStockAlert int8    `json:"enable_stock_alert" gorm:"default:0"`
 	InitCost         float64 `json:"init_cost"`
-	Images           string  `json:"images" gorm:"type:text"`      // JSON 数组
-	SpecGroups       string  `json:"spec_groups" gorm:"type:text"` // JSON: [{name,has_image,values:[{name,image}]}]
-	PriceRows        string  `json:"price_rows" gorm:"type:text"`    // JSON: {unitName:[{code,barcode,purchase_price,retail_price,wholesale_price,disabled}]}
-	StockRows        string  `json:"stock_rows" gorm:"type:text"`    // JSON: {specKey:{stock,min_stock,safe_stock,max_stock,init_cost}}
+	Images           string  `json:"images" gorm:"type:text"`        // JSON 数组
+	SpecGroups       string  `json:"spec_groups" gorm:"type:text"`   // JSON: [{name,has_image,values:[{name,image}]}]
 	PriceColumns     string  `json:"price_columns" gorm:"type:text"` // JSON: [自定义价格等级名]
 
-	// 非持久化：随详情一起返回
-	Units []GoodsUnit `json:"units" gorm:"-"`
-	Specs []GoodsSpec `json:"specs" gorm:"-"`
+	// ── 冗余聚合列（由子表重算，列表页直接读） ──
+	MainUnit   string  `json:"main_unit" gorm:"size:32"`
+	RetailMin  float64 `json:"retail_min"`
+	RetailMax  float64 `json:"retail_max"`
+	TotalStock int     `json:"total_stock"`
+
+	// 非持久化：随详情 / 列表一起返回
+	Units         []GoodsUnit        `json:"units" gorm:"-"`
+	Prices        []GoodsPrice       `json:"prices" gorm:"-"`
+	Stocks        []GoodsStock       `json:"stocks" gorm:"-"`
+	UnitSummaries []GoodsUnitSummary `json:"units_summary" gorm:"-"`
 }
 
-// GoodsUnit 货品多单位
+// GoodsUnit 货品多单位（单位定义，价格/条码见 goods_prices）
 type GoodsUnit struct {
+	ID       int64   `json:"id" gorm:"primaryKey"`
+	TenantID int64   `json:"tenant_id" gorm:"index"`
+	GoodsID  int64   `json:"goods_id" gorm:"index"`
+	UnitID   *int64  `json:"unit_id"`
+	UnitName string  `json:"unit_name" gorm:"size:32"`
+	Factor   float64 `json:"factor" gorm:"default:1"`
+	IsMain   int8    `json:"is_main" gorm:"default:0"`
+	Sort     int     `json:"sort"`
+}
+
+// GoodsPrice 货品价格明细（单位 × 规格）
+type GoodsPrice struct {
 	ID             int64   `json:"id" gorm:"primaryKey"`
 	TenantID       int64   `json:"tenant_id" gorm:"index"`
-	GoodsID        int64   `json:"goods_id" gorm:"index"`
-	UnitID         *int64  `json:"unit_id"`
-	UnitName       string  `json:"unit_name" gorm:"size:32"`
-	Factor         float64 `json:"factor" gorm:"default:1"`
+	GoodsID        int64   `json:"goods_id" gorm:"index;uniqueIndex:uk_gp"`
+	UnitKey        string  `json:"unit_key" gorm:"size:32;uniqueIndex:uk_gp"`
+	SpecKey        string  `json:"spec_key" gorm:"size:255;uniqueIndex:uk_gp"`
 	Barcode        string  `json:"barcode" gorm:"size:64"`
+	Code           string  `json:"code" gorm:"size:64"`
 	PurchasePrice  float64 `json:"purchase_price"`
 	RetailPrice    float64 `json:"retail_price"`
 	WholesalePrice float64 `json:"wholesale_price"`
-	IsMain         int8    `json:"is_main" gorm:"default:0"`
+	Disabled       int8    `json:"disabled" gorm:"default:0"`
+	Custom         string  `json:"custom" gorm:"type:text"` // JSON: {"33":0,"等级1":0}
 	Sort           int     `json:"sort"`
 }
 
-// GoodsSpec 货品多规格（扁平 SKU 列表）
-type GoodsSpec struct {
-	ID             int64   `json:"id" gorm:"primaryKey"`
-	TenantID       int64   `json:"tenant_id" gorm:"index"`
-	GoodsID        int64   `json:"goods_id" gorm:"index"`
-	Name           string  `json:"name" gorm:"size:128"`
-	Code           string  `json:"code" gorm:"size:64"`
-	Barcode        string  `json:"barcode" gorm:"size:64"`
-	PurchasePrice  float64 `json:"purchase_price"`
-	RetailPrice    float64 `json:"retail_price"`
-	WholesalePrice float64 `json:"wholesale_price"`
-	Stock          int     `json:"stock"`
-	Sort           int     `json:"sort"`
+// GoodsStock 货品库存（规格级，主单位口径）
+type GoodsStock struct {
+	ID          int64   `json:"id" gorm:"primaryKey"`
+	TenantID    int64   `json:"tenant_id" gorm:"index"`
+	GoodsID     int64   `json:"goods_id" gorm:"index;uniqueIndex:uk_gs"`
+	SpecKey     string  `json:"spec_key" gorm:"size:255;uniqueIndex:uk_gs"`
+	Stock       int     `json:"stock"`
+	MinStock    int     `json:"min_stock"`
+	SafetyStock int     `json:"safety_stock"`
+	MaxStock    int     `json:"max_stock"`
+	InitCost    float64 `json:"init_cost"`
+}
+
+// GoodsUnitSummary 货品列表的单位聚合摘要（非持久化）
+type GoodsUnitSummary struct {
+	UnitName     string  `json:"unit_name"`
+	Factor       float64 `json:"factor"`
+	IsMain       int8    `json:"is_main"`
+	RetailMin    float64 `json:"retail_min"`
+	RetailMax    float64 `json:"retail_max"`
+	WholesaleMin float64 `json:"wholesale_min"`
+	WholesaleMax float64 `json:"wholesale_max"`
+	Codes        string  `json:"codes"` // "33444/33445/..."
 }

@@ -99,9 +99,18 @@ td.c-act .btn-text{margin:0 6px}
 .toast.success{background:var(--success-500)}
 .toast.error{background:var(--danger-500)}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.confirm-body{display:flex;gap:16px;align-items:flex-start}
+.confirm-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.confirm-icon.warn{background:#FEF3C7;color:#F59E0B}
+.confirm-icon.danger{background:#FEE2E2;color:#EF4444}
+.confirm-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.confirm-text{flex:1;min-width:0}
+.confirm-text h3{font-size:15px;font-weight:600;color:var(--gray-800);margin-bottom:6px}
+.confirm-text p{font-size:13px;color:var(--gray-500);line-height:1.6}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260972">
-<link rel="stylesheet" href="/css/tabs.css?v=20260972">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260974">
+<link rel="stylesheet" href="/css/tabs.css?v=20260974">
 </head>
 <body>
 
@@ -188,8 +197,33 @@ td.c-act .btn-text{margin:0 6px}
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="/js/tabs.js?v=20260972"></script>
-<script src="/js/app-shell.js?v=20260972"></script>
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header" style="justify-content:space-between">
+      <h2 id="confirmTitle" style="flex:1;text-align:center">确认操作</h2>
+      <button class="modal-close" onclick="closeConfirm()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon warn" id="confirmIcon">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="confirm-text">
+          <h3 id="confirmMsg">确定要删除吗？</h3>
+          <p id="confirmDesc"></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end">
+      <button class="btn btn-secondary btn-lg" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-accent btn-lg" id="confirmOkBtn" onclick="doConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/tabs.js?v=20260974"></script>
+<script src="/js/app-shell.js?v=20260974"></script>
 <script>
 var props=[];
 var editId=0;
@@ -212,6 +246,33 @@ function showToast(msg,type){
   c.appendChild(d);
   setTimeout(function(){d.style.animation='toastIn .3s ease reverse';setTimeout(function(){d.remove();},300);},2500);
 }
+
+// --- Confirm dialog ---
+var _confirmResolve=null;
+function showConfirm(opts){
+  return new Promise(function(resolve){
+    _confirmResolve=resolve;
+    document.getElementById('confirmTitle').textContent=opts.title||'确认操作';
+    document.getElementById('confirmMsg').textContent=opts.message||'确定要执行此操作吗？';
+    document.getElementById('confirmDesc').textContent=opts.desc||'';
+    var icon=document.getElementById('confirmIcon');
+    icon.className='confirm-icon '+(opts.iconType||'warn');
+    var okBtn=document.getElementById('confirmOkBtn');
+    okBtn.textContent=opts.okText||'确定';
+    okBtn.className='btn btn-lg '+(opts.okClass||'btn-accent');
+    document.getElementById('confirmModal').classList.add('show');
+  });
+}
+function closeConfirm(){
+  document.getElementById('confirmModal').classList.remove('show');
+  if(_confirmResolve){var r=_confirmResolve;_confirmResolve=null;r(false);}
+}
+function doConfirm(){
+  var r=_confirmResolve;_confirmResolve=null;
+  document.getElementById('confirmModal').classList.remove('show');
+  if(r) r(true);
+}
+document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this)closeConfirm();});
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function typeName(t){return t===2?'输入型':'选择型';}
 function parseValues(v){try{return JSON.parse(v)||[]}catch(e){return [];}}
@@ -333,10 +394,19 @@ function submitProp(){
   });
 }
 function deleteProp(id,name){
-  if(!confirm('确认删除属性「'+name+'」？')) return;
-  apiFetch('/api/shop/property/'+id,{method:'DELETE'}).then(function(res){
-    if(res.code!==0){showToast(res.message||'删除失败','error');return;}
-    showToast('删除成功','success');loadData();
+  showConfirm({
+    title:'删除确认',
+    message:'确定要删除属性「'+name+'」吗？',
+    desc:'删除后不可恢复，请谨慎操作。',
+    iconType:'danger',
+    okText:'确定删除',
+    okClass:'btn-accent'
+  }).then(function(ok){
+    if(!ok)return;
+    apiFetch('/api/shop/property/'+id,{method:'DELETE'}).then(function(res){
+      if(res.code!==0){showToast(res.message||'删除失败','error');return;}
+      showToast('删除成功','success');loadData();
+    });
   });
 }
 
