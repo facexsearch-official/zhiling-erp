@@ -28,81 +28,14 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50);line-height:1.5}
 .app{display:flex;height:100vh;overflow:hidden}
-
-.sidebar{width:var(--sidebar-width);background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s ease}
-.sidebar.collapsed{width:var(--sidebar-collapsed)}
-.sidebar.collapsed .sidebar-header{justify-content:center;padding:16px 0}
-.sidebar.collapsed .sidebar-logo,
-.sidebar.collapsed .sidebar-brand,
-.sidebar.collapsed .nav-parent > span,
-.sidebar.collapsed .nav-item > span,
-.sidebar.collapsed .nav-badge,
-.sidebar.collapsed .nav-arrow,
-.sidebar.collapsed .sidebar-footer > div:not(.avatar){display:none}
-.sidebar.collapsed .sidebar-toggle{margin-left:0}
-.sidebar.collapsed .nav-sub{display:none !important}
-.sidebar.collapsed .nav-item,
-.sidebar.collapsed .nav-parent{justify-content:center;padding:10px 0}
-.sidebar.collapsed .nav-item.active::before{display:none}
-.sidebar.collapsed .sidebar-footer{justify-content:center;padding:12px 0}
-.sidebar-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
-.sidebar-logo{width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.sidebar-brand{font-size:15px;font-weight:600;color:var(--gray-800)}
-.sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px}
-.sidebar-footer{border-top:1px solid var(--gray-100);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;transition:background .15s}
-.sidebar-footer:hover{background:var(--gray-50)}
-.sidebar-footer .user-name{font-weight:500;color:var(--gray-700)}
-.sidebar-footer .user-role{color:var(--gray-400);font-size:12px}
-.avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.nav-group{margin-bottom:2px}
-.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--gray-600);transition:background .15s,color .15s;position:relative}
-.nav-item:hover,.nav-parent:hover{background:var(--gray-100);color:var(--gray-800)}
-.nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
-.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 2px 2px 0;background:var(--primary-500)}
-.nav-parent{font-weight:500;color:var(--gray-700)}
-.nav-parent:hover{background:var(--gray-100)}
-.nav-parent.open{color:var(--primary-600)}
-.nav-parent.open .nav-icon{color:var(--primary-500)}
-.nav-icon{width:18px;height:18px;flex-shrink:0}
-.nav-arrow{width:14px;height:14px;flex-shrink:0;margin-left:auto;color:var(--gray-400);transition:transform .2s}
-.nav-parent.open .nav-arrow{transform:rotate(90deg)}
-.nav-badge{font-size:11px;background:var(--primary-500);color:#fff;border-radius:var(--radius-full);padding:1px 7px;margin-left:auto}
-.nav-parent .nav-badge{margin-left:auto;margin-right:4px}
-.nav-sub{display:none;margin:2px 0 4px;padding-left:28px;position:relative}
-.nav-sub::before{content:'';position:absolute;left:21px;top:4px;bottom:4px;width:1px;background:var(--gray-200)}
-.nav-sub.open{display:block}
-.nav-sub-title{font-size:11px;color:var(--gray-400);padding:10px 12px 4px 12px;font-weight:500;letter-spacing:.5px}
-.nav-sub .nav-item{padding:7px 12px;font-size:13px;color:var(--gray-500)}
-.nav-sub .nav-item:hover{color:var(--gray-800);background:var(--gray-100)}
-.nav-sub .nav-item.active{color:var(--primary-600);background:var(--primary-50)}
-.sidebar-nav::-webkit-scrollbar,.content::-webkit-scrollbar{width:4px}
-.sidebar-nav::-webkit-scrollbar-thumb,.content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:2px}
-
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:var(--topbar-height);background:#fff;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
-.topbar-left{display:flex;align-items:center;gap:14px}
-.sidebar-toggle{width:28px;height:28px;margin-left:auto;border:none;background:none;border-radius:var(--radius-md);cursor:pointer;color:var(--gray-400);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
-.sidebar-toggle:hover{background:var(--gray-100);color:var(--gray-600)}
-.topbar-title{font-size:17px;font-weight:600;color:var(--gray-800)}
-.topbar-breadcrumb{font-size:12px;color:var(--gray-400);margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.topbar-search{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);width:240px}
-.topbar-search svg{color:var(--gray-400);flex-shrink:0;width:16px;height:16px}
-.topbar-search input{border:none;background:none;outline:none;font-size:13px;color:var(--gray-700);width:100%}
-.topbar-icon-btn{width:36px;height:36px;border-radius:var(--radius-md);border:none;background:none;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;justify-content:center;transition:background .15s}
-.topbar-icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
-
 .content{flex:1;overflow-y:auto;padding:20px 24px}
-.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.page-title{font-size:18px;font-weight:600;color:var(--gray-800)}
-.filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.search-wrapper{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:#fff;width:260px}
-.search-wrapper svg{color:var(--gray-400);width:16px;height:16px;flex-shrink:0}
-.search-input{border:none;outline:none;font-size:13px;color:var(--gray-700);width:100%;background:none}
+
+/* Table */
 .table-wrapper{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden}
 .table-wrapper table{width:100%;border-collapse:collapse}
-.table-wrapper th{background:var(--gray-50);font-size:12px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200)}
-.table-wrapper td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.table-wrapper th{background:var(--gray-50);font-size:12px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200);white-space:nowrap;vertical-align:middle}
+.table-wrapper td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);vertical-align:middle}
 .table-wrapper tr:last-child td{border-bottom:none}
 .table-wrapper tr:hover td{background:var(--gray-50)}
 .table-wrapper .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -110,29 +43,124 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .pagination-btns{display:flex;gap:4px}
 .page-btn{padding:4px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:12px;cursor:pointer;color:var(--gray-600)}
 .page-btn:hover{border-color:var(--gray-300)}
-.page-btn.active{background:var(--primary-500);color:#fff;border-color:var(--primary-500)}
+.page-btn.active{background:var(--accent-600,#0EA5A0);color:#fff;border-color:var(--accent-600,#0EA5A0)}
 .page-btn:disabled{opacity:.4;cursor:not-allowed}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
-.btn-primary{background:var(--primary-500);color:#fff}.btn-primary:hover{background:var(--primary-600)}
-.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
-.btn-ghost{background:none;color:var(--gray-600);padding:6px 10px}.btn-ghost:hover{background:var(--gray-100)}
-.btn-danger{background:#fff;color:var(--danger-500);border:1px solid var(--danger-500)}.btn-danger:hover{background:var(--danger-50)}
+
+/* Buttons / generic */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.btn-primary{background:var(--accent-600,#0EA5A0);color:#fff}
+.btn-primary:hover{filter:brightness(.95)}
+.btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-ghost{background:none;color:var(--gray-600);padding:6px 10px}
+.btn-ghost:hover{background:var(--gray-100)}
+.btn-danger{background:transparent;color:var(--danger-500);border:none;padding:6px 10px}
+.btn-danger:hover{background:var(--danger-50)}
 .btn-sm{padding:5px 10px;font-size:12px}
 .op-btns{display:flex;gap:4px}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:center;justify-content:center}
+
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-title{font-size:18px;font-weight:600;color:var(--gray-800)}
+.filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.search-wrapper{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:#fff;width:260px}
+.search-wrapper svg{color:var(--gray-400);width:16px;height:16px;flex-shrink:0}
+.search-input{border:none;outline:none;font-size:13px;color:var(--gray-700);width:100%;background:none}
+
+/* Form */
+.form-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:24px 28px 30px}
+.fsection-title{font-size:15px;font-weight:600;color:var(--gray-800);margin:6px 0 20px}
+.fsection-title:not(:first-child){margin-top:30px;padding-top:24px;border-top:1px solid var(--gray-100)}
+.sf-row{display:grid;grid-template-columns:1fr 1fr;gap:18px 40px;margin-bottom:18px}
+.sf-item{display:flex;align-items:flex-start;gap:12px}
+.sf-label{width:88px;flex-shrink:0;font-size:14px;color:var(--gray-600);line-height:40px}
+.sf-label .req{color:var(--danger-500);margin-left:2px}
+.sf-ctrl{flex:1;min-width:0;position:relative}
+.sf-input{width:100%;height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 12px;font-size:14px;color:var(--gray-800);outline:none;background:#fff;transition:border-color .15s,box-shadow .15s}
+.sf-input:focus{border-color:var(--accent-400,#4EC5B5);box-shadow:0 0 0 3px rgba(14,165,160,.10)}
+.sf-input::placeholder{color:var(--gray-400)}
+.sf-input[readonly]{cursor:pointer}
+textarea.sf-input{height:auto;min-height:72px;padding:10px 12px;resize:vertical;line-height:1.5}
+select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center;background-size:16px;padding-right:32px}
+.sf-link{color:var(--accent-600,#0EA5A0);font-size:14px;cursor:pointer;white-space:nowrap;line-height:40px}
+.sf-link:hover{text-decoration:underline}
+.sf-col{display:flex;flex-direction:column;gap:8px}
+
+/* Region picker */
+.region-ctrl{position:relative}
+.region-input-wrap{position:relative}
+.region-input{width:100%;height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 36px 0 12px;font-size:14px;color:var(--gray-800);outline:none;background:#fff}
+.region-input:focus{border-color:var(--accent-400,#4EC5B5);box-shadow:0 0 0 3px rgba(14,165,160,.10)}
+.region-input::placeholder{color:var(--gray-400)}
+.region-caret{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2;pointer-events:none}
+.region-drop{position:absolute;top:calc(100% + 4px);left:0;z-index:60;display:none;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);overflow:hidden}
+.region-drop.open{display:flex}
+.region-col{width:170px;max-height:260px;overflow-y:auto;padding:4px 0}
+.region-col + .region-col{border-left:1px solid var(--gray-100)}
+.region-opt{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
+.region-opt:hover{background:var(--gray-50)}
+.region-opt.active{background:var(--accent-50,#E7F7F3);color:var(--accent-700,#0B7C77)}
+.region-opt .region-arrow{margin-left:auto;width:13px;height:13px;stroke:var(--gray-400);fill:none;stroke-width:2}
+.region-empty{padding:14px 12px;color:var(--gray-400);font-size:13px}
+.region-col.wide{width:auto;min-width:240px;max-height:300px}
+
+/* Receiving addresses */
+.addr-subtitle{font-size:14px;color:var(--gray-600);margin:-6px 0 14px}
+.addr-list{display:flex;flex-direction:column;gap:16px}
+.addr-card{position:relative;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:20px 22px 18px}
+.addr-default-tag{position:absolute;top:0;right:0;background:var(--accent-600,#0EA5A0);color:#fff;font-size:12px;line-height:1.6;padding:3px 16px;border-radius:0 var(--radius-md) 0 var(--radius-md)}
+.addr-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.addr-row:last-child{margin-bottom:0}
+.addr-label{width:88px;flex-shrink:0;font-size:14px;color:var(--gray-600);line-height:40px}
+.addr-inline{display:flex;align-items:center;gap:12px}
+.addr-inline .addr-label{width:auto;margin-left:16px}
+.addr-input{max-width:220px}
+.addr-region{position:relative;width:300px;max-width:100%}
+.addr-actions{margin-left:auto;display:flex;align-items:center;gap:12px;line-height:40px;white-space:nowrap}
+.addr-link{color:var(--gray-500);font-size:14px;cursor:pointer}
+.addr-link:hover{color:var(--gray-800)}
+.addr-link.danger{color:var(--danger-500)}
+.addr-link.accent{color:var(--accent-600,#0EA5A0)}
+.addr-sep{color:var(--gray-300)}
+.addr-add{margin-top:16px}
+.addr-empty{color:var(--gray-400);font-size:13px;padding:6px 0 4px}
+
+/* Category picker field */
+.cat-field{display:flex;align-items:center;gap:12px}
+.cat-field .cat-picker{position:relative;flex:1;min-width:0}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:10px;width:640px;max-width:92vw;max-height:88vh;overflow:auto}
+.modal{background:#fff;border-radius:10px;width:560px;max-width:92vw;max-height:88vh;overflow:auto}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-200)}
 .modal-title{font-size:16px;font-weight:600}
 .modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1}
 .modal-body{padding:20px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
-.form-label{display:block;font-size:13px;color:var(--gray-600);margin-bottom:6px}
-.form-input{width:100%;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;outline:none;color:var(--gray-700)}
-.form-input:focus{border-color:var(--primary-500)}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--gray-200)}
+.cat-form-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.cat-form-label{width:76px;text-align:right;font-size:14px;color:var(--gray-600);flex-shrink:0}
+.cat-input-wrap{position:relative;flex:1}
+.cat-input{width:100%;height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 60px 0 12px;font-size:14px;outline:none}
+.cat-input:focus{border-color:var(--accent-400,#4EC5B5);box-shadow:0 0 0 3px rgba(14,165,160,.10)}
+.cat-counter{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-400)}
+
+/* Confirm modal */
+.confirm-body{display:flex;gap:16px;align-items:flex-start}
+.confirm-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.confirm-icon.warn{background:#FEF3C7;color:#F59E0B}
+.confirm-icon.danger{background:#FEE2E2;color:#EF4444}
+.confirm-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.confirm-text{flex:1;min-width:0}
+.confirm-text h3{font-size:15px;font-weight:600;color:var(--gray-800);margin-bottom:6px}
+.confirm-text p{font-size:13px;color:var(--gray-500);line-height:1.6}
+
+/* Toast */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--gray-800);color:#fff;padding:10px 24px;border-radius:var(--radius-md);font-size:13px;z-index:300;transition:transform .25s ease;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--success-500)}
+.toast.error{background:var(--danger-500)}
+
+.empty{padding:40px;text-align:center;color:var(--gray-400)}
 </style>
 <link rel="stylesheet" href="/css/app-shell.css?v=20260974">
 <link rel="stylesheet" href="/css/tabs.css?v=20260974">
@@ -145,37 +173,184 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
     </aside>
     <div class="main">
 <div class="content" id="content">
-      <div class="page-head">
-        <div class="page-title">供应商管理</div>
-        <div>
-          <button class="btn btn-secondary" onclick="exportTable()">导出</button>
-          <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
+
+  <!-- 列表视图 -->
+  <div id="listView">
+    <div class="split">
+      <aside class="cat-panel" id="catPanel">
+        <div class="cat-head">
+          <span>供应商分类</span>
+          <div class="cat-actions" id="catDefaultActions">
+            <button class="cat-search-btn" title="搜索分类" onclick="catToggleSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+            <button title="编辑分类" onclick="catToggleEdit()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          </div>
+          <div class="cat-actions" id="catEditActions" style="display:none">
+            <button class="cat-search-btn" title="搜索分类" onclick="catToggleSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+            <button class="cat-done-btn" onclick="catToggleEdit()">完成</button>
+          </div>
         </div>
-      </div>
-      <div class="filter-bar">
-        <div class="search-wrapper">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input class="search-input" id="searchInput" placeholder="输入名称或编码查询" oninput="searchDebounce()">
+        <div class="cat-search-wrap" id="catSearchWrap" style="display:none">
+          <div class="cat-search-box">
+            <input class="cat-search-input" id="catSearchInput" placeholder="请搜索" oninput="catOnSearch(this.value)">
+            <button class="cat-search-clear" id="catSearchClear" title="清除" onclick="catClearSearch()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
         </div>
-      </div>
-      <div id="tableWrap" class="table-wrapper">
-        <div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div>
+        <div class="cat-tree" id="catTree"></div>
+      </aside>
+      <div class="split-main">
+        <div class="page-head">
+          <div class="page-title">供应商管理</div>
+          <div>
+            <button class="btn btn-secondary" onclick="exportTable()">导出</button>
+            <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="searchInput" placeholder="输入名称或编码查询" oninput="searchDebounce()">
+          </div>
+        </div>
+        <div id="tableWrap" class="table-wrapper">
+          <div class="empty">加载中...</div>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- 表单视图 -->
+  <div id="formView" style="display:none">
+    <div class="page-head">
+      <div class="page-title" id="formTitle">新增供应商</div>
+      <div>
+        <button class="btn btn-secondary" onclick="cancelForm()">取消</button>
+        <button class="btn btn-secondary" onclick="submitForm(true)">保存并新增</button>
+        <button class="btn btn-primary" onclick="submitForm(false)">保存</button>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="fsection-title">基础信息</div>
+      <div class="sf-row">
+        <div class="sf-item">
+          <label class="sf-label">供应商名称<span class="req">*</span></label>
+          <div class="sf-ctrl"><input class="sf-input" id="fName" placeholder="请输入" autocomplete="off"></div>
+        </div>
+        <div class="sf-item">
+          <label class="sf-label">供应商分类<span class="req">*</span></label>
+          <div class="sf-ctrl cat-field">
+            <div class="cat-picker"><select class="sf-input" id="fCat"></select></div>
+            <span class="sf-link" onclick="openCategoryModal()">新增供应商分类</span>
+          </div>
+        </div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-item">
+          <label class="sf-label">初始欠款</label>
+          <div class="sf-ctrl"><input class="sf-input" id="fInitPayable" type="number" step="0.01" value="0"></div>
+        </div>
+        <div class="sf-item">
+          <label class="sf-label">联系人</label>
+          <div class="sf-ctrl"><input class="sf-input" id="fContact" placeholder="请输入" autocomplete="off"></div>
+        </div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-item">
+          <label class="sf-label">联系电话</label>
+          <div class="sf-ctrl"><input class="sf-input" id="fPhone" placeholder="请输入" autocomplete="off"></div>
+        </div>
+        <div class="sf-item">
+          <label class="sf-label">联系地址</label>
+          <div class="sf-ctrl sf-col">
+            <div class="region-ctrl" id="contactRegionCtrl">
+              <div class="region-input-wrap">
+                <input class="region-input" id="fRegion" placeholder="请选择地区" autocomplete="off" onfocus="openRegionDrop(this)" oninput="onRegionInput(this)">
+                <svg class="region-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="region-drop"></div>
+            </div>
+            <input class="sf-input" id="fAddressDetail" placeholder="请输入详情地址" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="fsection-title">收货信息</div>
+      <div class="addr-subtitle">收货地址</div>
+      <div class="addr-list" id="addressList"></div>
+      <button type="button" class="btn btn-secondary addr-add" onclick="addAddress()">+ 收货信息</button>
+
+      <div class="fsection-title">辅助信息</div>
+      <div class="sf-row">
+        <div class="sf-item"><label class="sf-label">邮箱</label><div class="sf-ctrl"><input class="sf-input" id="fEmail" placeholder="请输入" autocomplete="off"></div></div>
+        <div class="sf-item"><label class="sf-label">传真</label><div class="sf-ctrl"><input class="sf-input" id="fFax" placeholder="请输入" autocomplete="off"></div></div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-item"><label class="sf-label">开户银行</label><div class="sf-ctrl"><input class="sf-input" id="fBankName" placeholder="请输入" autocomplete="off"></div></div>
+        <div class="sf-item"><label class="sf-label">银行账号</label><div class="sf-ctrl"><input class="sf-input" id="fBankAccount" placeholder="请输入" autocomplete="off"></div></div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-item"><label class="sf-label">生日</label><div class="sf-ctrl"><input class="sf-input" id="fBirthday" type="date"></div></div>
+        <div class="sf-item"><label class="sf-label">微信号</label><div class="sf-ctrl"><input class="sf-input" id="fWechat" placeholder="请输入" autocomplete="off"></div></div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-item"><label class="sf-label">QQ</label><div class="sf-ctrl"><input class="sf-input" id="fQQ" placeholder="请输入" autocomplete="off"></div></div>
+        <div class="sf-item"><label class="sf-label">备注</label><div class="sf-ctrl"><textarea class="sf-input" id="fRemark" placeholder="请输入"></textarea></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
 </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal">
-  <div class="modal">
+<!-- 供应商分类弹窗 -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal" style="width:520px">
     <div class="modal-header">
-      <span class="modal-title" id="modalTitle">新增供应商</span>
-      <button class="modal-close" onclick="hideModal()">&times;</button>
+      <span class="modal-title" id="categoryModalTitle">新增供应商分类</span>
+      <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-body">
+      <div class="cat-form-row">
+        <label class="cat-form-label">分类名称</label>
+        <div class="cat-input-wrap">
+          <input class="cat-input" id="catNameInput" placeholder="请输入类别名称" maxlength="30" autocomplete="off" oninput="onCatNameInput(this.value)">
+          <span class="cat-counter" id="catNameCounter">0 / 30</span>
+        </div>
+      </div>
+      <div class="cat-form-row">
+        <label class="cat-form-label">上级分类</label>
+        <div class="cat-input-wrap"><select class="sf-input" id="catParentSelect"></select></div>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="hideModal()">取消</button>
-      <button class="btn btn-primary" id="modalConfirm">保存</button>
+      <button class="btn btn-secondary" onclick="closeCategoryModal()">取消</button>
+      <button class="btn btn-primary" id="categorySubmitBtn" onclick="submitCategory()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="confirmTitle">提示</span>
+      <button class="modal-close" onclick="closeConfirm()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon warn" id="confirmIcon">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="confirm-text">
+          <h3 id="confirmMsg">确认操作</h3>
+          <p id="confirmDesc"></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirmOkBtn">确定</button>
     </div>
   </div>
 </div>
@@ -183,220 +358,638 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 <div class="toast" id="toast"></div>
 
 <script>
-var API_BASE = '/api';
-var token = localStorage.getItem('pisa_token') || '';
-if (!token) { window.location.href = '/login.html'; }
+(function(){
+  var API_BASE = '/api';
+  var token = localStorage.getItem('pisa_token') || '';
+  if (!token) { window.location.href = '/login.html'; return; }
 
-function authHeaders() {
-  var h = { 'Content-Type': 'application/json' };
-  if (token) h['Authorization'] = 'Bearer ' + token;
-  return h;
-}
+  window.apiFetch = function(path, opts){
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    if (opts.body && typeof opts.body === 'object') opts.body = JSON.stringify(opts.body);
+    return fetch(API_BASE + path, opts).then(function(res){
+      if (res.status === 401) { window.location.href = '/login.html'; throw new Error('Unauthorized'); }
+      return res.json();
+    });
+  };
+  function apiGet(p){ return apiFetch(p); }
+  function apiPost(p,b){ return apiFetch(p,{method:'POST',body:b}); }
+  function apiPut(p,b){ return apiFetch(p,{method:'PUT',body:b}); }
+  function apiDelete(p){ return apiFetch(p,{method:'DELETE'}); }
 
-async function apiFetch(path, opts) {
-  opts = opts || {};
-  opts.headers = authHeaders();
-  var res = await fetch(API_BASE + path, opts);
-  if (res.status === 401) { window.location.href = '/login.html'; return null; }
-  return await res.json();
-}
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function escAttr(s){ return esc(s); }
 
-function apiGet(path) { return apiFetch(path); }
-function apiPost(path, body) {
-  return apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
-}
-function apiPut(path, body) {
-  return apiFetch(path, { method: 'PUT', body: JSON.stringify(body) });
-}
-function apiDelete(path) {
-  return apiFetch(path, { method: 'DELETE' });
-}
+  /* ══════════ Toast / Confirm ══════════ */
+  window.showToast = function(msg, type){
+    var t = el('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(function(){ t.className = 'toast'; }, 2500);
+  };
 
-/* ═══════════ Icons ═══════════ */
+  var _confirmResolve = null;
+  window.showConfirm = function(opt){
+    el('confirmTitle').textContent = opt.title || '提示';
+    el('confirmMsg').textContent = opt.message || '';
+    el('confirmDesc').textContent = opt.desc || '';
+    var icon = el('confirmIcon');
+    icon.className = 'confirm-icon ' + (opt.iconType === 'danger' ? 'danger' : 'warn');
+    var ok = el('confirmOkBtn');
+    ok.textContent = opt.okText || '确定';
+    ok.className = 'btn ' + (opt.okClass === 'btn-danger' ? 'btn-danger' : 'btn-primary');
+    el('confirmModal').classList.add('show');
+    return new Promise(function(resolve){ _confirmResolve = resolve; });
+  };
+  window.closeConfirm = function(){
+    el('confirmModal').classList.remove('show');
+    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+  };
+  el('confirmOkBtn').onclick = function(){
+    el('confirmModal').classList.remove('show');
+    if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+  };
+  el('confirmModal').addEventListener('click', function(e){ if (e.target === this) closeConfirm(); });
 
-/* ═══════════ User init ═══════════ */
+  /* ══════════ State ══════════ */
+  var catList = [];
+  var catUI = { editMode:false, searchMode:false, searchKw:'', collapsed:{}, editingId:0, parentId:0 };
+  var currentCatId = 0;
+  var currentPage = 1;
+  var currentKeyword = '';
+  var totalPages = 1;
+  var totalCount = 0;
+  var searchTimer = null;
+  var formEditId = null;
 
-/* ═══════════ State ═══════════ */
-var currentPage = 1;
-var currentKeyword = '';
-var totalPages = 1;
-var totalCount = 0;
-
-/* ═══════════ Load data ═══════════ */
-async function loadData(page, keyword) {
-  currentPage = page || 1;
-  currentKeyword = keyword || '';
-  var wrap = document.getElementById('tableWrap');
-  var path = '/shop/supplier/list?page=' + currentPage + '&page_size=10';
-  if (currentKeyword) path += '&keyword=' + encodeURIComponent(currentKeyword);
-  var res = await apiGet(path);
-  if (!res || res.code !== 0) {
-    wrap.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>';
-    return;
+  function catById(id){ if(!id) return null; return catList.filter(function(c){ return String(c.id)===String(id); })[0] || null; }
+  function catChildren(pid){ return catList.filter(function(c){ return String(c.parent_id||0)===String(pid||0); }); }
+  function catTopLevels(){ return catChildren(0); }
+  function catPath(id){
+    var c = catById(id); if(!c) return '';
+    var parts=[]; while(c){ parts.unshift(c.name); c = c.parent_id ? catById(c.parent_id) : null; }
+    return parts.join(' / ');
   }
-  var list = res.data.list || [];
-  totalCount = res.data.total || 0;
-  totalPages = Math.ceil(totalCount / 10) || 1;
-  renderTable(list);
-}
+  function catName(id){ if(!id) return '未分类'; var c=catById(id); return c ? c.name : '未分类'; }
+  function flattenCats(excludeId){
+    var out=[];
+    (function walk(pid, depth){
+      catChildren(pid).forEach(function(c){
+        if(excludeId && String(c.id)===String(excludeId)) return;
+        out.push({ id:c.id, name:c.name, depth:depth });
+        walk(c.id, depth+1);
+      });
+    })(0,0);
+    return out;
+  }
 
-function renderTable(list) {
-  var wrap = document.getElementById('tableWrap');
-  var h = '<table><thead><tr>';
-  h += '<th style="width:120px">编码</th>';
-  h += '<th>供应商名称</th>';
-  h += '<th>联系人</th>';
-  h += '<th>电话</th>';
-  h += '<th style="width:120px" class="num">应付余额</th>';
-  h += '<th style="width:140px">操作</th>';
-  h += '</tr></thead><tbody>';
-  if (list.length === 0) {
-    h += '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--gray-400)">暂无数据</td></tr>';
-  } else {
-    list.forEach(function(row) {
-      h += '<tr>';
-      h += '<td>' + (row.code || '-') + '</td>';
-      h += '<td>' + (row.name || '-') + '</td>';
-      h += '<td>' + (row.contact || '-') + '</td>';
-      h += '<td>' + (row.phone || '-') + '</td>';
-      h += '<td class="num">¥' + Number(row.total_payable || 0).toLocaleString() + '</td>';
-      h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
-      h += '</tr>';
+  /* ══════════ Category tree ══════════ */
+  function renderCatTree(){
+    var c = el('catTree'); if(!c) return;
+    var kw = catUI.searchKw.toLowerCase();
+    function match(name){ return !kw || name.toLowerCase().indexOf(kw) >= 0; }
+    var h = '';
+    var allOpen = kw ? true : !catUI.collapsed['all'];
+    h += '<div class="cat-node' + (currentCatId===0?' active':'') + '" onclick="pickCat(this,0)">'
+      + '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (allOpen?'90':'0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'all\')"><polyline points="9 18 15 12 9 6"/></svg>'
+      + '<span>全部</span>';
+    if(catUI.editMode) h += '<div class="cat-actions-row"><button class="cat-node-actions" title="新增分类" onclick="event.stopPropagation();catAddChild(0)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>';
+    h += '</div>';
+    function node(cat, level){
+      var kids = catChildren(cat.id);
+      var hasKids = kids.length > 0;
+      var expanded = kw ? true : !catUI.collapsed[cat.id];
+      var depthClass = level===1?' child':level===2?' child2':level===3?' child3':' child4';
+      h += '<div class="cat-node' + depthClass + (String(currentCatId)===String(cat.id)?' active':'') + '" onclick="pickCat(this,' + cat.id + ')">';
+      if(hasKids) h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded?'90':'0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(' + cat.id + ')"><polyline points="9 18 15 12 9 6"/></svg>';
+      else h += '<span class="cat-caret"></span>';
+      h += '<span>' + esc(cat.name) + '</span>';
+      if(catUI.editMode){
+        h += '<div class="cat-actions-row">';
+        if(level < 5) h += '<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();catAddChild(' + cat.id + ')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+        h += '<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();catEdit(' + cat.id + ')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+          + '<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();catDelete(' + cat.id + ')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+          + '</div>';
+      }
+      h += '</div>';
+      if(expanded && hasKids && level < 5) kids.forEach(function(ch){ if(kw && !match(cat.name) && !match(ch.name)) return; node(ch, level+1); });
+    }
+    if(allOpen) catTopLevels().forEach(function(t){
+      if(kw && !match(t.name) && !catChildren(t.id).some(function(ch){ return match(ch.name); })) return;
+      node(t, 1);
+    });
+    if(!kw || match('未分类')) h += '<div class="cat-node' + (currentCatId===-1?' active':'') + '" onclick="pickCat(this,-1)"><span class="cat-caret"></span><span>未分类</span></div>';
+    c.innerHTML = h;
+  }
+  window.pickCat = function(node, id){
+    document.querySelectorAll('#catTree .cat-node').forEach(function(n){ n.classList.remove('active'); });
+    if(node) node.classList.add('active');
+    currentCatId = id;
+    loadData(1, currentKeyword);
+  };
+  window.catToggleCollapse = function(id){ catUI.collapsed[id] = !catUI.collapsed[id]; renderCatTree(); };
+  window.catToggleSearch = function(){
+    catUI.searchMode = !catUI.searchMode;
+    var w = el('catSearchWrap'); if(w) w.style.display = catUI.searchMode ? '' : 'none';
+    document.querySelectorAll('.cat-search-btn').forEach(function(b){ b.style.display = catUI.searchMode ? 'none' : ''; });
+    if(catUI.searchMode){ var i=el('catSearchInput'); if(i){ i.value=''; i.focus(); } }
+    catUI.searchKw=''; syncSearchClear(); renderCatTree();
+  };
+  window.catOnSearch = function(v){ catUI.searchKw=(v||'').trim(); syncSearchClear(); renderCatTree(); };
+  window.catClearSearch = function(){ var i=el('catSearchInput'); if(i){ i.value=''; i.focus(); } catUI.searchKw=''; syncSearchClear(); renderCatTree(); };
+  function syncSearchClear(){ var box=document.querySelector('.cat-search-box'); var i=el('catSearchInput'); if(box) box.classList.toggle('has-value', !!(i&&i.value)); }
+  window.catToggleEdit = function(){
+    catUI.editMode = !catUI.editMode;
+    var d=el('catDefaultActions'), e=el('catEditActions'), p=el('catPanel');
+    if(d) d.style.display = catUI.editMode ? 'none' : '';
+    if(e) e.style.display = catUI.editMode ? '' : 'none';
+    if(p) p.classList.toggle('editing', catUI.editMode);
+    renderCatTree();
+  };
+  window.catAddChild = function(parentId){ catUI.editingId=0; catUI.parentId=parentId||0; openCategoryModal(parentId); };
+  window.catEdit = function(id){ var c=catById(id); if(!c) return; catUI.editingId=id; catUI.parentId=c.parent_id||0; openCategoryModal(c.parent_id||0, c.name); };
+  window.catDelete = function(id){
+    var c=catById(id); if(!c) return;
+    showConfirm({ title:'删除分类', message:'确定要删除分类「' + c.name + '」吗？', desc:'删除后将无法恢复，请谨慎操作。', iconType:'warn', okText:'删除', okClass:'btn-danger' }).then(function(ok){
+      if(!ok) return;
+      apiDelete('/shop/supplier-category/' + id).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
+        loadCats().then(renderCatTree);
+        showToast('删除成功', 'success');
+      });
+    });
+  };
+
+  /* ══════════ Category modal ══════════ */
+  window.openCategoryModal = function(parentId, name){
+    if(arguments.length === 0){ catUI.editingId = 0; catUI.parentId = 0; }
+    el('categoryModalTitle').textContent = catUI.editingId ? '编辑供应商分类' : '新增供应商分类';
+    el('catNameInput').value = name || '';
+    el('catNameCounter').textContent = (name || '').length + ' / 30';
+    var sel = el('catParentSelect');
+    var opts = '<option value="0">无</option>';
+    flattenCats(catUI.editingId).forEach(function(c){ opts += '<option value="' + c.id + '">' + '　'.repeat(c.depth) + esc(c.name) + '</option>'; });
+    sel.innerHTML = opts;
+    sel.value = String(catUI.parentId || 0);
+    el('categoryModal').classList.add('show');
+    setTimeout(function(){ el('catNameInput').focus(); }, 60);
+  };
+  window.closeCategoryModal = function(){ el('categoryModal').classList.remove('show'); };
+  window.onCatNameInput = function(v){ el('catNameCounter').textContent = (v||'').length + ' / 30'; };
+  window.submitCategory = function(){
+    var name = (el('catNameInput').value || '').trim();
+    if(!name){ showToast('请输入分类名称', 'error'); return; }
+    if(name.length > 30){ showToast('分类名称不能超过30个字符', 'error'); return; }
+    var pid = parseInt(el('catParentSelect').value, 10) || 0;
+    var p;
+    if(catUI.editingId){
+      p = apiPut('/shop/supplier-category/' + catUI.editingId, { name:name, parent_id:pid });
+    } else {
+      p = apiPost('/shop/supplier-category', { name:name, parent_id:pid });
+    }
+    p.then(function(res){
+      if(res.code !== 0){ showToast(res.message || '保存失败', 'error'); return; }
+      closeCategoryModal();
+      loadCats().then(function(){
+        renderCatTree();
+        renderFormCatOptions();
+        if(!catUI.editingId && res.data && res.data.id){ el('fCat').value = String(res.data.id); }
+        showToast(catUI.editingId ? '修改成功' : '分类已新增', 'success');
+      });
+    });
+  };
+
+  /* ══════════ Load ══════════ */
+  function loadCats(){
+    return apiGet('/shop/supplier-category/all').then(function(res){
+      catList = (res && res.code === 0 && res.data) ? res.data : [];
+      return catList;
+    }).catch(function(){ catList = []; return catList; });
+  }
+
+  function loadData(page, keyword){
+    currentPage = page || 1;
+    currentKeyword = keyword == null ? currentKeyword : keyword;
+    var wrap = el('tableWrap');
+    var path = '/shop/supplier/list?page=' + currentPage + '&page_size=10&category_id=' + currentCatId;
+    if(currentKeyword) path += '&keyword=' + encodeURIComponent(currentKeyword);
+    apiGet(path).then(function(res){
+      if(!res || res.code !== 0){ wrap.innerHTML = '<div class="empty">加载失败</div>'; return; }
+      var list = res.data.list || [];
+      totalCount = res.data.total || 0;
+      totalPages = Math.ceil(totalCount / 10) || 1;
+      renderTable(list);
+    }).catch(function(e){ if(e.message !== 'Unauthorized') wrap.innerHTML = '<div class="empty">加载失败</div>'; });
+  }
+
+  function renderTable(list){
+    var wrap = el('tableWrap');
+    var h = '<table><thead><tr>';
+    h += '<th style="width:56px">序号</th>';
+    h += '<th>供应商名称</th>';
+    h += '<th>分类</th>';
+    h += '<th>联系人</th>';
+    h += '<th>联系电话</th>';
+    h += '<th style="width:130px" class="num">供应商欠款</th>';
+    h += '<th>备注</th>';
+    h += '<th style="width:140px">操作</th>';
+    h += '</tr></thead><tbody>';
+    if(list.length === 0){
+      h += '<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+    } else {
+      list.forEach(function(row, i){
+        var no = (currentPage - 1) * 10 + i + 1;
+        h += '<tr>';
+        h += '<td>' + no + '</td>';
+        h += '<td>' + esc(row.name || '-') + '</td>';
+        h += '<td>' + esc(catName(row.category_id)) + '</td>';
+        h += '<td>' + esc(row.contact || '-') + '</td>';
+        h += '<td>' + esc(row.phone || '-') + '</td>';
+        h += '<td class="num">¥' + Number(row.total_payable || 0).toLocaleString() + '</td>';
+        h += '<td>' + esc(row.remark || '-') + '</td>';
+        h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
+        h += '</tr>';
+      });
+    }
+    h += '</tbody></table>';
+    h += '<div class="pagination"><span>共 ' + totalCount + ' 条</span><div class="pagination-btns">';
+    h += '<button class="page-btn"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="loadData(' + (currentPage - 1) + ',currentKeyword)">上一页</button>';
+    var start = Math.max(1, currentPage - 2);
+    var end = Math.min(totalPages, start + 4);
+    start = Math.max(1, end - 4);
+    for(var p = start; p <= end; p++) h += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" onclick="loadData(' + p + ',currentKeyword)">' + p + '</button>';
+    h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
+    h += '</div></div>';
+    wrap.innerHTML = h;
+  }
+  window.loadData = loadData;
+
+  window.searchDebounce = function(){
+    clearTimeout(searchTimer);
+    var v = el('searchInput').value;
+    searchTimer = setTimeout(function(){ loadData(1, v); }, 300);
+  };
+
+  /* ══════════ Form (full page) ══════════ */
+  function renderFormCatOptions(){
+    var sel = el('fCat'); if(!sel) return;
+    var cur = sel.value;
+    var h = '<option value="0">未分类</option>';
+    flattenCats().forEach(function(c){ h += '<option value="' + c.id + '">' + '　'.repeat(c.depth) + esc(c.name) + '</option>'; });
+    sel.innerHTML = h;
+    sel.value = cur && cur !== '' ? cur : '0';
+  }
+
+  var contactRegion = { province:'', city:'', district:'' };
+  function setRegionFrom(data){
+    contactRegion = { province:data.province||'', city:data.city||'', district:data.district||'' };
+    var ctrl = el('contactRegionCtrl');
+    if(ctrl) setRegionInputValue(ctrl, contactRegion);
+  }
+  function gv(id){ var e = el(id); return e ? e.value : ''; }
+
+  window.showCreate = function(){
+    formEditId = null;
+    el('formTitle').textContent = '新增供应商';
+    ['fName','fContact','fPhone','fAddressDetail','fEmail','fFax','fBankName','fBankAccount','fBirthday','fWechat','fQQ','fRemark'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
+    el('fInitPayable').value = '0';
+    setRegionFrom({});
+    formAddresses = [emptyAddr(true)];
+    renderAddresses();
+    renderFormCatOptions();
+    openFormTab();
+  };
+
+  window.showEdit = function(id){
+    apiGet('/shop/supplier/' + id).then(function(res){
+      if(!res || res.code !== 0){ showToast('加载失败', 'error'); return; }
+      var d = res.data || {};
+      formEditId = id;
+      el('formTitle').textContent = '编辑供应商';
+      el('fName').value = d.name || '';
+      el('fInitPayable').value = d.init_payable != null ? d.init_payable : 0;
+      el('fContact').value = d.contact || '';
+      el('fPhone').value = d.phone || '';
+      el('fAddressDetail').value = d.address_detail || '';
+      el('fEmail').value = d.email || '';
+      el('fFax').value = d.fax || '';
+      el('fBankName').value = d.bank_name || '';
+      el('fBankAccount').value = d.bank_account || '';
+      el('fBirthday').value = d.birthday || '';
+      el('fWechat').value = d.wechat || '';
+      el('fQQ').value = d.qq || '';
+      el('fRemark').value = d.remark || '';
+      setRegionFrom(d);
+      formAddresses = (d.addresses && d.addresses.length) ? d.addresses.map(function(a){
+        return { id:a.id||0, consignee:a.consignee||'', phone:a.consignee_phone||'', province:a.province||'', city:a.city||'', district:a.district||'', addressDetail:a.address_detail||'', isDefault:a.is_default?1:0 };
+      }) : [emptyAddr(true)];
+      renderAddresses();
+      renderFormCatOptions();
+      el('fCat').value = String(d.category_id || 0);
+      openFormTab();
+    });
+  };
+
+  function openFormTab(){
+    el('listView').style.display = 'none';
+    el('formView').style.display = '';
+    if(window.PisaTabs) PisaTabs.touch('supplier:add', formEditId ? '编辑供应商' : '新增供应商', '/supplier.html#supplier:add');
+    if(location.hash !== '#supplier:add'){ try{ history.replaceState(null, '', '#supplier:add'); }catch(e){ location.hash = 'supplier:add'; } }
+    window.scrollTo(0,0);
+  }
+  function showListView(){
+    el('formView').style.display = 'none';
+    el('listView').style.display = '';
+    if(window.PisaTabs){ PisaTabs.touch('purchase:supplier', '供应商', '/supplier.html'); PisaTabs.close('supplier:add'); }
+    if(location.hash === '#supplier:add'){ try{ history.replaceState(null, '', '/supplier.html'); }catch(e){} }
+  }
+  window.cancelForm = function(){ showListView(); };
+
+  window.submitForm = function(saveMore){
+    var name = gv('fName').trim();
+    if(!name){ showToast('请填写供应商名称', 'error'); return; }
+    var catId = parseInt(gv('fCat'), 10) || 0;
+    var body = {
+      name: name,
+      category_id: catId ? catId : null,
+      init_payable: parseFloat(gv('fInitPayable')) || 0,
+      contact: gv('fContact'),
+      phone: gv('fPhone'),
+      province: contactRegion.province,
+      city: contactRegion.city,
+      district: contactRegion.district,
+      address_detail: gv('fAddressDetail'),
+      address: [contactRegion.province, contactRegion.city, contactRegion.district, gv('fAddressDetail')].filter(Boolean).join(' '),
+      email: gv('fEmail'),
+      fax: gv('fFax'),
+      bank_name: gv('fBankName'),
+      bank_account: gv('fBankAccount'),
+      birthday: gv('fBirthday'),
+      wechat: gv('fWechat'),
+      qq: gv('fQQ'),
+      remark: gv('fRemark'),
+      addresses: formAddresses.map(function(a){
+        return {
+          consignee: a.consignee,
+          consignee_phone: a.phone,
+          province: a.province,
+          city: a.city,
+          district: a.district,
+          address_detail: a.addressDetail,
+          is_default: a.isDefault ? 1 : 0
+        };
+      })
+    };
+    var p = formEditId ? apiPut('/shop/supplier/' + formEditId, body) : apiPost('/shop/supplier', body);
+    p.then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '操作失败', 'error'); return; }
+      showToast(formEditId ? '更新成功' : '创建成功', 'success');
+      if(saveMore && !formEditId){ showCreate(); }
+      else { showListView(); loadData(currentPage, currentKeyword); }
+    });
+  };
+
+  window.deleteItem = function(id){
+    showConfirm({ title:'删除供应商', message:'确定删除该供应商？', desc:'删除后将无法恢复，请谨慎操作。', iconType:'warn', okText:'删除', okClass:'btn-danger' }).then(function(ok){
+      if(!ok) return;
+      apiDelete('/shop/supplier/' + id).then(function(res){
+        if(res && res.code === 0){ showToast('删除成功', 'success'); loadData(currentPage, currentKeyword); }
+        else showToast((res && res.message) || '删除失败', 'error');
+      });
+    });
+  };
+
+  window.exportTable = function(){ showToast('导出功能开发中'); };
+
+  /* ══════════ Region picker (instance-based) ══════════ */
+  var AREA = null;
+  var REGION_ROOTS = [{ code:'86', name:'中国' }, { code:'__oversea', name:'海外' }];
+
+  function ensureArea(cb){
+    if(AREA){ if(cb) cb(); return; }
+    fetch('/lib/area.json').then(function(r){ return r.json(); }).then(function(d){ AREA = d || {}; if(cb) cb(); }).catch(function(){ AREA = {}; if(cb) cb(); });
+  }
+  function regionChildren(code){
+    if(code === '__root') return REGION_ROOTS;
+    if(code === '__oversea') return [];
+    if(!AREA || !AREA[code]) return [];
+    return Object.keys(AREA[code]).map(function(k){ return { code:k, name:AREA[code][k] }; });
+  }
+  function regionNameOf(code){
+    if(!AREA) return '';
+    var found = '';
+    Object.keys(AREA).some(function(p){ if(AREA[p][code]){ found = AREA[p][code]; return true; } return false; });
+    return found;
+  }
+  function regionText(sel){ return [sel.province, sel.city, sel.district].filter(Boolean).join(' / '); }
+  function setRegionInputValue(ctrl, sel){
+    var input = ctrl.querySelector('.region-input');
+    if(input) input.value = regionText(sel || {});
+  }
+  function initRegionPicker(ctrl, opts){
+    if(!ctrl) return;
+    opts = opts || {};
+    ctrl.__region = { path:[], names:[], search:'', onSelect: opts.onSelect || null };
+    setRegionInputValue(ctrl, opts.value || {});
+  }
+  function closeRegionDrop(ctrl){ var d = ctrl.querySelector('.region-drop'); if(d) d.classList.remove('open'); }
+  function closeAllRegionDrops(){ document.querySelectorAll('.region-drop.open').forEach(function(d){ d.classList.remove('open'); }); }
+  function regionCol(nodes, depth, ctrl){
+    if(!nodes.length) return '';
+    var h = '';
+    nodes.forEach(function(n){
+      var active = String(ctrl.__region.path[depth]) === String(n.code);
+      var hasKids = regionChildren(n.code).length > 0;
+      h += '<div class="region-opt' + (active ? ' active' : '') + '" data-code="' + n.code + '" data-depth="' + depth + '">'
+        + esc(n.name)
+        + (hasKids ? '<svg class="region-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>' : '')
+        + '</div>';
+    });
+    return '<div class="region-col">' + h + '</div>';
+  }
+  function renderRegionDrop(ctrl){
+    var drop = ctrl.querySelector('.region-drop'); if(!drop) return;
+    var r = ctrl.__region;
+    if(r.search){
+      var res = searchRegion(r.search);
+      var h = res.length ? res.map(function(x){
+        return '<div class="region-opt" data-search="1" data-province="' + escAttr(x.province) + '" data-city="' + escAttr(x.city) + '" data-district="' + escAttr(x.district) + '">'
+          + esc(regionText(x)) + '</div>';
+      }).join('') : '<div class="region-empty">无匹配地区</div>';
+      drop.innerHTML = '<div class="region-col wide">' + h + '</div>';
+      return;
+    }
+    var cols = regionCol(REGION_ROOTS, 0, ctrl);
+    for(var d = 0; d < r.path.length && d < 3; d++){
+      var kids = regionChildren(r.path[d]);
+      if(!kids.length) break;
+      cols += regionCol(kids, d + 1, ctrl);
+    }
+    drop.innerHTML = cols;
+  }
+  function searchRegion(q){
+    var out = [];
+    if(!AREA) return out;
+    var provs = AREA['86'] || {};
+    Object.keys(provs).forEach(function(pc){
+      var pn = provs[pc];
+      if(pn.indexOf(q) >= 0) out.push({ province:pn, city:'', district:'' });
+      var cities = AREA[pc] || {};
+      Object.keys(cities).forEach(function(cc){
+        var cn = cities[cc];
+        if(cn.indexOf(q) >= 0) out.push({ province:pn, city:cn, district:'' });
+        var dists = AREA[cc] || {};
+        Object.keys(dists).forEach(function(dc){
+          var dn = dists[dc];
+          if(dn.indexOf(q) >= 0) out.push({ province:pn, city:cn, district:dn });
+        });
+      });
+    });
+    return out.slice(0, 60);
+  }
+  function applyRegion(ctrl, sel){
+    ctrl.__region.search = '';
+    setRegionInputValue(ctrl, sel);
+    if(ctrl.__region.onSelect) ctrl.__region.onSelect(sel);
+    closeRegionDrop(ctrl);
+  }
+  function finalizeRegion(ctrl){
+    var names = ctrl.__region.names.slice();
+    if(names[0] === '中国') names = names.slice(1);
+    applyRegion(ctrl, { province:names[0]||'', city:names[1]||'', district:names[2]||'' });
+  }
+  function pickRegion(ctrl, code, depth){
+    var r = ctrl.__region;
+    r.path = r.path.slice(0, depth);
+    r.names = r.names.slice(0, depth);
+    r.path[depth] = code;
+    r.names[depth] = (code === '__oversea') ? '海外' : ((code === '86') ? '中国' : regionNameOf(code));
+    r.search = '';
+    var input = ctrl.querySelector('.region-input'); if(input) input.value = '';
+    var kids = regionChildren(code);
+    if(!kids.length){ finalizeRegion(ctrl); return; }
+    renderRegionDrop(ctrl);
+  }
+  window.openRegionDrop = function(input){
+    var ctrl = input.closest('.region-ctrl'); if(!ctrl) return;
+    closeAllRegionDrops();
+    ensureArea(function(){ renderRegionDrop(ctrl); });
+    ctrl.querySelector('.region-drop').classList.add('open');
+  };
+  window.onRegionInput = function(input){
+    var ctrl = input.closest('.region-ctrl'); if(!ctrl) return;
+    ctrl.__region.search = (input.value || '').trim();
+    ensureArea(function(){ renderRegionDrop(ctrl); });
+    ctrl.querySelector('.region-drop').classList.add('open');
+  };
+  document.addEventListener('click', function(e){
+    var opt = e.target.closest ? e.target.closest('.region-opt') : null;
+    if(opt){
+      var ctrl = opt.closest('.region-ctrl'); if(!ctrl) return;
+      if(opt.getAttribute('data-search') === '1'){
+        applyRegion(ctrl, { province:opt.getAttribute('data-province') || '', city:opt.getAttribute('data-city') || '', district:opt.getAttribute('data-district') || '' });
+      } else {
+        pickRegion(ctrl, opt.getAttribute('data-code'), parseInt(opt.getAttribute('data-depth'), 10));
+      }
+      return;
+    }
+    if(!e.target.closest || !e.target.closest('.region-ctrl')) closeAllRegionDrops();
+  });
+
+  /* ══════════ Receiving addresses ══════════ */
+  var formAddresses = [];
+  function emptyAddr(isDefault){
+    return { id:0, consignee:'', phone:'', province:'', city:'', district:'', addressDetail:'', isDefault: isDefault ? 1 : 0 };
+  }
+  function regionCtrlHTML(idx){
+    return '<div class="region-ctrl" data-addr="' + idx + '">'
+      + '<div class="region-input-wrap">'
+      + '<input class="region-input" placeholder="请选择地区" autocomplete="off" onfocus="openRegionDrop(this)" oninput="onRegionInput(this)">'
+      + '<svg class="region-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+      + '</div><div class="region-drop"></div></div>';
+  }
+  function renderAddresses(){
+    var wrap = el('addressList'); if(!wrap) return;
+    if(!formAddresses.length){ wrap.innerHTML = '<div class="addr-empty">暂无收货地址</div>'; return; }
+    wrap.innerHTML = formAddresses.map(function(a, i){
+      return '<div class="addr-card">'
+        + (a.isDefault ? '<span class="addr-default-tag">默认</span>' : '')
+        + '<div class="addr-row">'
+        +   '<label class="addr-label">收货人</label><input class="sf-input addr-input" value="' + escAttr(a.consignee) + '" placeholder="请输入" oninput="onAddrField(' + i + ',\'consignee\',this.value)">'
+        +   '<label class="addr-label">收货人电话</label><input class="sf-input addr-input" value="' + escAttr(a.phone) + '" placeholder="请输入" oninput="onAddrField(' + i + ',\'phone\',this.value)">'
+        + '</div>'
+        + '<div class="addr-row">'
+        +   '<label class="addr-label">收货地址</label>'
+        +   '<div class="addr-region">' + regionCtrlHTML(i) + '</div>'
+        +   '<div class="addr-actions">'
+        +     (a.isDefault ? '' : '<span class="addr-link" onclick="setDefaultAddress(' + i + ')">设为默认</span><span class="addr-sep">|</span>')
+        +     '<span class="addr-link danger" onclick="removeAddress(' + i + ')">删除</span>'
+        +     '<span class="addr-link accent" onclick="useContactAddress(' + i + ')">使用供应商联系地址</span>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="addr-row">'
+        +   '<label class="addr-label"></label>'
+        +   '<div class="addr-region"><input class="sf-input" value="' + escAttr(a.addressDetail) + '" placeholder="请输入详情地址" oninput="onAddrField(' + i + ',\'addressDetail\',this.value)"></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    wrap.querySelectorAll('.region-ctrl[data-addr]').forEach(function(ctrl){
+      var idx = parseInt(ctrl.getAttribute('data-addr'), 10);
+      initRegionPicker(ctrl, {
+        value: formAddresses[idx],
+        onSelect: function(sel){
+          formAddresses[idx].province = sel.province;
+          formAddresses[idx].city = sel.city;
+          formAddresses[idx].district = sel.district;
+        }
+      });
     });
   }
-  h += '</tbody></table>';
-  h += '<div class="pagination"><span>共 ' + totalCount + ' 条</span><div class="pagination-btns">';
-  h += '<button class="page-btn"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="loadData(' + (currentPage - 1) + ',currentKeyword)">上一页</button>';
-  var start = Math.max(1, currentPage - 2);
-  var end = Math.min(totalPages, start + 4);
-  start = Math.max(1, end - 4);
-  for (var i = start; i <= end; i++) {
-    h += '<button class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="loadData(' + i + ',currentKeyword)">' + i + '</button>';
-  }
-  h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
-  h += '</div></div>';
-  wrap.innerHTML = h;
-}
-
-/* ═══════════ Search debounce ═══════════ */
-var searchTimer = null;
-function searchDebounce() {
-  clearTimeout(searchTimer);
-  var val = document.getElementById('searchInput').value;
-  searchTimer = setTimeout(function() {
-    loadData(1, val);
-  }, 300);
-}
-
-/* ═══════════ Modal ═══════════ */
-function hideModal() {
-  document.getElementById('modal').classList.remove('show');
-}
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) hideModal();
-});
-
-function showCreate() {
-  document.getElementById('modalTitle').textContent = '新增供应商';
-  document.getElementById('modalBody').innerHTML = getFormHtml({});
-  document.getElementById('modal').classList.add('show');
-  document.getElementById('modalConfirm').onclick = function() { submitForm(null); };
-}
-
-async function showEdit(id) {
-  var res = await apiGet('/shop/supplier/' + id);
-  if (!res || res.code !== 0) { showToast('加载失败'); return; }
-  document.getElementById('modalTitle').textContent = '编辑供应商';
-  document.getElementById('modalBody').innerHTML = getFormHtml(res.data);
-  document.getElementById('modal').classList.add('show');
-  document.getElementById('modalConfirm').onclick = function() { submitForm(id); };
-}
-
-function getFormHtml(data) {
-  var h = '<div class="form-row">';
-  h += '<div><label class="form-label">编码</label><input class="form-input" id="sf_code" value="' + (data.code || '') + '"></div>';
-  h += '<div><label class="form-label">名称 <span style="color:var(--danger-500)">*</span></label><input class="form-input" id="sf_name" value="' + (data.name || '') + '"></div>';
-  h += '</div>';
-  h += '<div class="form-row">';
-  h += '<div><label class="form-label">联系人</label><input class="form-input" id="sf_contact" value="' + (data.contact || '') + '"></div>';
-  h += '<div><label class="form-label">电话</label><input class="form-input" id="sf_phone" value="' + (data.phone || '') + '"></div>';
-  h += '</div>';
-  h += '<div class="form-row">';
-  h += '<div style="grid-column:span 2"><label class="form-label">地址</label><input class="form-input" id="sf_address" value="' + (data.address || '') + '"></div>';
-  h += '</div>';
-  h += '<div class="form-row">';
-  h += '<div><label class="form-label">银行名称</label><input class="form-input" id="sf_bank_name" value="' + (data.bank_name || '') + '"></div>';
-  h += '<div><label class="form-label">银行账号</label><input class="form-input" id="sf_bank_account" value="' + (data.bank_account || '') + '"></div>';
-  h += '</div>';
-  h += '<div class="form-row">';
-  h += '<div style="grid-column:span 2"><label class="form-label">备注</label><input class="form-input" id="sf_remark" value="' + (data.remark || '') + '"></div>';
-  h += '</div>';
-  return h;
-}
-
-function gv(id) { var el = document.getElementById(id); return el ? el.value : ''; }
-
-async function submitForm(id) {
-  var body = {
-    code: gv('sf_code'),
-    name: gv('sf_name'),
-    contact: gv('sf_contact'),
-    phone: gv('sf_phone'),
-    address: gv('sf_address'),
-    bank_name: gv('sf_bank_name'),
-    bank_account: gv('sf_bank_account'),
-    remark: gv('sf_remark')
+  window.addAddress = function(){
+    formAddresses.push(emptyAddr(formAddresses.length === 0));
+    renderAddresses();
   };
-  if (!body.name) { showToast('请填写名称'); return; }
-  var res;
-  if (id) {
-    res = await apiPut('/shop/supplier/' + id, body);
-  } else {
-    res = await apiPost('/shop/supplier', body);
+  window.removeAddress = function(i){
+    formAddresses.splice(i, 1);
+    if(formAddresses.length && !formAddresses.some(function(a){ return a.isDefault; })) formAddresses[0].isDefault = 1;
+    renderAddresses();
+  };
+  window.setDefaultAddress = function(i){
+    formAddresses.forEach(function(a, k){ a.isDefault = (k === i) ? 1 : 0; });
+    renderAddresses();
+  };
+  window.useContactAddress = function(i){
+    var a = formAddresses[i]; if(!a) return;
+    a.province = contactRegion.province;
+    a.city = contactRegion.city;
+    a.district = contactRegion.district;
+    a.addressDetail = gv('fAddressDetail');
+    renderAddresses();
+  };
+  window.onAddrField = function(i, field, v){ if(formAddresses[i]) formAddresses[i][field] = v; };
+
+  /* ══════════ Init ══════════ */
+  if(localStorage.getItem('pisa_sidebar_collapsed') === '1'){ var sb=document.querySelector('.sidebar'); if(sb) sb.classList.add('collapsed'); }
+  if(window.PisaTabs) PisaTabs.init({ key:'purchase:supplier', label:'供应商', href:'/supplier.html' });
+
+  function boot(){
+    ensureArea();
+    initRegionPicker(el('contactRegionCtrl'), { value: contactRegion, onSelect: function(sel){ contactRegion = sel; } });
+    renderFormCatOptions();
+    loadCats().then(function(){ renderCatTree(); loadData(1, ''); });
+    if(location.hash === '#supplier:add'){ showCreate(); }
   }
-  if (res && res.code === 0) {
-    showToast(id ? '更新成功' : '创建成功');
-    hideModal();
-    loadData(currentPage, currentKeyword);
-  } else {
-    showToast((res && res.message) || '操作失败');
-  }
-}
-
-/* ═══════════ Delete ═══════════ */
-async function deleteItem(id) {
-  if (!confirm('确定删除该供应商？')) return;
-  var res = await apiDelete('/shop/supplier/' + id);
-  if (res && res.code === 0) {
-    showToast('删除成功');
-    loadData(currentPage, currentKeyword);
-  } else {
-    showToast((res && res.message) || '删除失败');
-  }
-}
-
-/* ═══════════ Export ═══════════ */
-function exportTable() { showToast('导出功能开发中'); }
-
-/* ═══════════ Toast ═══════════ */
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._tm);
-  t._tm = setTimeout(function() { t.classList.remove('show'); }, 3000);
-}
-
-function checkAuth() {
-  if (!localStorage.getItem('pisa_token')) { location.href = '/login.html'; }
-}
-
-/* ═══════════ Init ═══════════ */
-if (localStorage.getItem('pisa_sidebar_collapsed') === '1') {
-  document.getElementById('sidebar').classList.add('collapsed');
-}
-checkAuth();
-loadData(1, '');
+  window.addEventListener('hashchange', function(){
+    if(location.hash === '#supplier:add'){ if(el('formView').style.display === 'none') showCreate(); }
+    else if(el('formView').style.display !== 'none'){ showListView(); }
+  });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
 </script>
 <script src="/js/tabs.js?v=20260974"></script>
 <script src="/js/app-shell.js?v=20260974"></script>

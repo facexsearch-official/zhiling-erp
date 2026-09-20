@@ -5,6 +5,8 @@ import (
 	"pisa_server/internal/model"
 
 	customContext "pisa_server/internal/pkg/context"
+
+	"gorm.io/gorm"
 )
 
 type SupplierRepository struct {
@@ -15,12 +17,22 @@ func NewSupplierRepository(base BaseRepository) *SupplierRepository {
 	return &SupplierRepository{BaseRepository: base}
 }
 
-func (r *SupplierRepository) List(ctx context.Context, page, pageSize int, keyword string) ([]model.Supplier, int64) {
+func (r *SupplierRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64) ([]model.Supplier, int64) {
 	var total int64
 	var list []model.Supplier
 	q := r.Scoped(ctx)
 	if keyword != "" {
 		q = q.Where("name LIKE ? OR code LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	}
+	if categoryID == -1 {
+		// 未分类：无分类或分类为 0
+		q = q.Where("category_id IS NULL OR category_id = 0")
+	} else if categoryID > 0 {
+		sub := r.DB.Model(&model.SupplierCategory{}).Select("id").Where("parent_id = ?", categoryID)
+		if tid := customContext.GetTenantID(ctx); tid > 0 {
+			sub = sub.Where("tenant_id = ?", tid)
+		}
+		q = q.Where("category_id = ? OR category_id IN (?)", categoryID, sub)
 	}
 	q.Model(&model.Supplier{}).Count(&total)
 	q.Offset((page - 1) * pageSize).Limit(pageSize).Order("created_at DESC").Find(&list)
@@ -50,5 +62,37 @@ func (r *SupplierRepository) Update(ctx context.Context, supplier *model.Supplie
 
 func (r *SupplierRepository) Delete(ctx context.Context, id int64) error {
 	tenantID := customContext.GetTenantID(ctx)
-	return r.DB.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&model.Supplier{}).Error
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("supplier_id = ? AND tenant_id = ?", id, tenantID).Delete(&model.SupplierAddress{}).Error; err != nil {
+			return err
+		}
+		return tx.Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&model.Supplier{}).Error
+	})
+}
+
+// Addresses 查询供应商收货地址
+func (r *SupplierRepository) Addresses(ctx context.Context, supplierID int64) ([]model.SupplierAddress, error) {
+	var list []model.SupplierAddress
+	err := r.Scoped(ctx).Where("supplier_id = ?", supplierID).Order("is_default DESC, sort ASC, id ASC").Find(&list).Error
+	return list, err
+}
+
+// ReplaceAddresses 覆盖写入供应商收货地址
+func (r *SupplierRepository) ReplaceAddresses(ctx context.Context, supplierID int64, addrs []model.SupplierAddress) error {
+	tenantID := customContext.GetTenantID(ctx)
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("supplier_id = ? AND tenant_id = ?", supplierID, tenantID).Delete(&model.SupplierAddress{}).Error; err != nil {
+			return err
+		}
+		if len(addrs) == 0 {
+			return nil
+		}
+		for i := range addrs {
+			addrs[i].ID = 0
+			addrs[i].SupplierID = supplierID
+			addrs[i].TenantID = tenantID
+			addrs[i].Sort = i
+		}
+		return tx.Create(&addrs).Error
+	})
 }

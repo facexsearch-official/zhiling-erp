@@ -24,7 +24,8 @@ func (h *SupplierHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	keyword := c.Query("keyword")
-	list, total := h.repo.List(ctx, page, pageSize, keyword)
+	categoryID, _ := strconv.ParseInt(c.Query("category_id"), 10, 64)
+	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID)
 	response.OKPage(c, list, total, page, pageSize)
 }
 
@@ -45,6 +46,9 @@ func (h *SupplierHandler) GetByID(c *gin.Context) {
 	if err != nil {
 		response.NotFound(c, "供应商不存在")
 		return
+	}
+	if addrs, err := h.repo.Addresses(ctx, id); err == nil {
+		supplier.Addresses = addrs
 	}
 	response.OK(c, supplier)
 }
@@ -68,6 +72,10 @@ func (h *SupplierHandler) Create(c *gin.Context) {
 	supplier.TenantID = context.GetTenantID(ctx)
 	if err := h.repo.Create(ctx, &supplier); err != nil {
 		response.ServerError(c, "创建供应商失败")
+		return
+	}
+	if err := h.repo.ReplaceAddresses(ctx, supplier.ID, supplier.Addresses); err != nil {
+		response.ServerError(c, "保存收货地址失败")
 		return
 	}
 	response.OK(c, supplier)
@@ -95,6 +103,10 @@ func (h *SupplierHandler) Update(c *gin.Context) {
 	}
 	if err := h.repo.Update(ctx, existing); err != nil {
 		response.ServerError(c, "更新供应商失败")
+		return
+	}
+	if err := h.repo.ReplaceAddresses(ctx, existing.ID, existing.Addresses); err != nil {
+		response.ServerError(c, "保存收货地址失败")
 		return
 	}
 	response.OK(c, existing)

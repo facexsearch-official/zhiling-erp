@@ -28,6 +28,8 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.GoodsStock{},
 		&model.Customer{},
 		&model.Supplier{},
+		&model.SupplierCategory{},
+		&model.SupplierAddress{},
 		&model.Account{},
 		&model.StockBalance{},
 	}

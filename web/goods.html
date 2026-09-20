@@ -55,8 +55,9 @@ input{font:inherit}
 .table-wrap td,.table-wrap th{white-space:nowrap}
 table{width:100%;border-collapse:collapse}
 thead{background:var(--gray-50)}
-th{padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap}
+th{padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap;vertical-align:middle}
 td{padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-700);vertical-align:middle}
+th>*{vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--gray-50)}
 td.text-right{text-align:right;font-family:'Inter',monospace}
@@ -83,6 +84,61 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 .unit-drop-opt{padding:9px 14px;border-radius:var(--radius-md);font-size:14px;color:var(--gray-700);cursor:pointer;white-space:nowrap;transition:background .12s}
 .unit-drop-opt:hover{background:var(--gray-50)}
 .unit-drop-opt.active{background:#E7F7F3;color:var(--gray-800)}
+
+/* 自定义表头 */
+.th-tools{width:48px;padding:6px 8px}
+.th-gear{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--gray-500);transition:background .15s,color .15s}
+.th-gear:hover{background:var(--gray-200);color:var(--primary-600)}
+.th-gear svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.c-idx{width:48px;text-align:center;color:var(--gray-400);font-family:'Inter',monospace}
+.th-check,.c-check{width:44px;min-width:44px;max-width:44px;padding:10px 6px;text-align:center}
+.th-check input,.c-check input{width:16px;height:16px;accent-color:var(--primary-500);cursor:pointer;vertical-align:middle}
+
+/* 固定列：左侧勾选/齿轮/序号，右侧操作 */
+.table-wrap th.th-check,.table-wrap td.c-check{position:sticky;left:0;z-index:2;background:#fff}
+.table-wrap thead th.th-check{background:var(--gray-50);z-index:3}
+.table-wrap th.th-tools,.table-wrap td.c-idx{position:sticky;left:44px;z-index:2;background:#fff}
+.table-wrap thead th.th-tools{background:var(--gray-50);z-index:3}
+.table-wrap th.th-actions,.table-wrap td.c-actions{position:sticky;right:0;z-index:2;background:#fff}
+.table-wrap thead th.th-actions{background:var(--gray-50);z-index:3}
+.table-wrap th.th-tools::after,.table-wrap td.c-idx::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+.table-wrap th.th-actions::before,.table-wrap td.c-actions::before{content:'';position:absolute;top:0;bottom:0;right:100%;width:4px;background:linear-gradient(to left,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gray-50)}
+.table-wrap tr.row-selected td{background:var(--primary-50)}
+.table-wrap tr.row-selected td.c-check,.table-wrap tr.row-selected td.c-idx,.table-wrap tr.row-selected td.c-actions{background:var(--primary-50)}
+
+.col-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:1200}
+.col-mask.show{opacity:1;visibility:visible}
+.col-drawer{position:fixed;top:0;right:0;height:100%;width:520px;max-width:100vw;background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .25s ease;z-index:1201;display:flex;flex-direction:column}
+.col-drawer.show{transform:translateX(0)}
+.col-drawer-head{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--gray-100)}
+.col-drawer-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--gray-500);transition:background .15s}
+.col-drawer-close:hover{background:var(--gray-100)}
+.col-drawer-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.col-drawer-title{font-size:16px;font-weight:600;color:var(--gray-800)}
+.col-drawer-body{flex:1;padding:18px 20px;overflow-y:auto}
+.col-drawer-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--gray-100);background:#fff}
+.col-drawer-foot .col-foot-right{display:flex;gap:10px}
+.col-sec-title{font-size:14px;font-weight:600;color:var(--gray-800);margin:6px 0 14px;display:flex;align-items:baseline;gap:8px}
+.col-sec-title span{font-size:12px;font-weight:400;color:var(--gray-400)}
+.col-sec-title:not(:first-child){margin-top:30px}
+.col-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.col-chip{position:relative;display:flex;align-items:center;gap:6px;height:44px;padding:0 8px;background:var(--gray-100);border:1px solid transparent;border-radius:var(--radius-md);font-size:14px;color:var(--gray-700);user-select:none;transition:background .12s,border-color .12s}
+.col-chip .col-label{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.col-chip.shown{cursor:default}
+.col-chip.dragging{opacity:.4}
+.col-chip.drag-over{border-color:var(--primary-400);background:var(--primary-50)}
+.col-drag{cursor:grab;color:var(--gray-400);display:inline-flex;flex-shrink:0}
+.col-drag svg{width:14px;height:14px;fill:currentColor;stroke:none}
+.col-del,.col-add{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;flex-shrink:0;transition:opacity .12s,transform .12s}
+.col-del{right:-9px;background:var(--danger-500);box-shadow:0 2px 6px rgba(239,68,68,.4)}
+.col-add{right:-9px;background:var(--primary-500);box-shadow:0 2px 6px rgba(59,130,246,.4)}
+.col-chip.shown .col-del{opacity:0;pointer-events:none}
+.col-chip.shown:hover .col-del{opacity:1;pointer-events:auto}
+.col-chip.avail .col-add{opacity:0;pointer-events:none}
+.col-chip.avail:hover .col-add{opacity:1;pointer-events:auto}
+.col-chip.avail:hover{background:var(--gray-200)}
+.col-add:hover,.col-del:hover{transform:translateY(-50%) scale(1.12)}
 
 /* Pagination */
 .pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--gray-100)}
@@ -264,18 +320,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th style="min-width:200px">商品</th>
-            <th>规格型号</th>
-            <th>编号/货号</th>
-            <th>单位(主)</th>
-            <th style="text-align:right">零售价</th>
-            <th style="text-align:right">批发价</th>
-            <th style="text-align:right">库存数量</th>
-            <th style="width:200px">操作</th>
-          </tr>
-        </thead>
+        <thead id="tableHead"></thead>
         <tbody id="tableBody">
         </tbody>
       </table>
@@ -536,6 +581,28 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
 <!-- 新增/编辑货品 抽屉 -->
 
 
+<!-- 自定义表头抽屉 -->
+<div class="col-mask" id="colMask" onclick="closeColDrawer()"></div>
+<aside class="col-drawer" id="colDrawer">
+  <div class="col-drawer-head">
+    <button class="col-drawer-close" onclick="closeColDrawer()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="col-drawer-title">自定义表头</div>
+  </div>
+  <div class="col-drawer-body">
+    <div class="col-sec-title">已显示表头<span>拖拽可调整表头顺序</span></div>
+    <div class="col-grid" id="colShownGrid"></div>
+    <div class="col-sec-title">可选表头</div>
+    <div class="col-grid" id="colAvailGrid"></div>
+  </div>
+  <div class="col-drawer-foot">
+    <button type="button" class="btn btn-secondary" onclick="restoreDefaultCols()">恢复默认</button>
+    <div class="col-foot-right">
+      <button type="button" class="btn btn-secondary" onclick="closeColDrawer()">取消</button>
+      <button type="button" class="btn btn-primary" onclick="confirmCols()">确定</button>
+    </div>
+  </div>
+</aside>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -764,7 +831,7 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   var token = localStorage.getItem('pisa_token');
   if(!token){ location.href='/login.html'; return; }
 
-  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{} };
+  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{}, selected:{} };
   var searchTimer = null;
 
   // --- Auth fetch helper ---
@@ -996,31 +1063,87 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
     return x ? x.name : '-';
   }
 
-  function renderTable(){
-    var tbody = document.getElementById('tableBody');
-    if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
-      return;
-    }
-    var html = '';
-    state.list.forEach(function(item){ html += renderGoodsRow(item); });
-    tbody.innerHTML = html;
+  // --- 自定义表头 ---
+  var COL_DEFS = [
+    { key:'goods', label:'商品', fixed:true, td:'c-goods', render:function(c){
+        var item = c.item, tags = '';
+        if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
+        if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
+        return '<div class="goods-cell">' + c.img + '<div class="goods-cell-txt"><div class="g-name">' + esc(item.name || '') + tags + '</div><div class="g-code">' + esc(item.code || '') + '</div></div></div>';
+      } },
+    { key:'spec', label:'规格型号', render:function(c){ return esc(specGroupNames(c.item) || '--'); } },
+    { key:'codes', label:'编号/货号', td:'c-codes', render:function(c){ return '<span title="' + escAttr(c.codes) + '">' + esc(c.codes || '--') + '</span>'; } },
+    { key:'unit', label:'单位(主)', render:function(c){ return c.unitCell; } },
+    { key:'retail', label:'零售价', align:'right', render:function(c){ return '<span class="yen">¥</span>' + priceRange(c.sel && c.sel.retail_min, c.sel && c.sel.retail_max); } },
+    { key:'wholesale', label:'批发价', align:'right', render:function(c){ return '<span class="yen">¥</span>' + priceRange(c.sel && c.sel.wholesale_min, c.sel && c.sel.wholesale_max); } },
+    { key:'stock', label:'库存数量', align:'right', render:function(c){ return c.stockShown + esc(c.sel ? c.sel.unit_name : ''); } },
+    { key:'purchase', label:'进货价', align:'right', render:function(c){ return '<span class="yen">¥</span>' + fmtPrice(c.item.purchase_price || 0); } },
+    { key:'barcode', label:'条形码', render:function(c){ return esc(c.item.barcode || '--'); } },
+    { key:'category', label:'分类', render:function(c){ return esc(nameOf(meta.categories, c.item.category_id)); } },
+    { key:'brand', label:'品牌', render:function(c){ return esc(c.item.brand || '--'); } },
+    { key:'origin', label:'产地', render:function(c){ return esc(c.item.origin || '--'); } },
+    { key:'supplier', label:'默认供应商', render:function(c){
+        var item = c.item, id = 0;
+        try{ var arr = JSON.parse(item.suppliers || '[]'); if(arr && arr.length) id = arr[0]; }catch(e){}
+        if(!id) id = item.supplier_id || 0;
+        return esc(nameOf(meta.suppliers, id));
+      } },
+    { key:'remark', label:'备注', render:function(c){ return esc(c.item.remark || '--'); } },
+    { key:'actions', label:'操作', fixed:true, td:'c-actions', render:function(c){
+        var id = c.item.id;
+        return '<div class="actions">'
+          + '<button class="btn btn-ghost btn-sm" onclick="showDetail(' + id + ')">查看</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="showEdit(' + id + ')">编辑</button>'
+          + '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + id + ')">删除</button>'
+          + '</div>';
+      } }
+  ];
+  var DEFAULT_COLS = ['goods','spec','codes','unit','retail','wholesale','stock','actions'];
+  var COL_STORE_KEY = 'pisa_goods_columns';
+
+  function colDef(key){
+    for(var i=0;i<COL_DEFS.length;i++){ if(COL_DEFS[i].key === key) return COL_DEFS[i]; }
+    return null;
+  }
+  function normalizeCols(cols){
+    var valid = COL_DEFS.map(function(d){ return d.key; });
+    var out = (cols || []).filter(function(k){ return valid.indexOf(k) >= 0 && k !== 'actions'; });
+    if(out.indexOf('goods') < 0) out.unshift('goods');
+    out.push('actions');
+    return out;
+  }
+  function loadCols(){
+    try{
+      var raw = localStorage.getItem(COL_STORE_KEY);
+      if(raw) return normalizeCols(JSON.parse(raw));
+    }catch(e){}
+    return DEFAULT_COLS.slice();
+  }
+  function saveCols(){
+    try{ localStorage.setItem(COL_STORE_KEY, JSON.stringify(state.columns)); }catch(e){}
+  }
+  state.columns = loadCols();
+
+  function renderTableHead(){
+    var head = document.getElementById('tableHead');
+    if(!head) return;
+    var h = '<tr><th class="th-check"><input type="checkbox" id="checkAll" onchange="toggleAllRows(this.checked)"></th>'
+      + '<th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openColDrawer()">'
+      + '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+      + '</button></th>';
+    state.columns.forEach(function(k){
+      var def = colDef(k);
+      if(!def) return;
+      var style = '', cls = '';
+      if(k === 'goods') style = ' style="min-width:200px"';
+      else if(k === 'actions'){ style = ' style="width:200px"'; cls = ' class="th-actions"'; }
+      h += '<th' + cls + style + '>' + esc(def.label) + '</th>';
+    });
+    h += '</tr>';
+    head.innerHTML = h;
   }
 
-  function priceRange(min, max){
-    if(min == null || max == null) return '0.00';
-    return min === max ? fmtPrice(min) : fmtPrice(min) + '~' + fmtPrice(max);
-  }
-  function specGroupNames(item){
-    try{
-      var gs = JSON.parse(item.spec_groups || '[]') || [];
-      return gs.map(function(g){ return g.name; }).filter(Boolean).join('/');
-    }catch(e){ return ''; }
-  }
-  function renderGoodsRow(item){
-    var tags = '';
-    if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
-    if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
+  function rowCtx(item){
     var img = item.image_url
       ? '<img class="list-thumb" src="' + escAttr(item.image_url) + '" alt="">'
       : '<span class="list-thumb-ph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>';
@@ -1039,22 +1162,213 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
       unitCell = '<span>' + esc(sel ? sel.unit_name : (item.main_unit || '--')) + '</span>';
     }
     var factor = sel ? (sel.factor || 1) : 1;
-    var stockShown = fmtQty((item.total_stock || 0) / (factor || 1));
-    var codes = sel && sel.codes ? sel.codes : '';
-    var specNames = specGroupNames(item);
-    return '<tr data-row-id="' + item.id + '">'
-      + '<td class="c-goods"><div class="goods-cell">' + img + '<div class="goods-cell-txt"><div class="g-name">' + esc(item.name || '') + tags + '</div><div class="g-code">' + esc(item.code || '') + '</div></div></div></td>'
-      + '<td>' + esc(specNames || '--') + '</td>'
-      + '<td class="c-codes" title="' + escAttr(codes) + '">' + esc(codes || '--') + '</td>'
-      + '<td>' + unitCell + '</td>'
-      + '<td class="text-right"><span class="yen">¥</span>' + priceRange(sel && sel.retail_min, sel && sel.retail_max) + '</td>'
-      + '<td class="text-right"><span class="yen">¥</span>' + priceRange(sel && sel.wholesale_min, sel && sel.wholesale_max) + '</td>'
-      + '<td class="text-right">' + stockShown + esc(sel ? sel.unit_name : '') + '</td>'
-      + '<td><div class="actions">'
-      + '<button class="btn btn-ghost btn-sm" onclick="showDetail(' + item.id + ')">查看</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="showEdit(' + item.id + ')">编辑</button>'
-      + '<button class="btn btn-danger btn-sm" onclick="deleteItem(' + item.id + ')">删除</button>'
-      + '</div></td></tr>';
+    return {
+      item:item, img:img, summaries:summaries, base:base, sel:sel, selName:selName,
+      unitCell:unitCell, factor:factor,
+      stockShown: fmtQty((item.total_stock || 0) / (factor || 1)),
+      codes: sel && sel.codes ? sel.codes : ''
+    };
+  }
+
+  function renderTable(){
+    renderTableHead();
+    var tbody = document.getElementById('tableBody');
+    if(state.list.length === 0){
+      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 2) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
+      syncCheckAll();
+      return;
+    }
+    var html = '';
+    state.list.forEach(function(item){ html += renderGoodsRow(item); });
+    tbody.innerHTML = html;
+    syncCheckAll();
+  }
+
+  function priceRange(min, max){
+    if(min == null || max == null) return '0.00';
+    return min === max ? fmtPrice(min) : fmtPrice(min) + '~' + fmtPrice(max);
+  }
+  function specGroupNames(item){
+    try{
+      var gs = JSON.parse(item.spec_groups || '[]') || [];
+      return gs.map(function(g){ return g.name; }).filter(Boolean).join('/');
+    }catch(e){ return ''; }
+  }
+  function renderGoodsRow(item){
+    var ctx = rowCtx(item);
+    var idx = state.list.indexOf(item);
+    var rowNo = idx >= 0 ? (state.page - 1) * state.pageSize + idx + 1 : '';
+    var html = '<td class="c-check"><input type="checkbox" class="row-check" data-id="' + item.id + '" onchange="toggleRowCheck(this)"' + (state.selected[item.id] ? ' checked' : '') + '></td>'
+      + '<td class="c-idx">' + rowNo + '</td>';
+    state.columns.forEach(function(k){
+      var def = colDef(k);
+      if(!def) return;
+      var cls = def.align === 'right' ? ' class="text-right"' : (def.td ? ' class="' + def.td + '"' : '');
+      html += '<td' + cls + '>' + def.render(ctx) + '</td>';
+    });
+    return '<tr data-row-id="' + item.id + '"' + (state.selected[item.id] ? ' class="row-selected"' : '') + '>' + html + '</tr>';
+  }
+
+  // --- 行选择 ---
+  function syncCheckAll(){
+    var all = document.getElementById('checkAll');
+    if(!all) return;
+    var ids = state.list.map(function(i){ return i.id; });
+    var sel = ids.filter(function(id){ return state.selected[id]; }).length;
+    all.checked = ids.length > 0 && sel === ids.length;
+    all.indeterminate = sel > 0 && sel < ids.length;
+  }
+  window.toggleRowCheck = function(cb){
+    var id = parseInt(cb.getAttribute('data-id'), 10);
+    if(cb.checked) state.selected[id] = true; else delete state.selected[id];
+    var tr = cb.closest('tr');
+    if(tr) tr.classList.toggle('row-selected', cb.checked);
+    syncCheckAll();
+  };
+  window.toggleAllRows = function(checked){
+    state.list.forEach(function(item){
+      if(checked) state.selected[item.id] = true; else delete state.selected[item.id];
+    });
+    document.querySelectorAll('#tableBody .row-check').forEach(function(cb){
+      cb.checked = checked;
+      var tr = cb.closest('tr');
+      if(tr) tr.classList.toggle('row-selected', checked);
+    });
+    syncCheckAll();
+  };
+
+  // --- 自定义表头抽屉 ---
+  var dragColKey = null;
+  var draftCols = null;
+
+  function shownCols(list){
+    return (list || []).filter(function(k){ return k !== 'actions'; });
+  }
+
+  window.openColDrawer = function(){
+    draftCols = state.columns.slice();
+    renderColDrawer();
+    document.getElementById('colMask').classList.add('show');
+    document.getElementById('colDrawer').classList.add('show');
+  };
+  window.closeColDrawer = function(){
+    draftCols = null;
+    document.getElementById('colMask').classList.remove('show');
+    document.getElementById('colDrawer').classList.remove('show');
+  };
+
+  window.confirmCols = function(){
+    if(draftCols){
+      state.columns = normalizeCols(draftCols);
+      saveCols();
+      renderTableHead();
+      renderTable();
+    }
+    closeColDrawer();
+  };
+
+  window.restoreDefaultCols = function(){
+    draftCols = DEFAULT_COLS.slice();
+    renderColDrawer();
+  };
+
+  function renderColDrawer(){
+    var shown = document.getElementById('colShownGrid');
+    var avail = document.getElementById('colAvailGrid');
+    if(!shown || !avail || !draftCols) return;
+    var dots = '<span class="col-drag"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>';
+    shown.innerHTML = shownCols(draftCols).map(function(k){
+      var def = colDef(k);
+      if(!def) return '';
+      return '<div class="col-chip shown' + (def.fixed ? ' fixed' : '') + '" draggable="true" data-key="' + k + '">'
+        + dots
+        + '<span class="col-label">' + esc(def.label) + '</span>'
+        + (def.fixed ? '' : '<button type="button" class="col-del" title="移除" onclick="removeCol(\'' + k + '\', event)">−</button>')
+        + '</div>';
+    }).join('');
+    avail.innerHTML = COL_DEFS.filter(function(d){
+      return d.key !== 'actions' && draftCols.indexOf(d.key) < 0;
+    }).map(function(d){
+      return '<div class="col-chip avail" data-key="' + d.key + '">'
+        + '<span class="col-label">' + esc(d.label) + '</span>'
+        + '<button type="button" class="col-add" title="添加" onclick="addCol(\'' + d.key + '\', event)">+</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  window.addCol = function(key, ev){
+    if(ev) ev.stopPropagation();
+    if(!draftCols || draftCols.indexOf(key) >= 0 || !colDef(key)) return;
+    var arr = shownCols(draftCols);
+    arr.push(key);
+    arr.push('actions');
+    draftCols = arr;
+    renderColDrawer();
+  };
+
+  window.removeCol = function(key, ev){
+    if(ev) ev.stopPropagation();
+    var def = colDef(key);
+    if(!draftCols || !def || def.fixed) return;
+    if(shownCols(draftCols).length <= 1) return;
+    draftCols = shownCols(draftCols).filter(function(k){ return k !== key; }).concat(['actions']);
+    renderColDrawer();
+  };
+
+  function reorderCol(fromKey, toKey, after){
+    if(!draftCols) return;
+    var arr = shownCols(draftCols).filter(function(k){ return k !== fromKey; });
+    var ti;
+    if(toKey === 'actions'){
+      ti = arr.length;
+    } else {
+      ti = arr.indexOf(toKey);
+      if(ti < 0) ti = arr.length;
+      else if(after) ti += 1;
+    }
+    arr.splice(ti, 0, fromKey);
+    arr.push('actions');
+    draftCols = arr;
+    renderColDrawer();
+  }
+
+  function initColDrawerDnD(){
+    var grid = document.getElementById('colShownGrid');
+    if(!grid || grid.getAttribute('data-dnd') === '1') return;
+    grid.setAttribute('data-dnd', '1');
+    grid.addEventListener('dragstart', function(e){
+      var chip = e.target.closest('.col-chip');
+      if(!chip) return;
+      dragColKey = chip.getAttribute('data-key');
+      chip.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', dragColKey); }catch(err){}
+    });
+    grid.addEventListener('dragend', function(e){
+      var chip = e.target.closest('.col-chip');
+      if(chip) chip.classList.remove('dragging');
+      grid.querySelectorAll('.drag-over').forEach(function(x){ x.classList.remove('drag-over'); });
+      dragColKey = null;
+    });
+    grid.addEventListener('dragover', function(e){
+      if(!dragColKey) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var chip = e.target.closest('.col-chip');
+      grid.querySelectorAll('.drag-over').forEach(function(x){ if(x !== chip) x.classList.remove('drag-over'); });
+      if(chip && chip.getAttribute('data-key') !== dragColKey) chip.classList.add('drag-over');
+    });
+    grid.addEventListener('drop', function(e){
+      if(!dragColKey) return;
+      e.preventDefault();
+      var chip = e.target.closest('.col-chip');
+      if(!chip) return;
+      var targetKey = chip.getAttribute('data-key');
+      if(targetKey === dragColKey) return;
+      var rect = chip.getBoundingClientRect();
+      var after = (e.clientX - rect.left) > rect.width / 2;
+      reorderCol(dragColKey, targetKey, after);
+    });
   }
 
   function unitOptionLabel(u, base){
@@ -3702,6 +4016,8 @@ td .yen{color:var(--gray-400);font-size:12px;margin-right:2px}
   });
 
   function bootGoods(){
+    initColDrawerDnD();
+    renderTableHead();
     if(location.hash === '#goods:add'){
       showCreate();
     } else if(location.hash === '#goods:view' && storedViewId()){
