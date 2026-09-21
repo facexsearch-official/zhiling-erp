@@ -50,21 +50,21 @@
       ]}
     ]},
 
-    {key:'purchase', label:'采购', icon:IC.purchase, cols:[
-      {title:'采购', guide:true, items:[
+    {key:'purchase', label:'进货', icon:IC.purchase, cols:[
+      {title:'进货', guide:true, items:[
         {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
-        {key:'purchase:new',      label:'采购',     href:'/#purchase:new',      plus:true},
-        {key:'purchase:order',    label:'采购预订', href:'/#purchase:order',    plus:true},
-        {key:'purchase:return',   label:'采购退货', href:'/#purchase:return',   plus:true}
+        {key:'purchase:new',      label:'进货',     tabLabel:'进货单列表', href:'/#purchase:new',      plus:true},
+        {key:'purchase:order',    label:'进货预订', tabLabel:'进货预订列表', href:'/#purchase:order',    plus:true},
+        {key:'purchase:return',   label:'进货退货', tabLabel:'进货退货列表', href:'/#purchase:return',   plus:true}
       ]}
     ]},
 
     {key:'sales', label:'销售', icon:IC.sales, badge:'12', cols:[
       {title:'销售', guide:true, items:[
-        {key:'sales:new',    label:'销售',     plus:true},
-        {key:'sales:order',  label:'销售预订', plus:true},
-        {key:'sales:return', label:'销售退货', plus:true},
-        {key:'sales:quote',  label:'报价',     plus:true}
+        {key:'sales:new',    label:'销售',     tabLabel:'销售单列表',     plus:true},
+        {key:'sales:order',  label:'销售预订', tabLabel:'销售预订列表',   plus:true},
+        {key:'sales:return', label:'销售退货', tabLabel:'销售退货单列表', plus:true},
+        {key:'sales:quote',  label:'报价',     tabLabel:'报价',           plus:true}
       ]},
       {title:'其他', items:[
         {key:'sales:commission', label:'业绩提成'}
@@ -387,7 +387,11 @@
     }
 
     if(!href){
-      toast('「' + label + '」功能开发中');
+      /* 独立页面（goods/supplier 等）点击站内页面：跳转到首页 SPA 并定位 */
+      if(key === 'home'){ location.href = '/'; return; }
+      var spaHref = '/#' + key;
+      if(window.PisaTabs) window.PisaTabs.touch(key, label, spaHref);
+      location.href = spaHref;
       return;
     }
     if(window.PisaTabs) window.PisaTabs.touch(key, label, href);
@@ -544,7 +548,7 @@
     if(window.PisaTabs){
       var ck = currentKey();
       var cf = findItem(ck);
-      var clabel = (cf && cf.item && cf.item.label) || '';
+      var clabel = (cf && cf.item && (cf.item.tabLabel || cf.item.label)) || '';
       var chref = (cf && cf.item && cf.item.href) || (location.pathname + location.hash);
       window.PisaTabs.init({key:ck, label:clabel, href:chref});
     }

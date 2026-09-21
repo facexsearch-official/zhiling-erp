@@ -3,14 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	"pisa_server/internal/model"
 	customContext "pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/snowflake"
 	"pisa_server/internal/repository"
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
 )
+
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
+}
 
 type PurchaseService struct {
 	db        *gorm.DB
@@ -43,15 +49,20 @@ func (s *PurchaseService) Create(ctx context.Context, purchase *model.Purchase, 
 	purchase.CreatedBy = userID
 	purchase.Status = 1
 
-	var total float64
+	var subtotal float64
 	for i := range items {
 		items[i].ID = snowflake.GenID()
-		items[i].Amount = float64(items[i].Quantity) * items[i].UnitPrice
+		items[i].Amount = round2(float64(items[i].Quantity) * items[i].UnitPrice)
 		items[i].TenantID = tenantID
-		total += items[i].Amount
+		subtotal += items[i].Amount
 	}
-	purchase.TotalAmount = total
-	purchase.UnpaidAmount = total - purchase.PaidAmount
+	if purchase.Discount <= 0 {
+		purchase.Discount = 100
+	}
+	purchase.Subtotal = round2(subtotal)
+	purchase.DiscountedAmount = round2(subtotal * purchase.Discount / 100)
+	purchase.TotalAmount = round2(purchase.DiscountedAmount + purchase.Freight)
+	purchase.UnpaidAmount = round2(purchase.TotalAmount - purchase.PaidAmount)
 
 	if err := s.repo.Create(ctx, purchase); err != nil {
 		return err
@@ -68,10 +79,13 @@ func (s *PurchaseService) GetByID(ctx context.Context, id int64) (*model.Purchas
 	if err != nil {
 		return nil, err
 	}
+	purchase.IDStr = strconv.FormatInt(purchase.ID, 10)
+	s.repo.FillNames(ctx, purchase)
 	items, err := s.itemRepo.ListByPurchaseID(ctx, id)
 	if err != nil {
 		return purchase, nil
 	}
+	s.repo.FillItemDetails(ctx, items)
 	purchase.Items = items
 	return purchase, nil
 }

@@ -33,12 +33,21 @@ func NewPurchaseReturnHandler(
 }
 
 type returnCreateReq struct {
-	ShopID      int64           `json:"shop_id"`
-	WarehouseID int64           `json:"warehouse_id"`
-	SupplierID  int64           `json:"supplier_id"`
-	BillDate    string          `json:"bill_date"`
-	Remark      string          `json:"remark"`
-	Items       []returnItemReq `json:"items"`
+	ShopID        int64           `json:"shop_id"`
+	WarehouseID   int64           `json:"warehouse_id"`
+	SupplierID    int64           `json:"supplier_id"`
+	SalesmanID    int64           `json:"salesman_id"`
+	AccountID     int64           `json:"account_id"`
+	BillDate      string          `json:"bill_date"`
+	Discount      float64         `json:"discount"`
+	Freight       float64         `json:"freight"`
+	DepositOffset float64         `json:"deposit_offset"`
+	PaidAmount    float64         `json:"paid_amount"`
+	InvoiceStatus int8            `json:"invoice_status"`
+	RelatedNo     string          `json:"related_no"`
+	Attachments   string          `json:"attachments"`
+	Remark        string          `json:"remark"`
+	Items         []returnItemReq `json:"items"`
 }
 
 type returnItemReq struct {
@@ -67,7 +76,9 @@ func (h *PurchaseReturnHandler) GetByID(c *gin.Context) {
 		response.NotFound(c, "退货单不存在")
 		return
 	}
+	h.returnRepo.FillNames(ctx, pr)
 	items, _ := h.itemRepo.ListByReturnID(ctx, id)
+	h.returnRepo.FillItemDetails(ctx, items)
 	pr.Items = items
 	response.OK(c, pr)
 }
@@ -88,16 +99,25 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 	}
 
 	today := time.Now().Format("20060102")
+	var count int64
+	h.db.Table("purchase_returns").Where("tenant_id = ? AND order_no LIKE ?", tenantID, "TH"+today+"%").Count(&count)
 	pr := model.PurchaseReturn{
-		TenantID:    tenantID,
-		ShopID:      req.ShopID,
-		WarehouseID: req.WarehouseID,
-		OrderNo:     fmt.Sprintf("TH%s%04d", today, 1),
-		SupplierID:  req.SupplierID,
-		BillDate:    req.BillDate,
-		Status:      1,
-		Remark:      req.Remark,
-		CreatedBy:   userID,
+		TenantID:      tenantID,
+		ShopID:        req.ShopID,
+		WarehouseID:   req.WarehouseID,
+		OrderNo:       fmt.Sprintf("TH%s%04d", today, count+1),
+		SupplierID:    req.SupplierID,
+		SalesmanID:    req.SalesmanID,
+		AccountID:     req.AccountID,
+		BillDate:      req.BillDate,
+		DepositOffset: req.DepositOffset,
+		PaidAmount:    req.PaidAmount,
+		InvoiceStatus: req.InvoiceStatus,
+		RelatedNo:     req.RelatedNo,
+		Attachments:   req.Attachments,
+		Status:        1,
+		Remark:        req.Remark,
+		CreatedBy:     userID,
 	}
 
 	var total float64
@@ -116,6 +136,7 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 	}
 	pr.TotalAmount = total
 	pr.RefundAmount = total
+	pr.UnpaidAmount = total - pr.PaidAmount
 
 	if err := h.returnRepo.Create(ctx, &pr); err != nil {
 		response.ServerError(c, err.Error())

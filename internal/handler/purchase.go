@@ -18,13 +18,21 @@ func NewPurchaseHandler(svc *service.PurchaseService) *PurchaseHandler {
 }
 
 type purchaseCreateReq struct {
-	ShopID      int64             `json:"shop_id"`
-	WarehouseID int64             `json:"warehouse_id"`
-	SupplierID  int64             `json:"supplier_id"`
-	BillDate    string            `json:"bill_date"`
-	PaidAmount  float64           `json:"paid_amount"`
-	Remark      string            `json:"remark"`
-	Items       []purchaseItemReq `json:"items"`
+	ShopID        int64             `json:"shop_id"`
+	WarehouseID   int64             `json:"warehouse_id"`
+	SupplierID    int64             `json:"supplier_id"`
+	SalesmanID    int64             `json:"salesman_id"`
+	AccountID     int64             `json:"account_id"`
+	BillDate      string            `json:"bill_date"`
+	Discount      float64           `json:"discount"`
+	Freight       float64           `json:"freight"`
+	DepositOffset float64           `json:"deposit_offset"`
+	PaidAmount    float64           `json:"paid_amount"`
+	InvoiceStatus int8              `json:"invoice_status"`
+	RelatedNo     string            `json:"related_no"`
+	Attachments   string            `json:"attachments"`
+	Remark        string            `json:"remark"`
+	Items         []purchaseItemReq `json:"items"`
 }
 
 type purchaseItemReq struct {
@@ -80,12 +88,20 @@ func (h *PurchaseHandler) Create(c *gin.Context) {
 	}
 
 	purchase := &model.Purchase{
-		ShopID:      req.ShopID,
-		WarehouseID: req.WarehouseID,
-		SupplierID:  req.SupplierID,
-		BillDate:    req.BillDate,
-		PaidAmount:  req.PaidAmount,
-		Remark:      req.Remark,
+		ShopID:        req.ShopID,
+		WarehouseID:   req.WarehouseID,
+		SupplierID:    req.SupplierID,
+		SalesmanID:    req.SalesmanID,
+		AccountID:     req.AccountID,
+		BillDate:      req.BillDate,
+		Discount:      req.Discount,
+		Freight:       req.Freight,
+		DepositOffset: req.DepositOffset,
+		PaidAmount:    req.PaidAmount,
+		InvoiceStatus: req.InvoiceStatus,
+		RelatedNo:     req.RelatedNo,
+		Attachments:   req.Attachments,
+		Remark:        req.Remark,
 	}
 
 	var items []model.PurchaseItem
@@ -134,12 +150,20 @@ func (h *PurchaseHandler) Update(c *gin.Context) {
 
 	// 创建新的
 	purchase := &model.Purchase{
-		ShopID:      req.ShopID,
-		WarehouseID: req.WarehouseID,
-		SupplierID:  req.SupplierID,
-		BillDate:    req.BillDate,
-		PaidAmount:  req.PaidAmount,
-		Remark:      req.Remark,
+		ShopID:        req.ShopID,
+		WarehouseID:   req.WarehouseID,
+		SupplierID:    req.SupplierID,
+		SalesmanID:    req.SalesmanID,
+		AccountID:     req.AccountID,
+		BillDate:      req.BillDate,
+		Discount:      req.Discount,
+		Freight:       req.Freight,
+		DepositOffset: req.DepositOffset,
+		PaidAmount:    req.PaidAmount,
+		InvoiceStatus: req.InvoiceStatus,
+		RelatedNo:     req.RelatedNo,
+		Attachments:   req.Attachments,
+		Remark:        req.Remark,
 	}
 	var items []model.PurchaseItem
 	for _, item := range req.Items {

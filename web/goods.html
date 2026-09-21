@@ -55,7 +55,10 @@ input{font:inherit}
 .table-wrap td,.table-wrap th{white-space:nowrap}
 table{width:100%;border-collapse:collapse}
 thead{background:var(--gray-50)}
-th{padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap;vertical-align:middle}
+th{padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap;vertical-align:middle;position:relative}
+.col-resizer{position:absolute;top:0;right:-4px;width:8px;height:100%;cursor:col-resize;z-index:6}
+.col-resizer::after{content:'';position:absolute;top:20%;bottom:20%;left:3px;width:2px;background:transparent}
+.col-resizer:hover::after,.col-resizer.active::after{background:var(--primary-400)}
 td{padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-700);vertical-align:middle}
 th>*{vertical-align:middle}
 tr:last-child td{border-bottom:none}
@@ -266,8 +269,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;margin:36px 0 12px}
 .detail-foot .btn{min-width:110px;justify-content:center}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260974">
-<link rel="stylesheet" href="/css/tabs.css?v=20260974">
+<link rel="stylesheet" href="/css/app-shell.css?v=20260981">
+<link rel="stylesheet" href="/css/tabs.css?v=20260981">
 <script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
@@ -1141,6 +1144,51 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     });
     h += '</tr>';
     head.innerHTML = h;
+    enableColResize(head.closest('table'), ['th-check','th-tools','th-actions']);
+  }
+
+  // 表头左右拖拽调整列宽
+  function freezeCols(table){
+    if(table.dataset.frozen === '1') return;
+    var ths = table.querySelectorAll('thead th');
+    var total = 0;
+    ths.forEach(function(th){ var w = th.offsetWidth; th.style.width = w + 'px'; total += w; });
+    table.style.tableLayout = 'fixed';
+    table.style.width = total + 'px';
+    table.dataset.frozen = '1';
+  }
+  function enableColResize(table, skip){
+    if(!table) return;
+    skip = skip || [];
+    table.querySelectorAll('thead th').forEach(function(th){
+      if(skip.some(function(c){ return th.classList.contains(c); })) return;
+      if(th.querySelector('.col-resizer')) return;
+      var r = document.createElement('span');
+      r.className = 'col-resizer';
+      th.appendChild(r);
+      r.addEventListener('mousedown', function(e){
+        e.preventDefault(); e.stopPropagation();
+        freezeCols(table);
+        var startX = e.clientX, startW = th.offsetWidth, tableW = table.offsetWidth;
+        r.classList.add('active');
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+        function move(ev){
+          var w = Math.max(40, startW + (ev.clientX - startX));
+          th.style.width = w + 'px';
+          table.style.width = (tableW + (w - startW)) + 'px';
+        }
+        function up(){
+          document.removeEventListener('mousemove', move);
+          document.removeEventListener('mouseup', up);
+          r.classList.remove('active');
+          document.body.style.userSelect = '';
+          document.body.style.cursor = '';
+        }
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+      });
+    });
   }
 
   function rowCtx(item){
@@ -4034,7 +4082,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
 })();
 </script>
-<script src="/js/tabs.js?v=20260974"></script>
-<script src="/js/app-shell.js?v=20260974"></script>
+<script src="/js/tabs.js?v=20260981"></script>
+<script src="/js/app-shell.js?v=20260981"></script>
 </body>
 </html>

@@ -52,17 +52,17 @@ type User struct {
 
 // UserTenant 用户-商户关系
 type UserTenant struct {
-	ID          int64           `json:"id" gorm:"primaryKey"`
-	UserID      int64           `json:"user_id" gorm:"uniqueIndex:uk_user_tenant"`
-	TenantID    int64           `json:"tenant_id" gorm:"uniqueIndex:uk_user_tenant"`
-	IsOwner     int8            `json:"is_owner"`
-	Role        int8            `json:"role"` // 1=超级管理员 2=管理员 3=操作员
-	StaffName   string          `json:"staff_name" gorm:"size:64"`
-	StaffPhone  string          `json:"staff_phone" gorm:"size:20"`
-	Permissions string          `json:"permissions" gorm:"type:text"`
-	InvitedBy   *int64          `json:"invited_by"`
-	Status      int8            `json:"status" gorm:"default:1"`
-	JoinedAt    time.Time       `json:"joined_at"`
+	ID          int64     `json:"id" gorm:"primaryKey"`
+	UserID      int64     `json:"user_id" gorm:"uniqueIndex:uk_user_tenant"`
+	TenantID    int64     `json:"tenant_id" gorm:"uniqueIndex:uk_user_tenant"`
+	IsOwner     int8      `json:"is_owner"`
+	Role        int8      `json:"role"` // 1=超级管理员 2=管理员 3=操作员
+	StaffName   string    `json:"staff_name" gorm:"size:64"`
+	StaffPhone  string    `json:"staff_phone" gorm:"size:20"`
+	Permissions string    `json:"permissions" gorm:"type:text"`
+	InvitedBy   *int64    `json:"invited_by"`
+	Status      int8      `json:"status" gorm:"default:1"`
+	JoinedAt    time.Time `json:"joined_at"`
 }
 
 // Shop 门店
@@ -76,4 +76,18 @@ type Shop struct {
 	IsMain    int8      `json:"is_main"`
 	Status    int8      `json:"status" gorm:"default:1"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// Salesman 业务员（不可登录系统，仅用于统计销售业绩）
+type Salesman struct {
+	ID        int64     `json:"id" gorm:"primaryKey"`
+	TenantID  int64     `json:"tenant_id" gorm:"index"`
+	Name      string    `json:"name" gorm:"size:64"`
+	Phone     string    `json:"phone" gorm:"size:20"`
+	ShopID    int64     `json:"shop_id"`
+	Status    int8      `json:"status" gorm:"default:1"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	ShopName string `json:"shop_name" gorm:"-"`
 }

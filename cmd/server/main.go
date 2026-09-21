@@ -92,6 +92,7 @@ func main() {
 
 			supplierRepo := repository.NewSupplierRepository(base)
 			supplierCategoryRepo := repository.NewSupplierCategoryRepository(base)
+			staffRepo := repository.NewStaffRepository(base)
 			customerRepo := repository.NewCustomerRepository(base)
 			warehouseRepo := repository.NewWarehouseRepository(base)
 			goodsRepo := repository.NewGoodsRepository(base)
@@ -101,6 +102,7 @@ func main() {
 
 			supplierHandler := handler.NewSupplierHandler(supplierRepo)
 			supplierCategoryHandler := handler.NewSupplierCategoryHandler(supplierCategoryRepo)
+			staffHandler := handler.NewStaffHandler(staffRepo)
 			customerHandler := handler.NewCustomerHandler(customerRepo)
 			warehouseHandler := handler.NewWarehouseHandler(warehouseRepo)
 			goodsHandler := handler.NewGoodsHandler(goodsRepo)
@@ -128,6 +130,19 @@ func main() {
 			shopGroup.POST("/supplier-category", supplierCategoryHandler.Create)
 			shopGroup.PUT("/supplier-category/:id", supplierCategoryHandler.Update)
 			shopGroup.DELETE("/supplier-category/:id", supplierCategoryHandler.Delete)
+
+			shopGroup.GET("/staff/users", staffHandler.ListUsers)
+			shopGroup.POST("/staff/users", middleware.PlanLimitMiddleware(limitChecker, "staff"), staffHandler.CreateUser)
+			shopGroup.PUT("/staff/users/:id", staffHandler.UpdateUser)
+			shopGroup.DELETE("/staff/users/:id", staffHandler.DeleteUser)
+			shopGroup.GET("/salesmen", staffHandler.ListSalesmen)
+			shopGroup.POST("/salesmen", staffHandler.CreateSalesman)
+			shopGroup.PUT("/salesmen/:id", staffHandler.UpdateSalesman)
+			shopGroup.DELETE("/salesmen/:id", staffHandler.DeleteSalesman)
+			shopGroup.GET("/shops", staffHandler.ListShops)
+			shopGroup.POST("/shops", middleware.PlanLimitMiddleware(limitChecker, "shop"), staffHandler.CreateShop)
+			shopGroup.PUT("/shops/:id", staffHandler.UpdateShop)
+			shopGroup.DELETE("/shops/:id", staffHandler.DeleteShop)
 
 			shopGroup.GET("/customer/list", customerHandler.List)
 			shopGroup.GET("/customer/all", customerHandler.ListAll)
@@ -192,6 +207,7 @@ func main() {
 			purchaseHandler := handler.NewPurchaseHandler(purchaseSvc)
 			purchaseReturnHandler := handler.NewPurchaseReturnHandler(purchaseReturnRepo, purchaseReturnItemRepo, database)
 			purchaseOrderHandler := handler.NewPurchaseOrderHandler(database)
+			salesHandler := handler.NewSalesHandler(database)
 
 			shopGroup.GET("/purchase/list", purchaseHandler.List)
 			shopGroup.GET("/purchase/:id", purchaseHandler.GetByID)
@@ -208,15 +224,31 @@ func main() {
 			shopGroup.POST("/purchase-return/:id/audit", purchaseReturnHandler.Audit)
 
 			shopGroup.GET("/purchase-order/list", purchaseOrderHandler.List)
+			shopGroup.GET("/purchase-order/:id", purchaseOrderHandler.GetByID)
 			shopGroup.POST("/purchase-order", purchaseOrderHandler.Create)
 			shopGroup.DELETE("/purchase-order/:id", purchaseOrderHandler.Delete)
 			shopGroup.POST("/purchase-order/:id/audit", purchaseOrderHandler.Audit)
+
+			shopGroup.GET("/sale/list", salesHandler.ListSales)
+			shopGroup.GET("/sale/:id", salesHandler.GetSale)
+			shopGroup.POST("/sale", salesHandler.CreateSale)
+			shopGroup.DELETE("/sale/:id", salesHandler.DeleteSale)
+			shopGroup.GET("/sale-order/list", salesHandler.ListSaleOrders)
+			shopGroup.GET("/sale-order/:id", salesHandler.GetSaleOrder)
+			shopGroup.POST("/sale-order", salesHandler.CreateSaleOrder)
+			shopGroup.DELETE("/sale-order/:id", salesHandler.DeleteSaleOrder)
+			shopGroup.GET("/sale-return/list", salesHandler.ListSalesReturns)
+			shopGroup.GET("/sale-return/:id", salesHandler.GetSalesReturn)
+			shopGroup.POST("/sale-return", salesHandler.CreateSalesReturn)
+			shopGroup.DELETE("/sale-return/:id", salesHandler.DeleteSalesReturn)
+			shopGroup.GET("/quote/list", salesHandler.ListQuotes)
+			shopGroup.GET("/quote/:id", salesHandler.GetQuote)
+			shopGroup.POST("/quote", salesHandler.CreateQuote)
+			shopGroup.DELETE("/quote/:id", salesHandler.DeleteQuote)
 		}
 
 		if limitChecker != nil {
 			shopGroup.POST("/sales", middleware.PlanLimitMiddleware(limitChecker, "order"))
-			tenantGroup.POST("/staff", middleware.PlanLimitMiddleware(limitChecker, "staff"))
-			tenantGroup.POST("/shops", middleware.PlanLimitMiddleware(limitChecker, "shop"))
 		}
 	}
 

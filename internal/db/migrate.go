@@ -16,6 +16,7 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.User{},
 		&model.UserTenant{},
 		&model.Shop{},
+		&model.Salesman{},
 		// 业务数据
 		&model.GoodsCategory{},
 		&model.Unit{},
@@ -32,6 +33,22 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.SupplierAddress{},
 		&model.Account{},
 		&model.StockBalance{},
+		// 采购
+		&model.PurchaseOrder{},
+		&model.PurchaseOrderItem{},
+		&model.Purchase{},
+		&model.PurchaseItem{},
+		&model.PurchaseReturn{},
+		&model.PurchaseReturnItem{},
+		// 销售
+		&model.SaleOrder{},
+		&model.SaleOrderItem{},
+		&model.Sale{},
+		&model.SaleItem{},
+		&model.SalesReturn{},
+		&model.SalesReturnItem{},
+		&model.Quote{},
+		&model.QuoteItem{},
 	}
 	for _, t := range tables {
 		if err := db.AutoMigrate(t); err != nil {
