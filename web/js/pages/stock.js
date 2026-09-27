@@ -8,7 +8,7 @@ const StockPage = {
 
   renderStock() {
     const cols = [
-      { key: 'goods', label: '货品名称' }, { key: 'code', label: '编码' },
+      { key: 'goods', label: '商品名称' }, { key: 'code', label: '编码' },
       { key: 'warehouse', label: '仓库' }, { key: 'qty', label: '库存数量', align: 'right',
         render: (v, r) => `<span class="${v<=r.min?'text-danger':v>=r.max?'text-warning':''}">${v.toLocaleString()}</span>` },
       { key: 'cost', label: '成本价', align: 'right', render: v => '¥'+v.toFixed(2) },
@@ -16,7 +16,7 @@ const StockPage = {
     ];
     return `<div class="page-head"><div class="page-title">库存查询</div><div class="toolbar-right"><button class="btn btn-secondary">导出</button></div></div>
       <div class="filter-bar">
-        <input class="search-input" placeholder="搜索货品名称/编码">
+        <input class="search-input" placeholder="搜索商品名称/编码">
         <select class="form-input form-select" style="width:160px"><option value="">全部仓库</option><option>主仓库</option></select>
       </div>
       ${Table.render(cols, this.list)}`;

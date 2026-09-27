@@ -208,6 +208,18 @@ func main() {
 			purchaseReturnHandler := handler.NewPurchaseReturnHandler(purchaseReturnRepo, purchaseReturnItemRepo, database)
 			purchaseOrderHandler := handler.NewPurchaseOrderHandler(database)
 			salesHandler := handler.NewSalesHandler(database)
+			commissionHandler := handler.NewCommissionHandler(database)
+			comboHandler := handler.NewComboHandler(database)
+			stockCountHandler := handler.NewStockCountHandler(database)
+			assemblyHandler := handler.NewAssemblyHandler(database)
+			recipeHandler := handler.NewRecipeHandler(database)
+			stockQueryHandler := handler.NewStockQueryHandler(database)
+			batchHandler := handler.NewBatchHandler(database)
+			transferHandler := handler.NewTransferHandler(database)
+			receiptHandler := handler.NewReceiptHandler(database)
+			paymentHandler := handler.NewPaymentHandler(database)
+			incomeHandler := handler.NewIncomeHandler(database)
+			incomeTypeHandler := handler.NewIncomeTypeHandler(database)
 
 			shopGroup.GET("/purchase/list", purchaseHandler.List)
 			shopGroup.GET("/purchase/:id", purchaseHandler.GetByID)
@@ -245,6 +257,81 @@ func main() {
 			shopGroup.GET("/quote/:id", salesHandler.GetQuote)
 			shopGroup.POST("/quote", salesHandler.CreateQuote)
 			shopGroup.DELETE("/quote/:id", salesHandler.DeleteQuote)
+
+			shopGroup.GET("/commission-rule/list", commissionHandler.ListRules)
+			shopGroup.POST("/commission-rule", commissionHandler.CreateRule)
+			shopGroup.PUT("/commission-rule/:id", commissionHandler.UpdateRule)
+			shopGroup.DELETE("/commission-rule/:id", commissionHandler.DeleteRule)
+			shopGroup.GET("/commission/report", commissionHandler.Report)
+
+			shopGroup.GET("/combo/list", comboHandler.List)
+			shopGroup.GET("/combo/price-levels", comboHandler.PriceLevels)
+			shopGroup.GET("/combo/:id", comboHandler.GetByID)
+			shopGroup.POST("/combo", comboHandler.Create)
+			shopGroup.DELETE("/combo/:id", comboHandler.Delete)
+
+			shopGroup.GET("/stock-count/list", stockCountHandler.List)
+			shopGroup.GET("/stock-count/:id", stockCountHandler.GetByID)
+			shopGroup.POST("/stock-count", stockCountHandler.Create)
+			shopGroup.POST("/stock-count/:id/void", stockCountHandler.Void)
+
+			shopGroup.GET("/assembly/list", assemblyHandler.List)
+			shopGroup.GET("/assembly/:id", assemblyHandler.GetByID)
+			shopGroup.POST("/assembly", assemblyHandler.Create)
+			shopGroup.PUT("/assembly/:id", assemblyHandler.Update)
+			shopGroup.POST("/assembly/:id/void", assemblyHandler.Void)
+
+			shopGroup.GET("/split/list", assemblyHandler.ListSplit)
+			shopGroup.GET("/split/:id", assemblyHandler.GetByID)
+			shopGroup.POST("/split", assemblyHandler.CreateSplit)
+			shopGroup.PUT("/split/:id", assemblyHandler.Update)
+			shopGroup.POST("/split/:id/void", assemblyHandler.Void)
+
+			shopGroup.GET("/recipe/list", recipeHandler.List)
+			shopGroup.GET("/recipe/:id", recipeHandler.GetByID)
+			shopGroup.POST("/recipe", recipeHandler.Create)
+			shopGroup.PUT("/recipe/:id", recipeHandler.Update)
+			shopGroup.DELETE("/recipe/:id", recipeHandler.Delete)
+
+			shopGroup.GET("/stock-query/list", stockQueryHandler.List)
+			shopGroup.GET("/stock-query/alert", stockQueryHandler.Alert)
+			shopGroup.GET("/stock-query/flow/:id", stockQueryHandler.Flow)
+			shopGroup.GET("/stock-query/cost/:id", stockQueryHandler.Cost)
+
+			shopGroup.GET("/batch/list", batchHandler.List)
+			shopGroup.GET("/batch/expiry", batchHandler.Expiry)
+
+			shopGroup.GET("/transfer/list", transferHandler.List)
+			shopGroup.POST("/transfer", transferHandler.Create)
+
+			shopGroup.GET("/receipt/list", receiptHandler.List)
+			shopGroup.GET("/receipt/:id", receiptHandler.GetByID)
+			shopGroup.POST("/receipt", receiptHandler.Create)
+			shopGroup.PUT("/receipt/:id", receiptHandler.Update)
+			shopGroup.POST("/receipt/:id/void", receiptHandler.Void)
+
+			shopGroup.GET("/payment/list", paymentHandler.List)
+			shopGroup.GET("/payment/:id", paymentHandler.GetByID)
+			shopGroup.POST("/payment", paymentHandler.Create)
+			shopGroup.PUT("/payment/:id", paymentHandler.Update)
+			shopGroup.POST("/payment/:id/void", paymentHandler.Void)
+
+			shopGroup.GET("/income-type/list", incomeTypeHandler.List)
+			shopGroup.POST("/income-type", incomeTypeHandler.Create)
+			shopGroup.PUT("/income-type/:id", incomeTypeHandler.Update)
+			shopGroup.DELETE("/income-type/:id", incomeTypeHandler.Delete)
+
+			shopGroup.GET("/income/list", incomeHandler.List)
+			shopGroup.GET("/income/:id", incomeHandler.GetByID)
+			shopGroup.POST("/income", incomeHandler.Create)
+			shopGroup.PUT("/income/:id", incomeHandler.Update)
+			shopGroup.POST("/income/:id/void", incomeHandler.Void)
+
+			shopGroup.GET("/expense/list", incomeHandler.ListExpense)
+			shopGroup.GET("/expense/:id", incomeHandler.GetByID)
+			shopGroup.POST("/expense", incomeHandler.CreateExpense)
+			shopGroup.PUT("/expense/:id", incomeHandler.Update)
+			shopGroup.POST("/expense/:id/void", incomeHandler.Void)
 		}
 
 		if limitChecker != nil {

@@ -617,7 +617,7 @@ select.finput{-webkit-appearance:none;appearance:none;background-color:#fff;back
 .picker-opt.empty{color:var(--gray-400);cursor:default}
 .picker-opt.empty:hover{background:transparent}
 
-/* ── 货品类别 级联选择 ── */
+/* ── 商品类别 级联选择 ── */
 .cat-field{display:flex;align-items:center;gap:12px}
 .cat-field .cat-picker{position:relative;flex:1;min-width:0}
 .cat-add-link{flex-shrink:0}

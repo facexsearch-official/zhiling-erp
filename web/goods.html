@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>货品管理 - PISA 进销存</title>
+<title>商品管理 - PISA 进销存</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -226,7 +226,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .skeleton{background:linear-gradient(90deg,var(--gray-100) 25%,var(--gray-200) 50%,var(--gray-100) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ── 货品详情 ── */
+/* ── 商品详情 ── */
 .detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .detail-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--gray-600);cursor:pointer;padding:6px 10px;border-radius:var(--radius-md);transition:background .15s}
 .detail-back:hover{background:var(--gray-100);color:var(--gray-800)}
@@ -269,8 +269,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;margin:36px 0 12px}
 .detail-foot .btn{min-width:110px;justify-content:center}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260981">
-<link rel="stylesheet" href="/css/tabs.css?v=20260981">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261005">
+<link rel="stylesheet" href="/css/tabs.css?v=20261005">
 <script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
@@ -287,7 +287,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   <div class="split">
     <aside class="cat-panel" id="catPanel">
       <div class="cat-head">
-        <span id="catTitle">货品分类</span>
+        <span id="catTitle">商品分类</span>
         <div class="cat-actions" id="catDefaultActions">
           <button class="cat-search-btn" title="搜索分类" onclick="catToggleSearch()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
           <button title="编辑分类" onclick="catToggleEdit()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -307,7 +307,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     </aside>
     <div class="split-main">
     <div class="page-head">
-      <div class="page-title">货品管理</div>
+      <div class="page-title">商品管理</div>
       <div>
         <button class="btn btn-secondary" onclick="exportData()">导出</button>
         <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
@@ -339,7 +339,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   <!-- 表单视图 -->
   <div id="formView" style="display:none">
     <div class="page-head">
-      <div class="page-title" id="formTitle">新增货品</div>
+      <div class="page-title" id="formTitle">新增商品</div>
       <div>
         <span class="fhint" id="drawerHint" style="margin-right:10px"></span>
         <button class="btn btn-secondary" onclick="closeDrawer()">取消</button>
@@ -352,12 +352,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <div class="fsection">
       <div class="frow">
         <div class="fitem">
-          <label class="flabel">货品名称<span class="req">*</span></label>
-          <input class="finput" id="fName" placeholder="请输入货品名称" autocomplete="off">
+          <label class="flabel">商品名称<span class="req">*</span></label>
+          <input class="finput" id="fName" placeholder="请输入商品名称" autocomplete="off">
           <div class="fhint">扫码枪扫描条码可自动带入</div>
         </div>
         <div class="fitem">
-          <label class="flabel">货品图片</label>
+          <label class="flabel">商品图片</label>
           <div class="imggrid" id="imgGrid"></div>
           <div class="fhint">JPG / PNG / GIF / WEBP，最多 5 张，支持拖拽与粘贴</div>
         </div>
@@ -383,7 +383,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
           </div>
         </div>
         <div class="fitem">
-          <label class="flabel">货品类别 <span class="req">*</span></label>
+          <label class="flabel">商品类别 <span class="req">*</span></label>
           <div class="cat-field">
             <div class="cat-picker" id="catPicker">
               <div class="picker-input" id="catInputWrap" onclick="openCategoryDrop()">
@@ -581,7 +581,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   </div>
 </div>
 
-<!-- 新增/编辑货品 抽屉 -->
+<!-- 新增/编辑商品 抽屉 -->
 
 
 <!-- 自定义表头抽屉 -->
@@ -1222,7 +1222,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     renderTableHead();
     var tbody = document.getElementById('tableBody');
     if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 2) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品数据</p></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 2) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无商品数据</p></div></td></tr>';
       syncCheckAll();
       return;
     }
@@ -1547,7 +1547,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       meta.units      = (r[1] && r[1].data) || [];
       meta.suppliers  = (r[2] && r[2].data) || [];
       meta.brands     = (r[3] && r[3].data) || [];
-      // 合并本地新增（尚未保存到任何货品）的品牌，避免刷新基础资料后丢失
+      // 合并本地新增（尚未保存到任何商品）的品牌，避免刷新基础资料后丢失
       (meta.extraBrands || []).forEach(function(b){
         if(meta.brands.indexOf(b) === -1) meta.brands.push(b);
       });
@@ -1573,15 +1573,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   var VIEW_KEY = 'goods:view';
 
   function addFormTab(){
-    if(window.PisaTabs) PisaTabs.touch(ADD_KEY, '添加货品', '/goods.html#goods:add');
+    if(window.PisaTabs) PisaTabs.touch(ADD_KEY, '新增商品', '/goods.html#goods:add');
     if(location.hash !== '#goods:add'){
       try{ history.replaceState(null, '', '#goods:add'); }catch(e){ location.hash = 'goods:add'; }
     }
   }
   function removeFormTab(){
     if(window.PisaTabs){
-      // 先把激活标签切回「货品」，再关掉新增标签（避免关闭时整页跳转）
-      PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
+      // 先把激活标签切回「商品」，再关掉新增标签（避免关闭时整页跳转）
+      PisaTabs.touch(LIST_KEY, '商品列表', '/goods.html');
       PisaTabs.close(ADD_KEY);
     }
     if(location.hash === '#goods:add'){
@@ -1598,7 +1598,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
   function removeViewTab(){
     if(window.PisaTabs){
-      PisaTabs.touch(LIST_KEY, '货品', '/goods.html');
+      PisaTabs.touch(LIST_KEY, '商品列表', '/goods.html');
       PisaTabs.close(VIEW_KEY);
     }
     if(location.hash === '#goods:view'){
@@ -1633,7 +1633,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   window.showCreate = function(){
     form.editId = null;
     state.editId = null;
-    el('formTitle').textContent = '新增货品';
+    el('formTitle').textContent = '新增商品';
     el('saveMoreBtn').style.display = '';
     resetForm();
     formInited = true;
@@ -1734,7 +1734,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       if(!res || res.code !== 0){ showToast((res && res.message) || '获取失败', 'error'); return; }
       form.editId = id;
       state.editId = id;
-      el('formTitle').textContent = '编辑货品';
+      el('formTitle').textContent = '编辑商品';
       el('saveMoreBtn').style.display = 'none';
       resetForm();
       fillFormFromGoods(res.data);
@@ -1755,7 +1755,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       var d = res.data;
       form.editId = null;
       state.editId = null;
-      el('formTitle').textContent = '新增货品';
+      el('formTitle').textContent = '新增商品';
       el('saveMoreBtn').style.display = '';
       resetForm();
       fillFormFromGoods(d);
@@ -1772,7 +1772,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     });
   };
 
-  // ═══════════ 货品详情 ═══════════
+  // ═══════════ 商品详情 ═══════════
   var detailData = null;
 
   function fmtQty(v){ var n = parseFloat(v); if(isNaN(n)) return '0'; return String(Math.round(n*100)/100); }
@@ -2273,7 +2273,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   })();
 
   // --- 新增类别 / 单位 ---
-  // --- 货品类别（两级级联）---
+  // --- 商品类别（两级级联）---
   function catById(id){
     if(!id) return null;
     return (meta.categories || []).filter(function(c){ return String(c.id) === String(id); })[0] || null;
@@ -3860,7 +3860,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   // --- 提交 ---
   window.submitForm = function(saveMore){
     var name = el('fName').value.trim();
-    if(!name){ showToast('请输入货品名称', 'error'); el('fName').focus(); return; }
+    if(!name){ showToast('请输入商品名称', 'error'); el('fName').focus(); return; }
 
     readUnits();
     readSimplePrice();
@@ -3964,7 +3964,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 
   // --- Delete ---
   window.deleteItem = function(id){
-    if(!confirm('确定要删除该货品吗？')) return;
+    if(!confirm('确定要删除该商品吗？')) return;
     apiFetch('/api/shop/goods/' + id, { method: 'DELETE' }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
       showToast('删除成功', 'success');
@@ -4082,7 +4082,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
 })();
 </script>
-<script src="/js/tabs.js?v=20260981"></script>
-<script src="/js/app-shell.js?v=20260981"></script>
+<script src="/js/tabs.js?v=20261005"></script>
+<script src="/js/app-shell.js?v=20261005"></script>
 </body>
 </html>

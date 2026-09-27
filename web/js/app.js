@@ -49,7 +49,7 @@
   Router.register('report-sales', () => { Sidebar.setActive('report-sales'); document.getElementById('pageTitle').textContent = '销售报表'; document.getElementById('content').innerHTML = ReportPage.renderSales(); });
   Router.register('report-stock', () => { Sidebar.setActive('report-stock'); document.getElementById('pageTitle').textContent = '库存报表'; document.getElementById('content').innerHTML = ReportPage.renderStock(); });
   Router.register('report-finance', () => { Sidebar.setActive('report-finance'); document.getElementById('pageTitle').textContent = '财务报表'; document.getElementById('content').innerHTML = ReportPage.renderFinance(); });
-  Router.register('goods', () => { Sidebar.setActive('goods'); document.getElementById('pageTitle').textContent = '货品管理'; document.getElementById('content').innerHTML = SettingPage.renderGoods(); });
+  Router.register('goods', () => { Sidebar.setActive('goods'); document.getElementById('pageTitle').textContent = '商品管理'; document.getElementById('content').innerHTML = SettingPage.renderGoods(); });
   Router.register('customer', () => { Sidebar.setActive('customer'); document.getElementById('pageTitle').textContent = '客户管理'; document.getElementById('content').innerHTML = SettingPage.renderCustomer(); });
   Router.register('supplier', () => { Sidebar.setActive('supplier'); document.getElementById('pageTitle').textContent = '供应商管理'; document.getElementById('content').innerHTML = SettingPage.renderSupplier(); });
   Router.register('warehouse', () => { Sidebar.setActive('warehouse'); document.getElementById('pageTitle').textContent = '仓库管理'; document.getElementById('content').innerHTML = SettingPage.renderWarehouse(); });

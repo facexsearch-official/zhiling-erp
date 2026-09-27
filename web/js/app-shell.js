@@ -32,13 +32,16 @@
   var NAV = [
     {key:'home', label:'首页', icon:IC.home, href:'/'},
 
-    {key:'goods', label:'货品', icon:IC.goods, cols:[
-      {title:'货品', items:[
-        {key:'goods:list',  label:'货品',     href:'/goods.html'},
+    {key:'goods', label:'商品', icon:IC.goods, cols:[
+      {title:'商品', items:[
+        {key:'goods:list',  label:'商品列表', tabLabel:'商品列表', href:'/goods.html'},
         {key:'goods:spec',  label:'规格管理', href:'/spec.html'},
         {key:'goods:unit',  label:'单位管理', href:'/unit.html'},
-        {key:'goods:attr',  label:'货品属性', href:'/attr.html'},
+        {key:'goods:attr',  label:'商品属性', href:'/attr.html'},
         {key:'goods:price', label:'价格管理', href:'/price.html'}
+      ]},
+      {title:'\u00A0', items:[
+        {key:'goods:combo', label:'套餐', tabLabel:'套餐列表', href:'/#goods:combo'}
       ]}
     ]},
 
@@ -73,29 +76,28 @@
 
     {key:'stock', label:'库存', icon:IC.stock, cols:[
       {title:'库存', guide:true, items:[
-        {key:'stock:take',      label:'盘点',     plus:true},
-        {key:'stock:assembly',  label:'组装',     plus:true},
-        {key:'stock:split',     label:'拆分',     plus:true},
-        {key:'stock:warehouse', label:'仓库管理', href:'/warehouse.html'}
+        {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take', plus:true},
+        {key:'stock:assembly',  label:'组装',     tabLabel:'组装单列表', href:'/#stock:assembly', plus:true},
+        {key:'stock:split',     label:'拆分',     tabLabel:'拆分单列表', href:'/#stock:split', plus:true}
       ]},
       {title:'查询', items:[
-        {key:'stock:query',  label:'库存查询'},
-        {key:'stock:alert',  label:'库存预警'},
-        {key:'stock:batch',  label:'批次查询'},
-        {key:'stock:expiry', label:'保质期查询'}
+        {key:'stock:query',  label:'库存查询', tabLabel:'库存查询', href:'/#stock:query'},
+        {key:'stock:alert',  label:'库存预警', tabLabel:'库存预警', href:'/#stock:alert'},
+        {key:'stock:batch',  label:'批次查询', tabLabel:'批次查询', href:'/#stock:batch'},
+        {key:'stock:expiry', label:'保质期查询', tabLabel:'保质期查询', href:'/#stock:expiry'}
       ]}
     ]},
 
-    {key:'funds', label:'财务', icon:IC.funds, cols:[
+    {key:'funds', label:'资金', icon:IC.funds, cols:[
       {title:'账户', items:[
-        {key:'funds:account',  label:'账户概览', href:'/account.html'},
-        {key:'funds:transfer', label:'转账'}
+        {key:'funds:account',  label:'账户概览', tabLabel:'账户概览', href:'/#funds:account'},
+        {key:'funds:transfer', label:'转账',     tabLabel:'转账',     href:'/#funds:transfer'}
       ]},
       {title:'收支', guide:true, items:[
-        {key:'funds:receipt', label:'收款',     plus:true},
-        {key:'funds:payment', label:'付款',     plus:true},
-        {key:'funds:income',  label:'其他收入', plus:true},
-        {key:'funds:expense', label:'其他支出', plus:true}
+        {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt', plus:true},
+        {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment', plus:true},
+        {key:'funds:income',  label:'其他收入', tabLabel:'其他收入列表', href:'/#funds:income', plus:true},
+        {key:'funds:expense', label:'其他支出', tabLabel:'其他支出列表', href:'/#funds:expense', plus:true}
       ]},
       {title:'对账', items:[
         {key:'funds:recon-customer', label:'客户对账'},
@@ -514,7 +516,21 @@
 
   /* ── Boot ──────────────────────────────────────────────── */
   /* 清理旧版导航遗留的标签（key 已不在新 NAV 中） */
-  var DYNAMIC_TAB_KEYS = ['goods:add', 'goods:view'];
+  var DYNAMIC_TAB_KEYS = [
+    'goods:add', 'goods:view',
+    'goods:combo:create',
+    'stock:take:create', 'stock:take:view',
+    'stock:assembly:create', 'stock:assembly:view', 'stock:recipe', 'stock:recipe:create',
+    'stock:split:create', 'stock:split:view',
+    'stock:flow', 'stock:cost',
+    'purchase:create', 'purchase:view',
+    'purchase-order:create', 'purchase-order:view',
+    'purchase-return:create', 'purchase-return:view',
+    'sale:create', 'sale:view',
+    'sale-order:create', 'sale-order:view',
+    'sale-return:create', 'sale-return:view',
+    'quote:create', 'quote:view'
+  ];
   function pruneTabs(){
     try{
       var raw = JSON.parse(localStorage.getItem('pisa_tabs') || '[]');

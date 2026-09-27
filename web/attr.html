@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>货品属性 - PISA 进销存</title>
+<title>商品属性 - PISA 进销存</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -109,8 +109,8 @@ td.c-act .btn-text{margin:0 6px}
 .confirm-text h3{font-size:15px;font-weight:600;color:var(--gray-800);margin-bottom:6px}
 .confirm-text p{font-size:13px;color:var(--gray-500);line-height:1.6}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20260981">
-<link rel="stylesheet" href="/css/tabs.css?v=20260981">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261005">
+<link rel="stylesheet" href="/css/tabs.css?v=20261005">
 </head>
 <body>
 
@@ -222,8 +222,8 @@ td.c-act .btn-text{margin:0 6px}
   </div>
 </div>
 
-<script src="/js/tabs.js?v=20260981"></script>
-<script src="/js/app-shell.js?v=20260981"></script>
+<script src="/js/tabs.js?v=20261005"></script>
+<script src="/js/app-shell.js?v=20261005"></script>
 <script>
 var props=[];
 var editId=0;
@@ -288,7 +288,7 @@ function loadData(){
 function renderList(){
   var b=document.getElementById('attrBody');
   if(props.length===0){
-    b.innerHTML='<tr><td colspan="4"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无货品属性</p></div></td></tr>';
+    b.innerHTML='<tr><td colspan="4"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无商品属性</p></div></td></tr>';
     return;
   }
   var h='';

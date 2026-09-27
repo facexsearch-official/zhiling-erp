@@ -49,6 +49,22 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.SalesReturnItem{},
 		&model.Quote{},
 		&model.QuoteItem{},
+		&model.CommissionRule{},
+		&model.Combo{},
+		&model.ComboItem{},
+		&model.StockCount{},
+		&model.StockCountItem{},
+		&model.Assembly{},
+		&model.AssemblyItem{},
+		&model.Recipe{},
+		&model.RecipeItem{},
+		&model.GoodsBatch{},
+		&model.Transfer{},
+		&model.Receipt{},
+		&model.Payment{},
+		&model.IncomeType{},
+		&model.Income{},
+		&model.IncomeItem{},
 	}
 	for _, t := range tables {
 		if err := db.AutoMigrate(t); err != nil {

@@ -27,13 +27,13 @@ const SettingPage = {
 
   renderGoods() {
     const cols = [
-      { key: 'code', label: '编码' }, { key: 'name', label: '货品名称' },
+      { key: 'code', label: '编码' }, { key: 'name', label: '商品名称' },
       { key: 'category', label: '分类' }, { key: 'unit', label: '单位' },
       { key: 'price', label: '零售价', align: 'right', render: v => '¥'+v.toFixed(2) },
       { key: 'stock', label: '库存', align: 'right' },
     ];
-    return `<div class="page-head"><div class="page-title">货品管理</div><div><button class="btn btn-secondary">导入</button> <button class="btn btn-secondary">导出</button> <button class="btn btn-primary">新增货品</button></div></div>
-      <div class="toolbar"><div class="toolbar-left"><input class="search-input" placeholder="搜索货品名称/编码"></div></div>
+    return `<div class="page-head"><div class="page-title">商品管理</div><div><button class="btn btn-secondary">导入</button> <button class="btn btn-secondary">导出</button> <button class="btn btn-primary">新增商品</button></div></div>
+      <div class="toolbar"><div class="toolbar-left"><input class="search-input" placeholder="搜索商品名称/编码"></div></div>
       ${Table.render(cols, this.goodsList, { actions: r => '<button class="btn btn-ghost btn-sm">编辑</button><button class="btn btn-ghost btn-sm text-danger">删除</button>' })}`;
   },
 
