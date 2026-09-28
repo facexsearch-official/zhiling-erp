@@ -112,7 +112,7 @@ type stockMove struct {
 	seq      time.Time
 }
 
-func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
+func collectStockMoves(db *gorm.DB, tenantID, goodsID int64) []stockMove {
 	moves := []stockMove{}
 
 	// 进货单（增加）
@@ -124,7 +124,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Price     float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(s.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
+	db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(s.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
 		FROM purchases p JOIN purchase_items i ON i.purchase_id = p.id LEFT JOIN suppliers s ON s.id = p.supplier_id
 		WHERE p.tenant_id = ? AND i.goods_id = ? AND p.status <> 4`, tenantID, goodsID).Scan(&pur)
 	for _, r := range pur {
@@ -140,7 +140,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Price     float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(s.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
+	db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(s.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
 		FROM purchase_returns p JOIN purchase_return_items i ON i.return_id = p.id LEFT JOIN suppliers s ON s.id = p.supplier_id
 		WHERE p.tenant_id = ? AND i.goods_id = ?`, tenantID, goodsID).Scan(&pret)
 	for _, r := range pret {
@@ -156,7 +156,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Price     float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(c.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
+	db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(c.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
 		FROM sales p JOIN sale_items i ON i.sale_id = p.id LEFT JOIN customers c ON c.id = p.customer_id
 		WHERE p.tenant_id = ? AND i.goods_id = ?`, tenantID, goodsID).Scan(&sal)
 	for _, r := range sal {
@@ -172,7 +172,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Price     float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(c.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
+	db.Raw(`SELECT p.bill_date, p.order_no, COALESCE(c.name,'') AS party, i.quantity AS qty, i.unit_price AS price, p.created_at
 		FROM sales_returns p JOIN sales_return_items i ON i.return_id = p.id LEFT JOIN customers c ON c.id = p.customer_id
 		WHERE p.tenant_id = ? AND i.goods_id = ?`, tenantID, goodsID).Scan(&sret)
 	for _, r := range sret {
@@ -189,7 +189,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Cost      float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT a.bill_date, a.order_no, a.type, i.kind, i.quantity AS qty, i.unit_cost AS cost, a.created_at
+	db.Raw(`SELECT a.bill_date, a.order_no, a.type, i.kind, i.quantity AS qty, i.unit_cost AS cost, a.created_at
 		FROM assemblies a JOIN assembly_items i ON i.assembly_id = a.id
 		WHERE a.tenant_id = ? AND i.goods_id = ? AND a.status <> 9`, tenantID, goodsID).Scan(&asm)
 	for _, r := range asm {
@@ -220,7 +220,7 @@ func (h *StockQueryHandler) collectMoves(tenantID, goodsID int64) []stockMove {
 		Cost      float64
 		CreatedAt time.Time
 	}
-	h.db.Raw(`SELECT p.bill_date, p.order_no, i.diff_qty AS diff, i.unit_cost AS cost, p.created_at
+	db.Raw(`SELECT p.bill_date, p.order_no, i.diff_qty AS diff, i.unit_cost AS cost, p.created_at
 		FROM stock_counts p JOIN stock_count_items i ON i.count_id = p.id
 		WHERE p.tenant_id = ? AND i.goods_id = ? AND p.status <> 9`, tenantID, goodsID).Scan(&cnt)
 	for _, r := range cnt {
@@ -267,7 +267,7 @@ func (h *StockQueryHandler) Flow(c *gin.Context) {
 	tenantID := context.GetTenantID(ctx)
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	g := h.loadGoods(tenantID, id)
-	moves := h.collectMoves(tenantID, id)
+	moves := collectStockMoves(h.db, tenantID, id)
 
 	var net float64
 	for _, m := range moves {
@@ -325,7 +325,7 @@ func (h *StockQueryHandler) Cost(c *gin.Context) {
 	tenantID := context.GetTenantID(ctx)
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	g := h.loadGoods(tenantID, id)
-	moves := h.collectMoves(tenantID, id)
+	moves := collectStockMoves(h.db, tenantID, id)
 
 	var net float64
 	for _, m := range moves {

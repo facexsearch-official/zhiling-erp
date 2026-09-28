@@ -36,8 +36,174 @@ func (h *GoodsHandler) List(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	keyword := c.Query("keyword")
 	categoryID, _ := strconv.ParseInt(c.Query("category_id"), 10, 64)
-	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID)
+	hideDisabled := c.Query("hide_disabled") == "1"
+	hideZero := c.Query("hide_zero") == "1"
+	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID, hideDisabled, hideZero)
+	for i := range list {
+		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
+	}
 	response.OKPage(c, list, total, page, pageSize)
+}
+
+type goodsBatchFilters struct {
+	Keyword      string `json:"keyword"`
+	CategoryID   int64  `json:"category_id"`
+	HideDisabled bool   `json:"hide_disabled"`
+	HideZero     bool   `json:"hide_zero"`
+}
+
+type goodsBatchReq struct {
+	Action  string            `json:"action"` // update | delete
+	Scope   string            `json:"scope"`  // selected | query
+	IDs     []string          `json:"ids"`
+	Filters goodsBatchFilters `json:"filters"`
+	Patch   struct {
+		Status           *int8    `json:"status"`
+		CategoryID       *string  `json:"category_id"`
+		RetailPrice      *float64 `json:"retail_price"`
+		WholesalePrice   *float64 `json:"wholesale_price"`
+		PurchasePrice    *float64 `json:"purchase_price"`
+		Brand            *string  `json:"brand"`
+		Origin           *string  `json:"origin"`
+		Remark           *string  `json:"remark"`
+		Images           *string  `json:"images"`
+		EnableStockAlert *int8    `json:"enable_stock_alert"`
+		MinStock         *int     `json:"min_stock"`
+		SafetyStock      *int     `json:"safety_stock"`
+		MaxStock         *int     `json:"max_stock"`
+		HasBatch         *int8    `json:"has_batch"`
+		HasShelfLife     *int8    `json:"has_shelf_life"`
+		ShelfLifeDays    *int     `json:"shelf_life_days"`
+		ExpiryAlert      *int8    `json:"expiry_alert"`
+		ExpiryWarnDays   *int     `json:"expiry_warn_days"`
+		HasSerial        *int8    `json:"has_serial"`
+	} `json:"patch"`
+}
+
+// BatchUpdate 批量修改/删除商品（范围：选中 或 当前查询条件）
+func (h *GoodsHandler) BatchUpdate(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	var req goodsBatchReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	q := h.repo.DB.Table("goods").Where("tenant_id = ?", tenantID)
+	if req.Scope == "query" {
+		f := req.Filters
+		if f.Keyword != "" {
+			kw := "%" + f.Keyword + "%"
+			q = q.Where("(name LIKE ? OR code LIKE ? OR barcode LIKE ?)", kw, kw, kw)
+		}
+		if f.CategoryID == -1 {
+			q = q.Where("category_id IS NULL OR category_id = 0")
+		} else if f.CategoryID > 0 {
+			q = q.Where("category_id = ?", f.CategoryID)
+		}
+		if f.HideDisabled {
+			q = q.Where("status = 1")
+		}
+		if f.HideZero {
+			q = q.Where("current_stock <> 0")
+		}
+	} else {
+		ids := make([]int64, 0, len(req.IDs))
+		for _, s := range req.IDs {
+			if n, err := strconv.ParseInt(s, 10, 64); err == nil && n > 0 {
+				ids = append(ids, n)
+			}
+		}
+		if len(ids) == 0 {
+			response.BadRequest(c, "请选择商品")
+			return
+		}
+		q = q.Where("id IN ?", ids)
+	}
+
+	if req.Action == "delete" {
+		res := q.Delete(&model.Goods{})
+		if res.Error != nil {
+			response.ServerError(c, "批量删除失败")
+			return
+		}
+		response.OK(c, gin.H{"count": res.RowsAffected})
+		return
+	}
+
+	upd := map[string]interface{}{}
+	p := req.Patch
+	if p.Status != nil {
+		upd["status"] = *p.Status
+	}
+	if p.CategoryID != nil {
+		if *p.CategoryID == "" || *p.CategoryID == "0" {
+			upd["category_id"] = nil
+		} else if n, err := strconv.ParseInt(*p.CategoryID, 10, 64); err == nil {
+			upd["category_id"] = n
+		}
+	}
+	if p.RetailPrice != nil {
+		upd["retail_price"] = *p.RetailPrice
+	}
+	if p.WholesalePrice != nil {
+		upd["wholesale_price"] = *p.WholesalePrice
+	}
+	if p.PurchasePrice != nil {
+		upd["purchase_price"] = *p.PurchasePrice
+	}
+	if p.Brand != nil {
+		upd["brand"] = *p.Brand
+	}
+	if p.Origin != nil {
+		upd["origin"] = *p.Origin
+	}
+	if p.Remark != nil {
+		upd["remark"] = *p.Remark
+	}
+	if p.Images != nil {
+		upd["images"] = *p.Images
+	}
+	if p.EnableStockAlert != nil {
+		upd["enable_stock_alert"] = *p.EnableStockAlert
+	}
+	if p.MinStock != nil {
+		upd["min_stock"] = *p.MinStock
+	}
+	if p.SafetyStock != nil {
+		upd["safety_stock"] = *p.SafetyStock
+	}
+	if p.MaxStock != nil {
+		upd["max_stock"] = *p.MaxStock
+	}
+	if p.HasBatch != nil {
+		upd["has_batch"] = *p.HasBatch
+	}
+	if p.HasShelfLife != nil {
+		upd["has_shelf_life"] = *p.HasShelfLife
+	}
+	if p.ShelfLifeDays != nil {
+		upd["shelf_life_days"] = *p.ShelfLifeDays
+	}
+	if p.ExpiryAlert != nil {
+		upd["expiry_alert"] = *p.ExpiryAlert
+	}
+	if p.ExpiryWarnDays != nil {
+		upd["expiry_warn_days"] = *p.ExpiryWarnDays
+	}
+	if p.HasSerial != nil {
+		upd["has_serial"] = *p.HasSerial
+	}
+	if len(upd) == 0 {
+		response.BadRequest(c, "没有需要修改的内容")
+		return
+	}
+	res := q.Updates(upd)
+	if res.Error != nil {
+		response.ServerError(c, "批量修改失败")
+		return
+	}
+	response.OK(c, gin.H{"count": res.RowsAffected})
 }
 
 func (h *GoodsHandler) ListAll(c *gin.Context) {

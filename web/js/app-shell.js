@@ -47,9 +47,9 @@
 
     {key:'customer', label:'客户', icon:IC.customer, cols:[
       {title:'客户', items:[
-        {key:'customer:list',  label:'客户',     href:'/customer.html'},
-        {key:'customer:level', label:'价格等级'},
-        {key:'customer:quote', label:'报价管理'}
+        {key:'customer:list',  label:'客户',     tabLabel:'客户列表', href:'/customer.html'},
+        {key:'customer:level', label:'价格等级', tabLabel:'价格等级', href:'/#customer:level'},
+        {key:'customer:quote', label:'报价管理', tabLabel:'报价管理', href:'/#customer:quote'}
       ]}
     ]},
 
@@ -100,24 +100,24 @@
         {key:'funds:expense', label:'其他支出', tabLabel:'其他支出列表', href:'/#funds:expense', plus:true}
       ]},
       {title:'对账', items:[
-        {key:'funds:recon-customer', label:'客户对账'},
-        {key:'funds:recon-supplier', label:'供应商对账'},
-        {key:'funds:cashflow',       label:'资金流水'}
+        {key:'funds:recon-customer', label:'客户对账',   tabLabel:'客户对账',   href:'/#funds:recon-customer'},
+        {key:'funds:recon-supplier', label:'供应商对账', tabLabel:'供应商对账', href:'/#funds:recon-supplier'},
+        {key:'funds:cashflow',       label:'资金流水',   tabLabel:'资金流水',   href:'/#funds:cashflow'}
       ]}
     ]},
 
-    {key:'analysis', label:'报表', icon:IC.analysis, cols:[
+    {key:'analysis', label:'分析', icon:IC.analysis, cols:[
       {title:'销售分析', items:[
-        {key:'analysis:sales', label:'销售统计'},
-        {key:'analysis:hot',   label:'热销分析'},
-        {key:'analysis:staff', label:'员工绩效统计'}
+        {key:'analysis:sales', label:'销售统计', tabLabel:'销售统计', href:'/#analysis:sales'},
+        {key:'analysis:hot',   label:'热销分析', tabLabel:'热销分析', href:'/#analysis:hot'},
+        {key:'analysis:staff', label:'员工业绩统计', tabLabel:'员工业绩统计', href:'/#analysis:staff'}
       ]},
       {title:'库存分析', items:[
-        {key:'analysis:purchase', label:'采购统计'},
-        {key:'analysis:stock',    label:'库存统计'}
+        {key:'analysis:purchase', label:'进货统计', tabLabel:'进货统计', href:'/#analysis:purchase'},
+        {key:'analysis:stock',    label:'库存统计', tabLabel:'库存统计', href:'/#analysis:stock'}
       ]},
       {title:'经营分析', items:[
-        {key:'analysis:profit', label:'经营利润'}
+        {key:'analysis:profit', label:'经营利润', tabLabel:'经营利润', href:'/#analysis:profit'}
       ]}
     ]},
 
@@ -125,22 +125,51 @@
 
     {key:'settings', label:'设置', icon:IC.settings, cols:[
       {title:'店铺管理', items:[
-        {key:'settings:shop',  label:'店铺信息'},
+        {key:'settings:shop',  label:'商户信息', tabLabel:'商户信息', href:'/#settings:shop'},
+        {key:'settings:shops', label:'门店管理', tabLabel:'门店管理', href:'/#settings:shops'},
         {key:'settings:staff', label:'员工管理'},
-        {key:'settings:role',  label:'角色权限'},
+        {key:'settings:role',  label:'角色权限', tabLabel:'角色权限', href:'/#settings:role'},
         {key:'settings:pos',   label:'POS设备'}
       ]},
       {title:'基础设置', items:[
-        {key:'settings:system', label:'系统设置'},
-        {key:'settings:pref',   label:'用户偏好设置'},
-        {key:'settings:print',  label:'打印设置'},
-        {key:'settings:points', label:'积分设置'},
+        {key:'settings:system', label:'系统设置', tabLabel:'系统设置', href:'/#settings:system'},
+        {key:'settings:pref',   label:'用户偏好设置', tabLabel:'用户偏好设置', href:'/#settings:pref'},
+        {key:'settings:print',  label:'打印设置', tabLabel:'打印设置', href:'/#settings:print'},
+        {key:'settings:points', label:'积分设置', tabLabel:'积分设置', href:'/#settings:points'},
         {key:'settings:init',   label:'系统初始化'}
       ]}
     ]}
   ];
 
   /* ── helpers ───────────────────────────────────────────── */
+  // 导航项 → 所需「查看」权限 key
+  var NAV_PERM = {
+    'goods:list':'goods.goods.view','goods:spec':'goods.spec.view','goods:unit':'goods.unit.view',
+    'goods:attr':'goods.attr.view','goods:price':'goods.price.view','goods:combo':'goods.combo.view',
+    'customer:list':'customer.customer.view','customer:level':'customer.level.view','customer:quote':'customer.quote.view',
+    'purchase:supplier':'purchase.supplier.view','purchase:new':'purchase.purchase.view',
+    'purchase:order':'purchase.order.view','purchase:return':'purchase.return.view',
+    'sales:new':'sale.sale.view','sales:order':'sale.order.view','sales:return':'sale.return.view',
+    'sales:quote':'sale.quote.view','sales:commission':'analysis.staff.view',
+    'stock:take':'stock.count.view','stock:assembly':'stock.assembly.view','stock:split':'stock.split.view',
+    'stock:query':'stock.query.view','stock:alert':'stock.alert.view','stock:batch':'stock.batch.view','stock:expiry':'stock.expiry.view',
+    'funds:account':'funds.account.normal.view','funds:transfer':'funds.transfer.view',
+    'funds:receipt':'funds.receipt.view','funds:payment':'funds.payment.view',
+    'funds:income':'funds.income.view','funds:expense':'funds.expense.view',
+    'funds:recon-customer':'funds.customerrecon.view','funds:recon-supplier':'funds.supplierrecon.view','funds:cashflow':'funds.cashflow.view',
+    'analysis:sales':'analysis.sales.view','analysis:hot':'analysis.hot.view','analysis:staff':'analysis.staff.view',
+    'analysis:purchase':'analysis.purchase.view','analysis:stock':'analysis.stock.view','analysis:profit':'analysis.profit.view',
+    'settings:shop':'settings.tenant.view','settings:shops':'settings.shop.view',
+    'settings:staff':'settings.staff.view','settings:role':'settings.role.view',
+    'settings:system':'settings.system.view','settings:points':'settings.points.view',
+    'settings:print':'settings.print.view'
+  };
+  function navAllowed(key){
+    var p = NAV_PERM[key];
+    if(!p) return true;
+    return (typeof window.can !== 'function') ? true : window.can(p);
+  }
+
   function esc(s){
     return String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -181,6 +210,8 @@
     '/warehouse.html':'stock:warehouse',
     '/account.html':'funds:account'
   };
+  // 无对应导航项的独立页面标签
+  var PAGE_LABEL = { 'stock:warehouse':'仓库管理' };
   function currentKey(){
     var h = location.hash.slice(1);
     if(h){
@@ -200,7 +231,7 @@
       t = document.createElement('div');
       t.id = 'pisaToast';
       t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);'
-        + 'background:#1E293B;color:#fff;font-size:13px;padding:10px 20px;border-radius:8px;'
+        + 'background:#1E293B;color:#fff;font-size:14px;padding:10px 20px;border-radius:8px;'
         + 'box-shadow:0 12px 32px rgba(15,23,42,.24);opacity:0;transition:opacity .2s,transform .2s;z-index:3000';
       document.body.appendChild(t);
     }
@@ -254,7 +285,40 @@
   }
   window.pisaUserMenu = function(e){
     if(e) e.stopPropagation();
-    toast('账号设置开发中');
+    if(byId('userMenu')){ window.pisaHideUserMenu(); return; }
+    var host = byId('topbarUser'); if(!host) return;
+    var u = ls('pisa_user','{}');
+    var t = ls('pisa_currentTenant','null');
+    var name = u.name || u.nickname || u.phone || '用户';
+    var tname = (t && t.name) ? t.name : '我的店铺';
+    var m = document.createElement('div');
+    m.className = 'user-menu'; m.id = 'userMenu';
+    m.innerHTML = ''
+      + '<div class="um-head">'
+      +   '<div class="um-info"><div class="um-name">' + esc(name) + '</div><div class="um-sub">' + esc(tname) + '</div></div>'
+      +   '<span class="um-view" onclick="pisaHideUserMenu();if(window.PisaShell)PisaShell.navGo(\'settings:shop\')">查看</span>'
+      + '</div>'
+      + '<div class="um-item" onclick="pisaHideUserMenu();pisaToast(\'操作记录开发中\')">操作记录</div>'
+      + '<div class="um-item" onclick="pisaHideUserMenu();pisaToast(\'网络诊断开发中\')">网络诊断</div>'
+      + '<div class="um-item um-danger" onclick="pisaLogout()">退出</div>';
+    document.body.appendChild(m);
+    var r = host.getBoundingClientRect();
+    m.style.top = (r.bottom + 8) + 'px';
+    m.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    setTimeout(function(){ document.addEventListener('click', userMenuDocHandler); }, 0);
+  };
+  function userMenuDocHandler(ev){
+    var m = byId('userMenu');
+    var host = byId('topbarUser');
+    if(m && !m.contains(ev.target) && !(host && host.contains(ev.target))) window.pisaHideUserMenu();
+  }
+  window.pisaHideUserMenu = function(){
+    var m = byId('userMenu'); if(m && m.parentNode) m.parentNode.removeChild(m);
+    document.removeEventListener('click', userMenuDocHandler);
+  };
+  window.pisaLogout = function(){
+    try{ ['pisa_token','pisa_user','pisa_tenants','pisa_currentTenant','pisa_perms','pisa_sens'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
+    location.href = '/login.html';
   };
 
   /* ── Sidebar ───────────────────────────────────────────── */
@@ -266,6 +330,7 @@
     var html = '';
     NAV.forEach(function(m){
       if(m.sep){ html += '<div class="snav-spacer"></div><div class="snav-sep"></div>'; return; }
+      if(m.cols && !moduleHasItems(m)) return;
       var isActive = (m.key === active) || (activeMod && activeMod.key === m.key);
       html += '<div class="snav-item' + (isActive ? ' active' : '') + '"'
         + ' data-nav="' + esc(m.key) + '" title="' + esc(m.label) + '">'
@@ -308,10 +373,22 @@
     for(var i = 0; i < mod.cols.length; i++){
       var items = mod.cols[i].items || [];
       for(var j = 0; j < items.length; j++){
-        if(items[j].href) return items[j];
+        if(items[j].href && navAllowed(items[j].key)) return items[j];
       }
     }
     return null;
+  }
+
+  /* 模块下是否有当前用户可访问的菜单项 */
+  function moduleHasItems(mod){
+    if(!mod || !mod.cols) return true;
+    for(var i = 0; i < mod.cols.length; i++){
+      var items = mod.cols[i].items || [];
+      for(var j = 0; j < items.length; j++){
+        if(navAllowed(items[j].key)) return true;
+      }
+    }
+    return false;
   }
 
   /* ── Flyout ────────────────────────────────────────────── */
@@ -332,13 +409,15 @@
   function showFlyout(mod, anchor){
     clearTimeout(hideTimer);
     var f = getFly();
-    var cols = mod.cols.map(function(c){
+    var cols = mod.cols.filter(function(c){
+      return (c.items || []).some(function(it){ return navAllowed(it.key); });
+    }).map(function(c){
       var head = c.title
         ? '<div class="flyout-col-title">' + esc(c.title)
           + (c.guide ? '<span class="flyout-guide">' + IC.guide + '流程引导</span>' : '')
           + '</div>'
         : '';
-      var items = c.items.map(function(it){
+      var items = c.items.filter(function(it){ return navAllowed(it.key); }).map(function(it){
         return '<div class="flyout-item" data-key="' + esc(it.key) + '">'
           + '<span>' + esc(it.label) + '</span>'
           + (it.plus ? '<span class="flyout-plus">+</span>' : '')
@@ -438,7 +517,7 @@
         + esc(t.name) + '<span class="role">' + esc(t.role||'') + '</span></div>';
     });
     html += '<div class="tenant-option" data-create="1" style="color:var(--accent-700);font-weight:500">'
-      + '<span style="font-size:16px;line-height:1;width:18px;text-align:center">+</span>创建新商户</div>';
+      + '<span style="font-size:17px;line-height:1;width:18px;text-align:center">+</span>创建新商户</div>';
     html += '<div class="tenant-menu-foot" onclick="pisaNavGo(\'settings:shop\')">商户信息 / 套餐订阅 ›</div>';
     menu.innerHTML = html;
 
@@ -564,7 +643,7 @@
     if(window.PisaTabs){
       var ck = currentKey();
       var cf = findItem(ck);
-      var clabel = (cf && cf.item && (cf.item.tabLabel || cf.item.label)) || '';
+      var clabel = (cf && cf.item && (cf.item.tabLabel || cf.item.label)) || (window.TAB_LABELS && window.TAB_LABELS[ck]) || (window.EXTRA_LABELS && window.EXTRA_LABELS[ck]) || PAGE_LABEL[ck] || '';
       var chref = (cf && cf.item && cf.item.href) || (location.pathname + location.hash);
       window.PisaTabs.init({key:ck, label:clabel, href:chref});
     }

@@ -20,7 +20,7 @@ func NewGoodsRepository(base BaseRepository) *GoodsRepository {
 	return &GoodsRepository{BaseRepository: base}
 }
 
-func (r *GoodsRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64) ([]model.Goods, int64) {
+func (r *GoodsRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64, hideDisabled, hideZero bool) ([]model.Goods, int64) {
 	var total int64
 	var list []model.Goods
 	q := r.Scoped(ctx)
@@ -28,6 +28,12 @@ func (r *GoodsRepository) List(ctx context.Context, page, pageSize int, keyword 
 		kw := "%" + keyword + "%"
 		q = q.Where("name LIKE ? OR code LIKE ? OR barcode LIKE ? OR EXISTS (SELECT 1 FROM goods_prices gp WHERE gp.goods_id = goods.id AND gp.barcode LIKE ?)",
 			kw, kw, kw, kw)
+	}
+	if hideDisabled {
+		q = q.Where("status = 1")
+	}
+	if hideZero {
+		q = q.Where("current_stock <> 0")
 	}
 	if categoryID == -1 {
 		// 未分类：无分类或分类为 0

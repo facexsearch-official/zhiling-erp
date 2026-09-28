@@ -8,6 +8,7 @@ import (
 	"pisa_server/internal/handler"
 	"pisa_server/internal/middleware"
 	jwtpkg "pisa_server/internal/pkg/jwt"
+	"pisa_server/internal/pkg/perm"
 	"pisa_server/internal/pkg/snowflake"
 	"pisa_server/internal/repository"
 	"pisa_server/internal/service"
@@ -58,6 +59,7 @@ func main() {
 	r.StaticFile("/supplier.html", "./web/supplier.html")
 	r.StaticFile("/customer.html", "./web/customer.html")
 	r.StaticFile("/warehouse.html", "./web/warehouse.html")
+	r.StaticFile("/print-editor.html", "./web/print-editor.html")
 	r.StaticFile("/goods.html", "./web/goods.html")
 	r.StaticFile("/spec.html", "./web/spec.html")
 	r.StaticFile("/unit.html", "./web/unit.html")
@@ -76,6 +78,7 @@ func main() {
 	protected.Use(middleware.Auth(tokenManager))
 	{
 		protected.POST("/auth/switch-tenant", authHandler.SwitchTenant)
+		protected.GET("/auth/me", authHandler.Me)
 
 		tenantGroup := protected.Group("/tenant")
 		if database != nil {
@@ -85,6 +88,7 @@ func main() {
 		shopGroup := protected.Group("/shop")
 		if database != nil {
 			shopGroup.Use(middleware.TenantMiddleware(database))
+			shopGroup.Use(perm.Enforce(database, permRoutes()))
 		}
 
 		if database != nil {
@@ -103,7 +107,16 @@ func main() {
 			supplierHandler := handler.NewSupplierHandler(supplierRepo)
 			supplierCategoryHandler := handler.NewSupplierCategoryHandler(supplierCategoryRepo)
 			staffHandler := handler.NewStaffHandler(staffRepo)
-			customerHandler := handler.NewCustomerHandler(customerRepo)
+			customerHandler := handler.NewCustomerHandler(customerRepo, database)
+			customerCategoryHandler := handler.NewCustomerCategoryHandler(database)
+			priceLevelHandler := handler.NewPriceLevelHandler(database)
+			customerPriceHandler := handler.NewCustomerPriceHandler(database)
+			tenantInfoHandler := handler.NewTenantInfoHandler(database)
+			roleHandler := handler.NewRoleHandler(database)
+			systemSettingHandler := handler.NewSystemSettingHandler(database)
+			userPreferenceHandler := handler.NewUserPreferenceHandler(database)
+			pointsSettingHandler := handler.NewPointsSettingHandler(database)
+			printSettingHandler := handler.NewPrintSettingHandler(database)
 			warehouseHandler := handler.NewWarehouseHandler(warehouseRepo)
 			goodsHandler := handler.NewGoodsHandler(goodsRepo)
 			accountHandler := handler.NewAccountHandler(accountRepo)
@@ -144,12 +157,51 @@ func main() {
 			shopGroup.PUT("/shops/:id", staffHandler.UpdateShop)
 			shopGroup.DELETE("/shops/:id", staffHandler.DeleteShop)
 
+			shopGroup.GET("/role/list", roleHandler.List)
+			shopGroup.GET("/role/:id", roleHandler.GetByID)
+			shopGroup.POST("/role", roleHandler.Create)
+			shopGroup.PUT("/role/:id", roleHandler.Update)
+			shopGroup.DELETE("/role/:id", roleHandler.Delete)
+
+			shopGroup.GET("/system-setting", systemSettingHandler.Get)
+			shopGroup.PUT("/system-setting", systemSettingHandler.Update)
+
+			shopGroup.GET("/user-preference", userPreferenceHandler.Get)
+			shopGroup.PUT("/user-preference", userPreferenceHandler.Update)
+
+			shopGroup.GET("/points-setting", pointsSettingHandler.Get)
+			shopGroup.PUT("/points-setting", pointsSettingHandler.Update)
+
+			shopGroup.GET("/print-setting", printSettingHandler.Get)
+			shopGroup.PUT("/print-setting", printSettingHandler.Update)
+
 			shopGroup.GET("/customer/list", customerHandler.List)
 			shopGroup.GET("/customer/all", customerHandler.ListAll)
 			shopGroup.GET("/customer/:id", customerHandler.GetByID)
 			shopGroup.POST("/customer", customerHandler.Create)
 			shopGroup.PUT("/customer/:id", customerHandler.Update)
 			shopGroup.DELETE("/customer/:id", customerHandler.Delete)
+			shopGroup.GET("/customer/statement/:id", customerHandler.Statement)
+			shopGroup.GET("/customer/stats/:id", customerHandler.Stats)
+
+			shopGroup.GET("/customer-category/list", customerCategoryHandler.List)
+			shopGroup.POST("/customer-category", customerCategoryHandler.Create)
+			shopGroup.PUT("/customer-category/:id", customerCategoryHandler.Update)
+			shopGroup.DELETE("/customer-category/:id", customerCategoryHandler.Delete)
+
+			shopGroup.GET("/price-level/list", priceLevelHandler.List)
+			shopGroup.POST("/price-level", priceLevelHandler.Create)
+			shopGroup.PUT("/price-level/:id", priceLevelHandler.Update)
+			shopGroup.DELETE("/price-level/:id", priceLevelHandler.Delete)
+
+			shopGroup.GET("/customer-price/list", customerPriceHandler.List)
+			shopGroup.GET("/customer-price/by-customer/:id", customerPriceHandler.ByCustomer)
+			shopGroup.GET("/customer-price/by-goods/:id", customerPriceHandler.ByGoods)
+			shopGroup.POST("/customer-price/save", customerPriceHandler.Save)
+			shopGroup.GET("/customer-price/history/:id", customerPriceHandler.History)
+
+			shopGroup.GET("/tenant-info", tenantInfoHandler.Get)
+			shopGroup.PUT("/tenant-info", tenantInfoHandler.Update)
 
 			shopGroup.GET("/warehouse/list", warehouseHandler.List)
 			shopGroup.GET("/warehouse/all", warehouseHandler.ListAll)
@@ -165,6 +217,7 @@ func main() {
 			shopGroup.GET("/goods/origins", goodsHandler.Origins)
 			shopGroup.GET("/goods/:id", goodsHandler.GetByID)
 			shopGroup.POST("/goods", middleware.PlanLimitMiddleware(limitChecker, "goods"), goodsHandler.Create)
+			shopGroup.POST("/goods/batch", goodsHandler.BatchUpdate)
 			shopGroup.PUT("/goods/:id", goodsHandler.Update)
 			shopGroup.DELETE("/goods/:id", goodsHandler.Delete)
 
@@ -220,6 +273,10 @@ func main() {
 			paymentHandler := handler.NewPaymentHandler(database)
 			incomeHandler := handler.NewIncomeHandler(database)
 			incomeTypeHandler := handler.NewIncomeTypeHandler(database)
+			reconcileHandler := handler.NewReconcileHandler(database)
+			fundFlowHandler := handler.NewFundFlowHandler(database)
+			salesStatHandler := handler.NewSalesStatHandler(database)
+			analysisHandler := handler.NewAnalysisHandler(database)
 
 			shopGroup.GET("/purchase/list", purchaseHandler.List)
 			shopGroup.GET("/purchase/:id", purchaseHandler.GetByID)
@@ -332,6 +389,23 @@ func main() {
 			shopGroup.POST("/expense", incomeHandler.CreateExpense)
 			shopGroup.PUT("/expense/:id", incomeHandler.Update)
 			shopGroup.POST("/expense/:id/void", incomeHandler.Void)
+
+			shopGroup.GET("/reconcile/customer", reconcileHandler.Customer)
+			shopGroup.GET("/reconcile/supplier", reconcileHandler.Supplier)
+			shopGroup.GET("/fund-flow/list", fundFlowHandler.List)
+
+			shopGroup.GET("/sales-stat/doc", salesStatHandler.ByDoc)
+			shopGroup.GET("/sales-stat/goods", salesStatHandler.ByGoods)
+			shopGroup.GET("/sales-stat/customer", salesStatHandler.ByCustomer)
+
+			shopGroup.GET("/analysis/hot-sales", analysisHandler.HotSales)
+			shopGroup.GET("/analysis/staff-perf", analysisHandler.StaffPerf)
+			shopGroup.GET("/analysis/purchase-goods", analysisHandler.PurchaseByGoods)
+			shopGroup.GET("/analysis/purchase-supplier", analysisHandler.PurchaseBySupplier)
+			shopGroup.GET("/analysis/stock-stat", analysisHandler.StockStat)
+			shopGroup.GET("/analysis/profit", analysisHandler.ProfitSummary)
+			shopGroup.GET("/analysis/surplus-detail", analysisHandler.SurplusDetail)
+			shopGroup.GET("/analysis/loss-detail", analysisHandler.LossDetail)
 		}
 
 		if limitChecker != nil {

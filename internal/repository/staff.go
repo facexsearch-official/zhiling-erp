@@ -24,6 +24,8 @@ type StaffUserRow struct {
 	Name      string    `json:"name"`
 	Phone     string    `json:"phone"`
 	Role      int8      `json:"role"`
+	RoleID    int64     `json:"role_id"`
+	RoleName  string    `json:"role_name"`
 	IsOwner   int8      `json:"is_owner"`
 	Status    int8      `json:"status"`
 	JoinedAt  time.Time `json:"joined_at"`
@@ -37,9 +39,12 @@ func (r *StaffRepository) ListUsers(ctx context.Context) ([]StaffUserRow, error)
 	err := r.DB.Table("user_tenants AS ut").
 		Select("ut.id AS id, ut.user_id AS user_id, "+
 			"COALESCE(NULLIF(ut.staff_name, ''), u.nickname) AS name, "+
-			"u.phone AS phone, ut.role AS role, ut.is_owner AS is_owner, "+
+			"u.phone AS phone, ut.role AS role, ut.role_id AS role_id, "+
+			"COALESCE(r.name, '') AS role_name, "+
+			"ut.is_owner AS is_owner, "+
 			"ut.status AS status, ut.joined_at AS joined_at").
 		Joins("JOIN users u ON u.id = ut.user_id").
+		Joins("LEFT JOIN roles r ON r.id = ut.role_id").
 		Where("ut.tenant_id = ?", tenantID).
 		Order("ut.is_owner DESC, ut.id ASC").
 		Scan(&rows).Error

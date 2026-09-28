@@ -49,14 +49,21 @@ type Warehouse struct {
 	Type      int8      `json:"type"` // 1=普通 2=原料仓 3=成品仓
 	Address   string    `json:"address" gorm:"size:255"`
 	Keeper    string    `json:"keeper" gorm:"size:64"`
+	ShopID    int64     `json:"shop_id" gorm:"index"`
+	Contact   string    `json:"contact" gorm:"size:64"`
+	Phone     string    `json:"phone" gorm:"size:20"`
+	Remark    string    `json:"remark" gorm:"size:255"`
 	Sort      int       `json:"sort"`
 	Status    int8      `json:"status" gorm:"default:1"`
 	CreatedAt time.Time `json:"created_at"`
+
+	ShopName string `json:"shop_name" gorm:"->"`
 }
 
 // Goods 商品
 type Goods struct {
 	ID             int64     `json:"id" gorm:"primaryKey"`
+	IDStr          string    `json:"id_str" gorm:"->"`
 	TenantID       int64     `json:"tenant_id" gorm:"index"`
 	Name           string    `json:"name" gorm:"size:255"`
 	Code           string    `json:"code" gorm:"size:64"`
@@ -87,6 +94,13 @@ type Goods struct {
 	SalesUnit        string  `json:"sales_unit" gorm:"size:32"`    // 开单默认销售单位
 	PurchaseUnit     string  `json:"purchase_unit" gorm:"size:32"` // 开单默认进货单位
 	EnableStockAlert int8    `json:"enable_stock_alert" gorm:"default:0"`
+	SafetyStock      int     `json:"safety_stock"`
+	HasBatch         int8    `json:"has_batch" gorm:"default:0"`
+	HasShelfLife     int8    `json:"has_shelf_life" gorm:"default:0"`
+	ShelfLifeDays    int     `json:"shelf_life_days"`
+	ExpiryAlert      int8    `json:"expiry_alert" gorm:"default:0"`
+	ExpiryWarnDays   int     `json:"expiry_warn_days"`
+	HasSerial        int8    `json:"has_serial" gorm:"default:0"`
 	InitCost         float64 `json:"init_cost"`
 	Images           string  `json:"images" gorm:"type:text"`        // JSON 数组
 	SpecGroups       string  `json:"spec_groups" gorm:"type:text"`   // JSON: [{name,has_image,values:[{name,image}]}]

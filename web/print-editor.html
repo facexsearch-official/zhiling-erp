@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打印模板编辑器</title>
+<style>
+:root{
+  --blue:#2F6BFF;--teal:#12B5C9;--teal-dark:#0FA2B4;--orange:#FF7A45;
+  --gray-50:#F7F8FA;--gray-100:#EEF0F3;--gray-200:#E3E6EB;--gray-300:#CBD1D9;
+  --gray-400:#9AA3AE;--gray-500:#6B7480;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;
+  --line:#E3E6EB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-100);overflow:hidden}
+.editor{height:100vh;display:flex;flex-direction:column}
+svg.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Toolbar */
+.toolbar{height:54px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tb-doc{color:var(--blue);font-size:14px;white-space:nowrap}
+.tb-label{font-size:14px;color:var(--gray-600);white-space:nowrap}
+.tb-name{width:180px;height:34px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:14px;color:var(--gray-700);outline:none}
+.tb-name:focus{border-color:var(--teal)}
+.tb-def{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--gray-600);cursor:pointer;white-space:nowrap}
+.switch{position:relative;width:38px;height:20px;border-radius:10px;background:var(--gray-300);transition:background .15s;flex:none}
+.switch.on{background:var(--teal)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.switch.on::after{left:20px}
+.tb-sep{width:1px;height:22px;background:var(--line)}
+.tb-ico{width:30px;height:30px;border-radius:6px;border:none;background:none;color:var(--gray-500);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tb-ico:hover{background:var(--gray-100);color:var(--gray-800)}
+.tb-ico.active{background:#E6F7FA;color:var(--teal)}
+.tb-num{width:56px;height:32px;border:1px solid var(--gray-200);border-radius:6px;padding:0 8px;font-size:14px;color:var(--gray-700);outline:none;text-align:center}
+.tb-sel{height:32px;border:1px solid var(--gray-200);border-radius:6px;padding:0 8px;font-size:14px;color:var(--gray-700);outline:none;background:#fff;cursor:pointer}
+.tb-spacer{flex:1}
+.tb-btn{height:34px;padding:0 14px;border-radius:6px;border:1px solid var(--gray-200);background:#fff;color:var(--gray-700);font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tb-btn:hover{background:var(--gray-50)}
+.tb-btn.orange{color:var(--orange);border-color:var(--orange)}
+.tb-btn.orange:hover{background:#FFF3EE}
+
+/* Body */
+.body{flex:1;display:flex;min-height:0}
+
+/* Left panel */
+.left{width:260px;flex:none;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.left-hint{padding:12px 14px;font-size:13px;color:var(--gray-500);border-bottom:1px solid var(--line)}
+.left-scroll{flex:1;overflow-y:auto}
+.sec-title{padding:14px 14px 8px;font-size:15px;font-weight:600;color:var(--gray-800)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 8px}
+.tool{width:calc((100% - 16px)/3);border:1px solid var(--gray-200);border-radius:8px;padding:12px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;background:#fff;transition:border-color .15s,background .15s}
+.tool:hover{border-color:var(--teal);background:#F2FCFD}
+.tool .tool-ic{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--gray-700)}
+.tool span{font-size:13px;color:var(--gray-600)}
+.grp{border-top:1px solid var(--line)}
+.grp-head{display:flex;align-items:center;gap:6px;padding:12px 14px;font-size:14px;font-weight:500;color:var(--gray-700);cursor:pointer}
+.grp-head .caret{width:12px;height:12px;transition:transform .15s}
+.grp.collapsed .caret{transform:rotate(-90deg)}
+.grp.collapsed .chips{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 14px}
+.chip{border:1px solid var(--gray-200);border-radius:6px;padding:7px 12px;font-size:13px;color:var(--gray-600);background:#fff;cursor:grab}
+.chip:hover{border-color:var(--teal);color:var(--teal);background:#F2FCFD}
+
+/* Center */
+.center{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--gray-100)}
+.canvas-bar{height:52px;flex:none;display:flex;align-items:center;justify-content:center;gap:18px;background:#fff;border-bottom:1px solid var(--line)}
+.canvas-bar .cb-item{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--gray-600)}
+.canvas-bar input{width:70px;height:32px;border:1px solid var(--gray-200);border-radius:6px;padding:0 8px;font-size:14px;outline:none;text-align:center;color:var(--gray-700)}
+.canvas-wrap{flex:1;overflow:auto;padding:20px;display:flex;justify-content:center}
+.canvas{width:760px;min-height:520px;background:#fff;box-shadow:0 2px 14px rgba(15,23,42,.12);position:relative;padding:26px 34px}
+.margin-guide{position:absolute;top:0;bottom:0;width:14px;display:flex;flex-direction:column;justify-content:space-around;align-items:center;pointer-events:none}
+.margin-guide.left{left:0}.margin-guide.right{right:0}
+.margin-guide i{width:9px;height:9px;border-radius:50%;background:#D5D9DF}
+
+/* default template */
+.tpl{color:#111}
+.tpl-head{position:relative;text-align:center}
+.tpl-shop{font-size:16px;font-weight:700}
+.tpl-doc{font-size:14px;margin-top:2px}
+.tpl-qr{position:absolute;right:0;top:0;display:flex;gap:6px;text-align:center}
+.tpl-qr .qcol{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tpl-qr .qlabel{font-size:9px;line-height:1.1;color:#333;writing-mode:vertical-rl;letter-spacing:1px}
+.tpl-qr .qbox{width:26px;height:26px;border:1px solid #333;background:repeating-linear-gradient(45deg,#333,#333 2px,#fff 2px,#fff 4px)}
+.tpl-info{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-top:10px;font-size:12px}
+.tpl-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10.5px}
+.tpl-table th,.tpl-table td{border:1px solid #333;padding:2px 4px;text-align:center;white-space:nowrap}
+.tpl-table th{font-weight:600}
+.tpl-foot-info{margin-top:6px;font-size:12px;line-height:1.7}
+.tpl-foot-row{display:flex;justify-content:space-between}
+.tpl-bottom{margin-top:14px;text-align:center;font-size:11px;color:#333;border-top:1px dashed #bbb;padding-top:4px}
+.foot-hint{position:absolute;right:36px;bottom:58px;font-size:11px;color:#B9C0C9}
+
+/* added elements */
+.elem{position:absolute;min-width:20px;padding:2px 4px;font-size:14px;color:#111;cursor:move;border:1px dashed transparent}
+.elem:hover{border-color:var(--teal)}
+.elem .del{position:absolute;top:-9px;right:-9px;width:16px;height:16px;border-radius:50%;background:#94A3B8;color:#fff;font-size:12px;line-height:16px;text-align:center;cursor:pointer;display:none}
+.elem:hover .del{display:block}
+.elem.box{border:1px solid #333;min-width:80px;min-height:50px}
+.elem.line{border:none;border-top:1px solid #333;min-width:120px;padding:0}
+.elem.img{border:1px solid #CBD1D9;min-width:90px;min-height:60px;display:flex;align-items:center;justify-content:center;color:#9AA3AE;background:#F7F8FA}
+.elem.tbl table{border-collapse:collapse;font-size:12px}
+.elem.tbl td{border:1px solid #333;padding:2px 8px;min-width:48px;text-align:center}
+
+/* Right panel */
+.right{width:300px;flex:none;background:#fff;border-left:1px solid var(--line);overflow-y:auto;padding:16px}
+.rp-title{font-size:16px;font-weight:600;margin-bottom:14px}
+.rp-sub{font-size:14px;color:var(--gray-700);font-weight:500;margin-bottom:4px}
+.rp-hint{font-size:12px;color:var(--gray-400);margin-bottom:10px}
+.rp-margins{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:22px}
+.rp-margin{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--gray-600)}
+.rp-margin input{width:64px;height:34px;border:1px solid var(--gray-200);border-radius:6px;padding:0 8px;font-size:14px;outline:none;text-align:center}
+.rp-check{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--gray-600);margin-bottom:10px;cursor:pointer}
+.rp-check input{margin-top:2px;accent-color:var(--teal)}
+.rp-foot{margin-top:20px}
+.rp-foot input{width:120px;height:34px;border:1px solid var(--gray-200);border-radius:6px;padding:0 10px;font-size:14px;outline:none}
+
+/* Footer bar */
+.footer{height:60px;flex:none;display:flex;align-items:center;justify-content:center;gap:16px;background:#fff;border-top:1px solid var(--line)}
+.btn{height:38px;padding:0 26px;border-radius:6px;font-size:15px;cursor:pointer;border:1px solid var(--gray-200);background:#fff;color:var(--gray-700)}
+.btn:hover{background:var(--gray-50)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{background:var(--teal-dark)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:#1E293B;color:#fff;font-size:14px;padding:10px 22px;border-radius:8px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem('pisa_perms')||'null');if(p===null||p===undefined)return;var k='settings.print.edit';function ok(x){if(p['*']||p[x])return true;var a=x.split('.');for(var i=a.length-1;i>=1;i--){if(p[a.slice(0,i).join('.')+'.*'])return true;}return false;}if(!ok(k)){document.documentElement.innerHTML='<body style="font-family:sans-serif"><div style="padding:100px;text-align:center;color:#94a3b8"><h2>无访问权限</h2><p>请联系管理员为你的角色分配相应权限</p></div></body>';}}catch(e){}})();</script>
+<div class="editor">
+  <div class="toolbar">
+    <span class="tb-doc" id="tbDoc">销售单</span>
+    <span class="tb-label">模板名称</span>
+    <input class="tb-name" id="tplName" value="二等分" placeholder="模板名称">
+    <label class="tb-def"><span class="switch on" id="defSwitch" onclick="toggleDefault()"></span>默认模板</label>
+    <span class="tb-sep"></span>
+    <button class="tb-ico" title="撤销" onclick="toast('撤销')"><svg class="ic" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="tb-ico" title="重做" onclick="toast('重做')"><svg class="ic" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <span class="tb-sep"></span>
+    <input class="tb-num" id="fontSize" value="14" title="字号">
+    <select class="tb-sel" id="fontFamily"><option>微软雅黑</option><option>宋体</option><option>黑体</option><option>楷体</option><option>Arial</option></select>
+    <button class="tb-ico" data-fmt="bold" onclick="fmt('bold',this)" title="加粗"><b>B</b></button>
+    <button class="tb-ico" data-fmt="italic" onclick="fmt('italic',this)" title="斜体"><i>I</i></button>
+    <button class="tb-ico" data-fmt="underline" onclick="fmt('underline',this)" title="下划线"><u>U</u></button>
+    <span class="tb-sep"></span>
+    <button class="tb-ico" data-al="left" onclick="align('left',this)" title="左对齐"><svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="14" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>
+    <button class="tb-ico" data-al="center" onclick="align('center',this)" title="居中"><svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+    <button class="tb-ico" data-al="right" onclick="align('right',this)" title="右对齐"><svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="tb-ico" data-al="justify" onclick="align('justify',this)" title="两端对齐"><svg class="ic" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="tb-ico" onclick="toast('垂直居中')" title="垂直居中"><svg class="ic" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="8 8 12 4 16 8"/><polyline points="8 16 12 20 16 16"/></svg></button>
+    <button class="tb-ico" onclick="toast('有序列表')" title="有序列表"><svg class="ic" viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></button>
+    <button class="tb-ico" onclick="toast('无序列表')" title="无序列表"><svg class="ic" viewBox="0 0 24 24"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></button>
+    <span class="tb-spacer"></span>
+    <button class="tb-btn orange" onclick="toast('参考模板')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="4"/></svg>参考模板</button>
+    <button class="tb-btn" onclick="resetTpl()">重置</button>
+    <button class="tb-btn" onclick="toast('已另存为新模板')">另存为新模板</button>
+    <button class="tb-btn" onclick="toast('打印设置')">打印设置</button>
+  </div>
+
+  <div class="body">
+    <aside class="left">
+      <div class="left-hint">请将下列内容拖到右侧白色画布中</div>
+      <div class="left-scroll">
+        <div class="sec-title">工具</div>
+        <div class="tools" id="tools"></div>
+        <div class="sec-title" style="padding-top:6px">信息</div>
+        <div id="infoGroups"></div>
+      </div>
+    </aside>
+
+    <main class="center">
+      <div class="canvas-bar">
+        <span class="cb-item">纸张类型：
+          <select class="tb-sel" id="paperType">
+            <option>二等分</option><option>一等分</option><option>三等分</option><option>A4</option>
+            <option>110mm (小票)</option><option>80mm (小票)</option><option>58mm (小票)</option>
+          </select>
+        </span>
+        <span class="cb-item">宽(mm)：<input id="paperW" value="241"></span>
+        <span class="cb-item">×</span>
+        <span class="cb-item"><input id="paperH" value="140"></span>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas" id="canvas">
+          <div class="margin-guide left"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="margin-guide right"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="tpl" id="tplBody"></div>
+          <div class="foot-hint">页脚:点击可上下拖动页脚线</div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="right">
+      <div class="rp-title">打印设置</div>
+      <div class="rp-sub">页边距(mm) <span class="rp-hint" style="display:inline">页边距外内容不打印</span></div>
+      <div class="rp-margins">
+        <label class="rp-margin">上 <input id="mgTop" value="5"></label>
+        <label class="rp-margin">下 <input id="mgBottom" value="5"></label>
+        <label class="rp-margin">左 <input id="mgLeft" value="5"></label>
+        <label class="rp-margin">右 <input id="mgRight" value="5"></label>
+      </div>
+      <div class="rp-sub">每页设置</div>
+      <label class="rp-check"><input type="checkbox"> 每页打印商品明细表上方信息</label>
+      <label class="rp-check"><input type="checkbox"> 每页打印商品明细表下方信息</label>
+      <div class="rp-foot">
+        <div class="rp-sub">页脚(mm)</div>
+        <input id="footMm" value="5.3">
+        <div class="rp-hint" style="margin-top:6px">页脚内容每页打印</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="footer">
+    <button class="btn" onclick="peClose()">关闭</button>
+    <button class="btn" onclick="toast('预览')">预览</button>
+    <button class="btn primary" onclick="saveTpl()">保存</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── 数据 ── */
+var DOC_NAME = qs('name') || '销售单';
+var TOOLS = [
+  {key:'text',  label:'自定义文本', icon:'<svg class="ic" viewBox="0 0 24 24"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>'},
+  {key:'image', label:'图片',       icon:'<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>'},
+  {key:'rect',  label:'矩形',       icon:'<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/></svg>'},
+  {key:'line',  label:'线段',       icon:'<svg class="ic" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/></svg>'},
+  {key:'table', label:'表格',       icon:'<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>'}
+];
+var INFO_GROUPS = [
+  {name:'店铺信息', items:['店铺名称','店铺地址','店铺电话','开户银行','银行账号','店铺Logo']},
+  {name:'客户信息', items:['客户名称','客户税号','收货地址','收货人电话','收货人','客户备注','客户积分']},
+  {name:'整单信息', items:['单据编号','单据日期','业务员','业务员电话','制单人','整单折扣','整单优惠','折后金额','税额合计','运费','抹零','本单应收','收款账户','本单实收','抵扣订金']}
+];
+
+function qs(name){ var m=new RegExp('[?&]'+name+'=([^&]*)').exec(location.search); return m?decodeURIComponent(m[1].replace(/\+/g,' ')):''; }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── 默认模板 ── */
+function defaultTemplate(){
+  var heads=['序号','商品名称','规格','编号/货号','条形码','数量','单位','单价','金额','备注'];
+  var vals=['@序号','@商品名称','@规格','@编号/货号','@条形码','@数量','@单位','@单价','@金额','@备注'];
+  var th=heads.map(function(h){return '<th>'+h+'</th>';}).join('');
+  var td=vals.map(function(v){return '<td>'+v+'</td>';}).join('');
+  return ''
+  +'<div class="tpl-head">'
+  +  '<div class="tpl-shop">@店铺名称</div>'
+  +  '<div class="tpl-doc">'+esc(DOC_NAME)+'</div>'
+  +  '<div class="tpl-qr">'
+  +    '<div class="qcol"><div class="qlabel">电子小票</div><div class="qbox"></div></div>'
+  +    '<div class="qcol"><div class="qlabel">单据二维码</div><div class="qbox"></div></div>'
+  +    '<div class="qcol"><div class="qlabel">扫码入库</div><div class="qbox"></div></div>'
+  +  '</div>'
+  +'</div>'
+  +'<div class="tpl-info">'
+  +  '<div>单据编号:@单据编号</div><div>客户名称:@客户名称</div>'
+  +  '<div>单据日期:@单据日期</div><div>收货地址:@收货地址</div>'
+  +'</div>'
+  +'<table class="tpl-table"><thead><tr>'+th+'</tr></thead><tbody>'
+  +  '<tr>'+td+'</tr>'
+  +  '<tr><td colspan="7" style="text-align:left">本页小计</td><td>^小计</td><td>^小计</td><td></td></tr>'
+  +  '<tr><td colspan="3" style="text-align:left">合计:(金额大写)</td><td colspan="4"></td><td>^合计</td><td>^合计</td><td></td></tr>'
+  +'</tbody></table>'
+  +'<div class="tpl-foot-info">'
+  +  '<div class="tpl-foot-row"><span>整单优惠:@整单优惠</span><span>运费:@运费</span><span>抹零:@抹零</span><span>本单应收:@本单应收</span></div>'
+  +  '<div class="tpl-foot-row"><span>收款账户:@收款账户</span><span>本单实收:@本单实收</span></div>'
+  +  '<div>备注:@备注</div>'
+  +  '<div class="tpl-foot-row"><span>店铺地址:@店铺地址</span><span>店铺电话:@店铺电话</span></div>'
+  +'</div>'
+  +'<div class="tpl-bottom">金蝶智慧记 第1页/共1页 &nbsp; 2026-09-27 19:55:39</div>';
+}
+
+/* ── 渲染 ── */
+function render(){
+  document.getElementById('tbDoc').textContent = DOC_NAME;
+  document.title = '打印模板编辑器';
+  document.getElementById('tplBody').innerHTML = defaultTemplate();
+  // tools
+  document.getElementById('tools').innerHTML = TOOLS.map(function(t){
+    return '<div class="tool" draggable="true" data-tool="'+t.key+'" ondragstart="dragTool(event,\''+t.key+'\')"><span class="tool-ic">'+t.icon+'</span><span>'+t.label+'</span></div>';
+  }).join('');
+  // info groups
+  document.getElementById('infoGroups').innerHTML = INFO_GROUPS.map(function(g,gi){
+    var chips=g.items.map(function(it){
+      return '<span class="chip" draggable="true" ondragstart="dragInfo(event,\''+esc(it)+'\')">'+esc(it)+'</span>';
+    }).join('');
+    return '<div class="grp" id="grp'+gi+'"><div class="grp-head" onclick="toggleGrp('+gi+')"><svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'+g.name+'</div><div class="chips">'+chips+'</div></div>';
+  }).join('');
+}
+function toggleGrp(i){ document.getElementById('grp'+i).classList.toggle('collapsed'); }
+function toggleDefault(){ document.getElementById('defSwitch').classList.toggle('on'); }
+
+/* ── 拖拽 ── */
+function dragTool(e, tool){ e.dataTransfer.setData('text/plain', JSON.stringify({kind:'tool', tool:tool})); }
+function dragInfo(e, text){ e.dataTransfer.setData('text/plain', JSON.stringify({kind:'info', text:text})); }
+function canvasDrop(e){
+  e.preventDefault();
+  var data; try{ data=JSON.parse(e.dataTransfer.getData('text/plain')||'{}'); }catch(err){ return; }
+  if(!data.kind) return;
+  var canvas=document.getElementById('canvas'), rect=canvas.getBoundingClientRect();
+  addElement(data, e.clientX-rect.left, e.clientY-rect.top);
+}
+function addElement(data, x, y){
+  var canvas=document.getElementById('canvas');
+  var el=document.createElement('div');
+  el.className='elem'; el.style.left=Math.max(0,x)+'px'; el.style.top=Math.max(0,y)+'px';
+  if(data.kind==='info'){
+    el.textContent='@'+data.text;
+  }else if(data.tool==='text'){
+    el.textContent='自定义文本'; el.contentEditable='true';
+  }else if(data.tool==='image'){
+    el.classList.add('img'); el.textContent='图片';
+  }else if(data.tool==='rect'){
+    el.classList.add('box');
+  }else if(data.tool==='line'){
+    el.classList.add('line');
+  }else if(data.tool==='table'){
+    el.classList.add('tbl');
+    var r=''; for(var i=0;i<2;i++){ r+='<tr><td>单元格</td><td>单元格</td><td>单元格</td></tr>'; }
+    el.innerHTML='<table>'+r+'</table>';
+  }
+  el.insertAdjacentHTML('beforeend','<span class="del" onclick="this.parentNode.remove()">&times;</span>');
+  makeMovable(el);
+  canvas.appendChild(el);
+}
+function makeMovable(el){
+  el.addEventListener('mousedown', function(e){
+    if(e.target.classList.contains('del')) return;
+    e.preventDefault();
+    var canvas=document.getElementById('canvas').getBoundingClientRect();
+    var startX=e.clientX, startY=e.clientY;
+    var ox=parseFloat(el.style.left)||0, oy=parseFloat(el.style.top)||0;
+    function move(ev){
+      var nx=ox+(ev.clientX-startX), ny=oy+(ev.clientY-startY);
+      el.style.left=Math.max(0,Math.min(canvas.width-el.offsetWidth, nx))+'px';
+      el.style.top=Math.max(0,Math.min(canvas.height-el.offsetHeight, ny))+'px';
+    }
+    function up(){ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); }
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+  });
+}
+
+/* ── 工具栏 ── */
+function fmt(kind, btn){ btn.classList.toggle('active'); }
+function align(kind, btn){
+  document.querySelectorAll('[data-al]').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+function resetTpl(){
+  document.getElementById('canvas').querySelectorAll('.elem').forEach(function(e){ e.remove(); });
+  document.getElementById('tplName').value='二等分';
+  document.getElementById('defSwitch').classList.add('on');
+  toast('已重置');
+}
+function saveTpl(){ toast('保存成功'); }
+function peClose(){ if(window.opener){ window.close(); } else { history.length>1?history.back():location.href='/'; } }
+
+/* ── Toast ── */
+var _tt=null;
+function toast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(function(){ t.classList.remove('show'); },2000);
+}
+
+/* ── Init ── */
+document.getElementById('canvas').addEventListener('dragover', function(e){ e.preventDefault(); });
+document.getElementById('canvas').addEventListener('drop', canvasDrop);
+render();
+</script>
+</body>
+</html>

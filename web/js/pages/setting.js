@@ -91,7 +91,7 @@ const SettingPage = {
       <div class="card" style="max-width:640px">
         <div style="display:grid;grid-template-columns:130px 1fr">
           ${[['商户名称', State.tenantName],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号（老板）','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']].map(r =>
-            `<div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-500)">${r[0]}</div><div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-800)">${r[1]}</div>`
+            `<div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-500)">${r[0]}</div><div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-800)">${r[1]}</div>`
           ).join('')}
         </div>
       </div>`;
@@ -102,9 +102,9 @@ const SettingPage = {
       <div class="card"><div class="card-title">套餐用量</div>
         ${[['商品数','2,000','128',6],['员工账号','10','3',30],['门店数','1','1',100],['本月单据','不限','1,240',8]].map(u =>
           `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-            <span style="width:80px;font-size:13px;color:var(--gray-500)">${u[0]}</span>
+            <span style="width:80px;font-size:14px;color:var(--gray-500)">${u[0]}</span>
             <div style="flex:1;height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden"><div style="height:100%;width:${u[3]}%;background:${u[3]>=100?'var(--danger-500)':'var(--primary-500)'};border-radius:3px"></div></div>
-            <span style="font-size:13px;color:var(--gray-600);white-space:nowrap">${u[2]} / ${u[1]}</span>
+            <span style="font-size:14px;color:var(--gray-600);white-space:nowrap">${u[2]} / ${u[1]}</span>
           </div>`
         ).join('')}
       </div>
@@ -113,9 +113,9 @@ const SettingPage = {
           ${[['免费版','¥0','100商品·1员工·1门店',false],['开单版','¥398','500商品·3员工·1门店',false],['单店版','¥998','2000商品·10员工·1门店',true],['多店版','¥1998','不限',false]].map(p =>
             `<div style="border:1px solid ${p[3]?'var(--primary-500)':'var(--gray-200)'};border-radius:var(--radius-lg);padding:20px;text-align:center;position:relative${p[3]?';background:var(--primary-50)':''}">
               ${p[3]?'<span class="badge badge-primary" style="position:absolute;top:8px;right:8px">当前</span>':''}
-              <div style="font-size:16px;font-weight:600;margin-bottom:8px">${p[0]}</div>
-              <div style="font-size:24px;font-weight:700;color:var(--primary-500)">${p[1]}<small style="font-size:12px;color:var(--gray-400)">/年</small></div>
-              <div style="font-size:12px;color:var(--gray-500);margin:8px 0">${p[2]}</div>
+              <div style="font-size:17px;font-weight:600;margin-bottom:8px">${p[0]}</div>
+              <div style="font-size:25px;font-weight:700;color:var(--primary-500)">${p[1]}<small style="font-size:13px;color:var(--gray-400)">/年</small></div>
+              <div style="font-size:13px;color:var(--gray-500);margin:8px 0">${p[2]}</div>
               <button class="btn ${p[3]?'btn-secondary':'btn-primary'} btn-sm" style="width:100%">${p[3]?'续费':'升级'}</button>
             </div>`
           ).join('')}

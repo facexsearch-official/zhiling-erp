@@ -60,6 +60,7 @@ type createUserReq struct {
 	Name     string `json:"name"`
 	Phone    string `json:"phone"`
 	Role     int8   `json:"role"`
+	RoleID   int64  `json:"role_id"`
 	Password string `json:"password"`
 }
 
@@ -114,6 +115,7 @@ func (h *StaffHandler) CreateUser(c *gin.Context) {
 		TenantID:   tenantID,
 		IsOwner:    0,
 		Role:       req.Role,
+		RoleID:     h.validRoleID(tenantID, req.RoleID),
 		StaffName:  req.Name,
 		StaffPhone: req.Phone,
 		Status:     1,
@@ -129,7 +131,21 @@ func (h *StaffHandler) CreateUser(c *gin.Context) {
 type updateUserReq struct {
 	Name   string `json:"name"`
 	Role   int8   `json:"role"`
+	RoleID *int64 `json:"role_id"`
 	Status *int8  `json:"status"`
+}
+
+// validRoleID 校验角色属于当前商户，非法则返回 0
+func (h *StaffHandler) validRoleID(tenantID, roleID int64) int64 {
+	if roleID <= 0 {
+		return 0
+	}
+	var cnt int64
+	h.repo.DB.Model(&model.Role{}).Where("id = ? AND tenant_id = ?", roleID, tenantID).Count(&cnt)
+	if cnt == 0 {
+		return 0
+	}
+	return roleID
 }
 
 // UpdateUser 修改用户（姓名 / 角色 / 状态）
@@ -162,6 +178,9 @@ func (h *StaffHandler) UpdateUser(c *gin.Context) {
 	if ut.IsOwner == 0 {
 		if req.Role == 2 || req.Role == 3 {
 			ut.Role = req.Role
+		}
+		if req.RoleID != nil {
+			ut.RoleID = h.validRoleID(ut.TenantID, *req.RoleID)
 		}
 		if req.Status != nil && (*req.Status == 0 || *req.Status == 1) {
 			ut.Status = *req.Status
@@ -305,11 +324,14 @@ func (h *StaffHandler) ListShops(c *gin.Context) {
 }
 
 type shopReq struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Phone   string `json:"phone"`
-	IsMain  *int8  `json:"is_main"`
-	Status  *int8  `json:"status"`
+	Name          string `json:"name"`
+	Address       string `json:"address"`
+	AddressDetail string `json:"address_detail"`
+	Phone         string `json:"phone"`
+	Type          *int8  `json:"type"`
+	Remark        string `json:"remark"`
+	IsMain        *int8  `json:"is_main"`
+	Status        *int8  `json:"status"`
 }
 
 func (h *StaffHandler) CreateShop(c *gin.Context) {
@@ -329,11 +351,16 @@ func (h *StaffHandler) CreateShop(c *gin.Context) {
 		return
 	}
 	s := &model.Shop{
-		TenantID: context.GetTenantID(ctx),
-		Name:     req.Name,
-		Address:  strings.TrimSpace(req.Address),
-		Phone:    strings.TrimSpace(req.Phone),
-		Status:   1,
+		TenantID:      context.GetTenantID(ctx),
+		Name:          req.Name,
+		Address:       strings.TrimSpace(req.Address),
+		AddressDetail: strings.TrimSpace(req.AddressDetail),
+		Phone:         strings.TrimSpace(req.Phone),
+		Remark:        strings.TrimSpace(req.Remark),
+		Status:        1,
+	}
+	if req.Type != nil {
+		s.Type = *req.Type
 	}
 	if req.IsMain != nil && *req.IsMain == 1 {
 		s.IsMain = 1
@@ -374,7 +401,12 @@ func (h *StaffHandler) UpdateShop(c *gin.Context) {
 		s.Name = req.Name
 	}
 	s.Address = strings.TrimSpace(req.Address)
+	s.AddressDetail = strings.TrimSpace(req.AddressDetail)
 	s.Phone = strings.TrimSpace(req.Phone)
+	s.Remark = strings.TrimSpace(req.Remark)
+	if req.Type != nil {
+		s.Type = *req.Type
+	}
 	if req.Status != nil && (*req.Status == 0 || *req.Status == 1) {
 		s.Status = *req.Status
 	}

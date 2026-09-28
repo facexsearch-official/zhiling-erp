@@ -27,7 +27,19 @@ func (h *CategoryHandler) ListAll(c *gin.Context) {
 		response.ServerError(c, "查询分类失败")
 		return
 	}
-	response.OK(c, list)
+	// 附带字符串 ID，供前端级联选择器精确匹配
+	out := make([]gin.H, 0, len(list))
+	for _, x := range list {
+		out = append(out, gin.H{
+			"id":            x.ID,
+			"id_str":        strconv.FormatInt(x.ID, 10),
+			"parent_id":     x.ParentID,
+			"parent_id_str": strconv.FormatInt(x.ParentID, 10),
+			"name":          x.Name,
+			"sort":          x.Sort,
+		})
+	}
+	response.OK(c, out)
 }
 
 func (h *CategoryHandler) Create(c *gin.Context) {

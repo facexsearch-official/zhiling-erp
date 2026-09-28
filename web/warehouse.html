@@ -26,7 +26,7 @@
   --sidebar-width:252px;--sidebar-collapsed:64px;--topbar-height:60px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;color:var(--gray-800);background:var(--gray-50);line-height:1.5}
+body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;color:var(--gray-800);background:var(--gray-50);line-height:1.5}
 .app{display:flex;height:100vh;overflow:hidden}
 
 .sidebar{width:var(--sidebar-width);background:#fff;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s ease}
@@ -46,16 +46,16 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .sidebar.collapsed .nav-item.active::before{display:none}
 .sidebar.collapsed .sidebar-footer{justify-content:center;padding:12px 0}
 .sidebar-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
-.sidebar-logo{width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.sidebar-brand{font-size:15px;font-weight:600;color:var(--gray-800)}
+.sidebar-logo{width:32px;height:32px;border-radius:var(--radius-lg);background:var(--primary-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.sidebar-brand{font-size:16px;font-weight:600;color:var(--gray-800)}
 .sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px}
-.sidebar-footer{border-top:1px solid var(--gray-100);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;transition:background .15s}
+.sidebar-footer{border-top:1px solid var(--gray-100);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;transition:background .15s}
 .sidebar-footer:hover{background:var(--gray-50)}
 .sidebar-footer .user-name{font-weight:500;color:var(--gray-700)}
-.sidebar-footer .user-role{color:var(--gray-400);font-size:12px}
-.avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.sidebar-footer .user-role{color:var(--gray-400);font-size:13px}
+.avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-600);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
 .nav-group{margin-bottom:2px}
-.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;color:var(--gray-600);transition:background .15s,color .15s;position:relative}
+.nav-item,.nav-parent{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;color:var(--gray-600);transition:background .15s,color .15s;position:relative}
 .nav-item:hover,.nav-parent:hover{background:var(--gray-100);color:var(--gray-800)}
 .nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:500}
 .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 2px 2px 0;background:var(--primary-500)}
@@ -66,13 +66,13 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .nav-icon{width:18px;height:18px;flex-shrink:0}
 .nav-arrow{width:14px;height:14px;flex-shrink:0;margin-left:auto;color:var(--gray-400);transition:transform .2s}
 .nav-parent.open .nav-arrow{transform:rotate(90deg)}
-.nav-badge{font-size:11px;background:var(--primary-500);color:#fff;border-radius:var(--radius-full);padding:1px 7px;margin-left:auto}
+.nav-badge{font-size:12px;background:var(--primary-500);color:#fff;border-radius:var(--radius-full);padding:1px 7px;margin-left:auto}
 .nav-parent .nav-badge{margin-left:auto;margin-right:4px}
 .nav-sub{display:none;margin:2px 0 4px;padding-left:28px;position:relative}
 .nav-sub::before{content:'';position:absolute;left:21px;top:4px;bottom:4px;width:1px;background:var(--gray-200)}
 .nav-sub.open{display:block}
-.nav-sub-title{font-size:11px;color:var(--gray-400);padding:10px 12px 4px 12px;font-weight:500;letter-spacing:.5px}
-.nav-sub .nav-item{padding:7px 12px;font-size:13px;color:var(--gray-500)}
+.nav-sub-title{font-size:12px;color:var(--gray-400);padding:10px 12px 4px 12px;font-weight:500;letter-spacing:.5px}
+.nav-sub .nav-item{padding:7px 12px;font-size:14px;color:var(--gray-500)}
 .nav-sub .nav-item:hover{color:var(--gray-800);background:var(--gray-100)}
 .nav-sub .nav-item.active{color:var(--primary-600);background:var(--primary-50)}
 .sidebar-nav::-webkit-scrollbar,.content::-webkit-scrollbar{width:4px}
@@ -83,65 +83,79 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .topbar-left{display:flex;align-items:center;gap:14px}
 .sidebar-toggle{width:28px;height:28px;margin-left:auto;border:none;background:none;border-radius:var(--radius-md);cursor:pointer;color:var(--gray-400);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,color .15s}
 .sidebar-toggle:hover{background:var(--gray-100);color:var(--gray-600)}
-.topbar-title{font-size:17px;font-weight:600;color:var(--gray-800)}
-.topbar-breadcrumb{font-size:12px;color:var(--gray-400);margin-top:1px}
+.topbar-title{font-size:18px;font-weight:600;color:var(--gray-800)}
+.topbar-breadcrumb{font-size:13px;color:var(--gray-400);margin-top:1px}
 .topbar-right{display:flex;align-items:center;gap:16px}
 .topbar-search{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:var(--gray-50);width:240px}
 .topbar-search svg{color:var(--gray-400);flex-shrink:0;width:16px;height:16px}
-.topbar-search input{border:none;background:none;outline:none;font-size:13px;color:var(--gray-700);width:100%}
+.topbar-search input{border:none;background:none;outline:none;font-size:14px;color:var(--gray-700);width:100%}
 .topbar-icon-btn{width:36px;height:36px;border-radius:var(--radius-md);border:none;background:none;cursor:pointer;color:var(--gray-500);display:flex;align-items:center;justify-content:center;transition:background .15s}
 .topbar-icon-btn:hover{background:var(--gray-100);color:var(--gray-700)}
 
 .content{flex:1;overflow-y:auto;padding:20px 24px}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.page-title{font-size:18px;font-weight:600;color:var(--gray-800)}
+.page-title{font-size:19px;font-weight:600;color:var(--gray-800)}
 .filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .search-wrapper{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-md);background:#fff;width:260px}
 .search-wrapper svg{color:var(--gray-400);width:16px;height:16px;flex-shrink:0}
-.search-input{border:none;outline:none;font-size:13px;color:var(--gray-700);width:100%;background:none}
+.search-input{border:none;outline:none;font-size:14px;color:var(--gray-700);width:100%;background:none}
 .table-wrapper{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden}
 .table-wrapper table{width:100%;border-collapse:collapse}
-.table-wrapper th{background:var(--gray-50);font-size:12px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200)}
-.table-wrapper td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.table-wrapper th{background:var(--gray-50);font-size:13px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200)}
+.table-wrapper td{padding:10px 14px;font-size:14px;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
 .table-wrapper tr:last-child td{border-bottom:none}
 .table-wrapper tr:hover td{background:var(--gray-50)}
 .table-wrapper .num{text-align:right;font-variant-numeric:tabular-nums}
-.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-size:12px;color:var(--gray-500)}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-size:13px;color:var(--gray-500)}
 .pagination-btns{display:flex;gap:4px}
-.page-btn{padding:4px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:12px;cursor:pointer;color:var(--gray-600)}
+.page-btn{padding:4px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:13px;cursor:pointer;color:var(--gray-600)}
 .page-btn:hover{border-color:var(--gray-300)}
 .page-btn.active{background:var(--primary-500);color:#fff;border-color:var(--primary-500)}
 .page-btn:disabled{opacity:.4;cursor:not-allowed}
-.badge{display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:12px;font-weight:500;white-space:nowrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:13px;font-weight:500;white-space:nowrap}
 .badge-default{background:var(--gray-100);color:var(--gray-600)}
 .badge-success{background:var(--success-50);color:var(--success-600)}
 .badge-info{background:var(--info-50);color:var(--info-500)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all .15s}
 .btn-primary{background:var(--primary-500);color:#fff}.btn-primary:hover{background:var(--primary-600)}
 .btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
 .btn-ghost{background:none;color:var(--gray-600);padding:6px 10px}.btn-ghost:hover{background:var(--gray-100)}
 .btn-danger{background:#fff;color:var(--danger-500);border:1px solid var(--danger-500)}.btn-danger:hover{background:var(--danger-50)}
-.btn-sm{padding:5px 10px;font-size:12px}
+.btn-teal{background:#00B8D4;color:#fff}.btn-teal:hover{background:#00A5C0}
+.empty-state{padding:56px 20px;text-align:center;color:var(--gray-400)}
+.empty-state svg{width:54px;height:54px;color:#CBD5E1;margin-bottom:10px}
+.empty-state .empty-text{font-size:15px;color:var(--gray-400)}
+.form-row-h{display:flex;align-items:flex-start;margin-bottom:20px}
+.form-row-h .form-label{width:110px;flex:none;text-align:right;padding-right:14px;margin-top:9px;font-size:15px;color:var(--gray-700);white-space:nowrap}
+.form-row-h .form-field{flex:1;min-width:0}
+.form-row-h .req{color:var(--danger-500);margin-left:2px}
+.help-q{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--gray-300);color:var(--gray-400);font-size:12px;margin-left:3px;cursor:default;vertical-align:middle}
+.modal-footer .btn{min-width:88px;justify-content:center}
+.btn-sm{padding:5px 10px;font-size:13px}
 .op-btns{display:flex;gap:4px}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:#fff;border-radius:10px;width:640px;max-width:92vw;max-height:88vh;overflow:auto}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-200)}
-.modal-title{font-size:16px;font-weight:600}
-.modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1}
+.modal-header{display:flex;align-items:center;justify-content:center;padding:18px 20px;border-bottom:1px solid var(--gray-200);position:relative}
+.modal-header .modal-close{position:absolute;right:16px;top:50%;transform:translateY(-50%)}
+.modal-title{font-size:18px;font-weight:600}
+.modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:23px;line-height:1}
 .modal-body{padding:20px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
-.form-label{display:block;font-size:13px;color:var(--gray-600);margin-bottom:6px}
-.form-input{width:100%;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:13px;outline:none;color:var(--gray-700)}
+.form-label{display:block;font-size:14px;color:var(--gray-600);margin-bottom:6px}
+.form-input{width:100%;height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 12px;font-size:15px;outline:none;color:var(--gray-700);font-family:inherit}
+textarea.form-input{height:auto;padding:10px 12px;resize:vertical}
 .form-input:focus{border-color:var(--primary-500)}
+select.form-input{cursor:pointer;background:#fff}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--gray-200)}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--gray-800);color:#fff;padding:10px 24px;border-radius:var(--radius-md);font-size:13px;z-index:300;transition:transform .25s ease;pointer-events:none;transform:translateY(80px)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--gray-800);color:#fff;padding:10px 24px;border-radius:var(--radius-md);font-size:14px;z-index:300;transition:transform .25s ease;pointer-events:none;transform:translateY(80px)}
 .toast.show{transform:translateY(0)}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261005">
-<link rel="stylesheet" href="/css/tabs.css?v=20261005">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261039">
+<link rel="stylesheet" href="/css/tabs.css?v=20261039">
 </head>
 <body>
+<script>(function(){try{var p=JSON.parse(localStorage.getItem('pisa_perms')||'null');if(p===null||p===undefined)return;var k='settings.warehouse.view';function ok(x){if(p['*']||p[x])return true;var a=x.split('.');for(var i=a.length-1;i>=1;i--){if(p[a.slice(0,i).join('.')+'.*'])return true;}return false;}if(!ok(k))location.replace('/index.html');}catch(e){}})();</script>
 <div class="app">
   <div class="app-body">
     <aside class="sidebar">
@@ -149,18 +163,8 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
     </aside>
     <div class="main">
 <div class="content" id="content">
-      <div class="page-head">
-        <div class="page-title">仓库管理</div>
-        <div>
-          <button class="btn btn-secondary" onclick="exportTable()">导出</button>
-          <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
-        </div>
-      </div>
-      <div class="filter-bar">
-        <div class="search-wrapper">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input class="search-input" id="searchInput" placeholder="输入仓库名称查询" oninput="searchDebounce()">
-        </div>
+      <div style="margin-bottom:16px">
+        <button class="btn btn-teal" onclick="showCreate()">+ 新增仓库</button>
       </div>
       <div id="tableWrap" class="table-wrapper">
         <div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div>
@@ -179,7 +183,7 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="hideModal()">取消</button>
-      <button class="btn btn-primary" id="modalConfirm">保存</button>
+      <button class="btn btn-teal" id="modalConfirm">确定</button>
     </div>
   </div>
 </div>
@@ -225,6 +229,12 @@ var currentPage = 1;
 var currentKeyword = '';
 var totalPages = 1;
 var totalCount = 0;
+var SHOPS = [];
+
+async function loadShops() {
+  var res = await apiGet('/shop/shops');
+  SHOPS = (res && res.code === 0) ? (res.data || []) : [];
+}
 
 /* ═══════════ Load data ═══════════ */
 async function loadData(page, keyword) {
@@ -244,58 +254,48 @@ async function loadData(page, keyword) {
   renderTable(list);
 }
 
-function renderTypeBadge(type) {
-  var map = { 1: '普通仓', 2: '原料仓', 3: '成品仓' };
-  var cls = 'badge-default';
-  if (type === 2) cls = 'badge-info';
-  if (type === 3) cls = 'badge-success';
-  return '<span class="badge ' + cls + '">' + (map[type] || '未知') + '</span>';
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function renderTable(list) {
   var wrap = document.getElementById('tableWrap');
   var h = '<table><thead><tr>';
   h += '<th>仓库名称</th>';
-  h += '<th style="width:100px">类型</th>';
-  h += '<th>地址</th>';
-  h += '<th style="width:100px">负责人</th>';
-  h += '<th style="width:140px">操作</th>';
+  h += '<th style="width:200px">所属门店</th>';
+  h += '<th>备注</th>';
+  h += '<th style="width:120px">状态</th>';
+  h += '<th style="width:160px">操作</th>';
   h += '</tr></thead><tbody>';
   if (list.length === 0) {
-    h += '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray-400)">暂无数据</td></tr>';
+    h += '<tr><td colspan="5"><div class="empty-state">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 5 5h14l2 3.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z"/><path d="M3 8.5h18"/><path d="M9.5 12h5"/></svg>'
+      + '<div class="empty-text">暂无数据</div></div></td></tr>';
   } else {
     list.forEach(function(row) {
       h += '<tr>';
-      h += '<td>' + (row.name || '-') + '</td>';
-      h += '<td>' + renderTypeBadge(row.type) + '</td>';
-      h += '<td>' + (row.address || '-') + '</td>';
-      h += '<td>' + (row.keeper || '-') + '</td>';
-      h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
+      h += '<td>' + esc(row.name || '-') + '</td>';
+      h += '<td>' + esc(row.shop_name || '-') + '</td>';
+      h += '<td>' + esc(row.remark || '-') + '</td>';
+      h += '<td>' + (Number(row.status) === 0 ? '<span class="badge badge-default">停用</span>' : '<span class="badge badge-success">启用</span>') + '</td>';
+      h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">修改</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
       h += '</tr>';
     });
   }
   h += '</tbody></table>';
-  h += '<div class="pagination"><span>共 ' + totalCount + ' 条</span><div class="pagination-btns">';
-  h += '<button class="page-btn"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="loadData(' + (currentPage - 1) + ',currentKeyword)">上一页</button>';
-  var start = Math.max(1, currentPage - 2);
-  var end = Math.min(totalPages, start + 4);
-  start = Math.max(1, end - 4);
-  for (var i = start; i <= end; i++) {
-    h += '<button class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="loadData(' + i + ',currentKeyword)">' + i + '</button>';
+  if (totalCount > 0) {
+    h += '<div class="pagination"><span>共 ' + totalCount + ' 条</span><div class="pagination-btns">';
+    h += '<button class="page-btn"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="loadData(' + (currentPage - 1) + ',currentKeyword)">上一页</button>';
+    var start = Math.max(1, currentPage - 2);
+    var end = Math.min(totalPages, start + 4);
+    start = Math.max(1, end - 4);
+    for (var i = start; i <= end; i++) {
+      h += '<button class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="loadData(' + i + ',currentKeyword)">' + i + '</button>';
+    }
+    h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
+    h += '</div></div>';
   }
-  h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
-  h += '</div></div>';
   wrap.innerHTML = h;
-}
-
-/* ═══════════ Search debounce ═══════════ */
-var searchTimer = null;
-function searchDebounce() {
-  clearTimeout(searchTimer);
-  var val = document.getElementById('searchInput').value;
-  searchTimer = setTimeout(function() {
-    loadData(1, val);
-  }, 300);
 }
 
 /* ═══════════ Modal ═══════════ */
@@ -323,14 +323,22 @@ async function showEdit(id) {
 }
 
 function getFormHtml(data) {
-  var h = '<div class="form-row">';
-  h += '<div><label class="form-label">名称 <span style="color:var(--danger-500)">*</span></label><input class="form-input" id="sf_name" value="' + (data.name || '') + '"></div>';
-  h += '<div><label class="form-label">类型</label><select class="form-input" id="sf_type"><option value="1"' + (data.type === 1 ? ' selected' : '') + '>普通仓</option><option value="2"' + (data.type === 2 ? ' selected' : '') + '>原料仓</option><option value="3"' + (data.type === 3 ? ' selected' : '') + '>成品仓</option></select></div>';
-  h += '</div>';
-  h += '<div class="form-row">';
-  h += '<div><label class="form-label">地址</label><input class="form-input" id="sf_address" value="' + (data.address || '') + '"></div>';
-  h += '<div><label class="form-label">负责人</label><input class="form-input" id="sf_keeper" value="' + (data.keeper || '') + '"></div>';
-  h += '</div>';
+  data = data || {};
+  var isNew = !data.id;
+  var shopId = data.shop_id || 0;
+  if (isNew && !shopId) {
+    for (var k = 0; k < SHOPS.length; k++) { if (SHOPS[k].is_main) { shopId = SHOPS[k].id; break; } }
+    if (!shopId && SHOPS.length) shopId = SHOPS[0].id;
+  }
+  var shopOpts = '<option value="">请选择所属门店</option>' + SHOPS.map(function(s) {
+    return '<option value="' + s.id + '"' + (String(shopId) === String(s.id) ? ' selected' : '') + '>' + esc(s.name) + '</option>';
+  }).join('');
+  var h = '';
+  h += '<div class="form-row-h"><label class="form-label">仓库名称<span class="req">*</span></label><div class="form-field"><input class="form-input" id="sf_name" placeholder="请输入仓库名称！" value="' + esc(data.name || '') + '"></div></div>';
+  h += '<div class="form-row-h"><label class="form-label">关联门店<span class="help-q" title="选择该仓库所属的门店">?</span><span class="req">*</span></label><div class="form-field"><select class="form-input" id="sf_shop">' + shopOpts + '</select></div></div>';
+  h += '<div class="form-row-h"><label class="form-label">联系人</label><div class="form-field"><input class="form-input" id="sf_contact" placeholder="请输入联系人" value="' + esc(data.contact || '') + '"></div></div>';
+  h += '<div class="form-row-h"><label class="form-label">手机号码</label><div class="form-field"><input class="form-input" id="sf_phone" placeholder="请输入手机号码" value="' + esc(data.phone || '') + '"></div></div>';
+  h += '<div class="form-row-h"><label class="form-label">备注</label><div class="form-field"><textarea class="form-input" id="sf_remark" placeholder="请输入备注" style="min-height:72px">' + esc(data.remark || '') + '</textarea></div></div>';
   return h;
 }
 
@@ -338,12 +346,14 @@ function gv(id) { var el = document.getElementById(id); return el ? el.value : '
 
 async function submitForm(id) {
   var body = {
-    name: gv('sf_name'),
-    type: parseInt(gv('sf_type'), 10) || 1,
-    address: gv('sf_address'),
-    keeper: gv('sf_keeper')
+    name: gv('sf_name').trim(),
+    shop_id: parseInt(gv('sf_shop'), 10) || 0,
+    contact: gv('sf_contact').trim(),
+    phone: gv('sf_phone').trim(),
+    remark: gv('sf_remark').trim()
   };
   if (!body.name) { showToast('请填写仓库名称'); return; }
+  if (!body.shop_id) { showToast('请选择所属门店'); return; }
   var res;
   if (id) {
     res = await apiPut('/shop/warehouse/' + id, body);
@@ -371,9 +381,6 @@ async function deleteItem(id) {
   }
 }
 
-/* ═══════════ Export ═══════════ */
-function exportTable() { showToast('导出功能开发中'); }
-
 /* ═══════════ Toast ═══════════ */
 function showToast(msg) {
   var t = document.getElementById('toast');
@@ -392,9 +399,9 @@ if (localStorage.getItem('pisa_sidebar_collapsed') === '1') {
   document.getElementById('sidebar').classList.add('collapsed');
 }
 checkAuth();
-loadData(1, '');
+loadShops().then(function(){ loadData(1, ''); });
 </script>
-<script src="/js/tabs.js?v=20261005"></script>
-<script src="/js/app-shell.js?v=20261005"></script>
+<script src="/js/tabs.js?v=20261039"></script>
+<script src="/js/app-shell.js?v=20261039"></script>
 </body>
 </html>

@@ -59,6 +59,10 @@ func (h *WarehouseHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "仓库名称不能为空")
 		return
 	}
+	if warehouse.ShopID == 0 {
+		response.BadRequest(c, "请选择所属门店")
+		return
+	}
 	warehouse.Status = 1
 	warehouse.TenantID = context.GetTenantID(ctx)
 	if err := h.repo.Create(ctx, &warehouse); err != nil {
@@ -78,6 +82,14 @@ func (h *WarehouseHandler) Update(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(existing); err != nil {
 		response.BadRequest(c, "参数错误")
+		return
+	}
+	if existing.Name == "" {
+		response.BadRequest(c, "仓库名称不能为空")
+		return
+	}
+	if existing.ShopID == 0 {
+		response.BadRequest(c, "请选择所属门店")
 		return
 	}
 	if err := h.repo.Update(ctx, existing); err != nil {

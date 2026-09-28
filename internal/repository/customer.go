@@ -4,6 +4,8 @@ import (
 	"context"
 	"pisa_server/internal/model"
 
+	"gorm.io/gorm"
+
 	customContext "pisa_server/internal/pkg/context"
 )
 
@@ -15,15 +17,31 @@ func NewCustomerRepository(base BaseRepository) *CustomerRepository {
 	return &CustomerRepository{BaseRepository: base}
 }
 
-func (r *CustomerRepository) List(ctx context.Context, page, pageSize int, keyword string) ([]model.Customer, int64) {
+func (r *CustomerRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64, hideDisabled, hideZero bool) ([]model.Customer, int64) {
 	var total int64
 	var list []model.Customer
-	q := r.Scoped(ctx)
+	q := r.DB.Table("customers AS c").
+		Joins("LEFT JOIN customer_categories cc ON cc.id = c.category_id").
+		Joins("LEFT JOIN salesmen s ON s.id = c.salesman_id").
+		Where("c.tenant_id = ?", customContext.GetTenantID(ctx))
 	if keyword != "" {
-		q = q.Where("name LIKE ? OR code LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+		kw := "%" + keyword + "%"
+		q = q.Where("c.name LIKE ? OR c.contact LIKE ? OR c.phone LIKE ? OR c.remark LIKE ? OR c.email LIKE ?", kw, kw, kw, kw, kw)
 	}
-	q.Model(&model.Customer{}).Count(&total)
-	q.Offset((page - 1) * pageSize).Limit(pageSize).Order("created_at DESC").Find(&list)
+	if categoryID == -1 {
+		q = q.Where("c.category_id IS NULL")
+	} else if categoryID > 0 {
+		q = q.Where("c.category_id = ?", categoryID)
+	}
+	if hideDisabled {
+		q = q.Where("c.status = 1")
+	}
+	if hideZero {
+		q = q.Where("c.total_receivable <> 0")
+	}
+	q.Session(&gorm.Session{}).Count(&total)
+	q.Select("c.*, COALESCE(cc.name,'未分类') AS category_name, COALESCE(s.name,'') AS salesman_name").
+		Offset((page - 1) * pageSize).Limit(pageSize).Order("c.created_at DESC").Scan(&list)
 	return list, total
 }
 

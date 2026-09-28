@@ -24,6 +24,11 @@ type Tenant struct {
 	Type          int8       `json:"type"` // 1=个体户 2=有限公司 3=合伙企业
 	ContactName   string     `json:"contact_name" gorm:"size:64"`
 	ContactPhone  string     `json:"contact_phone" gorm:"size:20"`
+	Logo          string     `json:"logo" gorm:"size:255"`
+	BusinessMode  int8       `json:"business_mode"` // 1=批发 2=零售 3=批零兼营批发为主 4=批零兼营零售为主
+	Industry      string     `json:"industry" gorm:"size:64"`
+	Address       string     `json:"address" gorm:"size:255"`
+	AddressDetail string     `json:"address_detail" gorm:"size:255"`
 	OwnerUserID   int64      `json:"owner_user_id"`
 	PlanID        int64      `json:"plan_id"`
 	PlanExpiresAt *time.Time `json:"plan_expires_at"`
@@ -57,6 +62,7 @@ type UserTenant struct {
 	TenantID    int64     `json:"tenant_id" gorm:"uniqueIndex:uk_user_tenant"`
 	IsOwner     int8      `json:"is_owner"`
 	Role        int8      `json:"role"` // 1=超级管理员 2=管理员 3=操作员
+	RoleID      int64     `json:"role_id" gorm:"index"`
 	StaffName   string    `json:"staff_name" gorm:"size:64"`
 	StaffPhone  string    `json:"staff_phone" gorm:"size:20"`
 	Permissions string    `json:"permissions" gorm:"type:text"`
@@ -67,15 +73,18 @@ type UserTenant struct {
 
 // Shop 门店
 type Shop struct {
-	ID        int64     `json:"id" gorm:"primaryKey"`
-	TenantID  int64     `json:"tenant_id" gorm:"index"`
-	Name      string    `json:"name" gorm:"size:128"`
-	Address   string    `json:"address" gorm:"size:255"`
-	Phone     string    `json:"phone" gorm:"size:20"`
-	Logo      string    `json:"logo" gorm:"size:255"`
-	IsMain    int8      `json:"is_main"`
-	Status    int8      `json:"status" gorm:"default:1"`
-	CreatedAt time.Time `json:"created_at"`
+	ID            int64     `json:"id" gorm:"primaryKey"`
+	TenantID      int64     `json:"tenant_id" gorm:"index"`
+	Name          string    `json:"name" gorm:"size:128"`
+	Address       string    `json:"address" gorm:"size:255"`
+	Phone         string    `json:"phone" gorm:"size:20"`
+	Logo          string    `json:"logo" gorm:"size:255"`
+	AddressDetail string    `json:"address_detail" gorm:"size:255"`
+	Type          int8      `json:"type"` // 1=直营 2=加盟
+	Remark        string    `json:"remark" gorm:"size:255"`
+	IsMain        int8      `json:"is_main"`
+	Status        int8      `json:"status" gorm:"default:1"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // Salesman 业务员（不可登录系统，仅用于统计销售业绩）

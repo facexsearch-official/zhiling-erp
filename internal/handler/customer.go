@@ -8,14 +8,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type CustomerHandler struct {
 	repo *repository.CustomerRepository
+	db   *gorm.DB
 }
 
-func NewCustomerHandler(repo *repository.CustomerRepository) *CustomerHandler {
-	return &CustomerHandler{repo: repo}
+func NewCustomerHandler(repo *repository.CustomerRepository, db *gorm.DB) *CustomerHandler {
+	return &CustomerHandler{repo: repo, db: db}
 }
 
 func (h *CustomerHandler) List(c *gin.Context) {
@@ -23,7 +25,10 @@ func (h *CustomerHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	keyword := c.Query("keyword")
-	list, total := h.repo.List(ctx, page, pageSize, keyword)
+	categoryID, _ := strconv.ParseInt(c.DefaultQuery("category_id", "0"), 10, 64)
+	hideDisabled := c.Query("hide_disabled") == "1"
+	hideZero := c.Query("hide_zero") == "1"
+	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID, hideDisabled, hideZero)
 	response.OKPage(c, list, total, page, pageSize)
 }
 

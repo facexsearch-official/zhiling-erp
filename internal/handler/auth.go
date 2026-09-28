@@ -3,6 +3,7 @@ package handler
 import (
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/jwt"
+	"pisa_server/internal/pkg/perm"
 	"pisa_server/internal/pkg/response"
 	"time"
 
@@ -132,12 +133,40 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			"avatar":   user.Avatar,
 			"role":     role,
 		},
-		"tenants": tenants,
+		"tenants":        tenants,
+		"permissions":    perm.Load(h.db, user.ID, firstTenantID).Raw(),
+		"sensitive_data": perm.LoadSensitive(h.db, user.ID, firstTenantID).Raw(),
 	})
 }
 
 type SwitchTenantRequest struct {
 	TenantID int64 `json:"tenant_id" binding:"required"`
+}
+
+// Me 返回当前登录用户在 token 所属商户下的权限信息
+func (h *AuthHandler) Me(c *gin.Context) {
+	if h.db == nil {
+		response.ServerError(c, "数据库未连接")
+		return
+	}
+	userID := c.GetInt64("user_id")
+	tenantID := c.GetInt64("tenant_id")
+	var user model.User
+	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		response.Unauthorized(c, "用户不存在")
+		return
+	}
+	var ut model.UserTenant
+	h.db.Where("user_id = ? AND tenant_id = ?", userID, tenantID).First(&ut)
+	response.OK(c, gin.H{
+		"user": gin.H{
+			"id": user.ID, "phone": user.Phone, "name": user.Nickname, "avatar": user.Avatar,
+		},
+		"role":           ut.Role,
+		"is_owner":       ut.IsOwner,
+		"permissions":    perm.Load(h.db, userID, tenantID).Raw(),
+		"sensitive_data": perm.LoadSensitive(h.db, userID, tenantID).Raw(),
+	})
 }
 
 func (h *AuthHandler) SwitchTenant(c *gin.Context) {
@@ -175,9 +204,11 @@ func (h *AuthHandler) SwitchTenant(c *gin.Context) {
 	}
 
 	response.OK(c, gin.H{
-		"token": tokenStr,
-		"tenant_id": req.TenantID,
-		"shop_id": shopID,
-		"role": ut.Role,
+		"token":          tokenStr,
+		"tenant_id":      req.TenantID,
+		"shop_id":        shopID,
+		"role":           ut.Role,
+		"permissions":    perm.Load(h.db, userID, req.TenantID).Raw(),
+		"sensitive_data": perm.LoadSensitive(h.db, userID, req.TenantID).Raw(),
 	})
 }
