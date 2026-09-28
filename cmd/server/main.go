@@ -136,6 +136,7 @@ func main() {
 			shopGroup.GET("/supplier/all", supplierHandler.ListAll)
 			shopGroup.GET("/supplier/:id", supplierHandler.GetByID)
 			shopGroup.POST("/supplier", supplierHandler.Create)
+			shopGroup.POST("/supplier/batch", supplierHandler.BatchUpdate)
 			shopGroup.PUT("/supplier/:id", supplierHandler.Update)
 			shopGroup.DELETE("/supplier/:id", supplierHandler.Delete)
 

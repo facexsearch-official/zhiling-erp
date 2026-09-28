@@ -17,12 +17,18 @@ func NewSupplierRepository(base BaseRepository) *SupplierRepository {
 	return &SupplierRepository{BaseRepository: base}
 }
 
-func (r *SupplierRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64) ([]model.Supplier, int64) {
+func (r *SupplierRepository) List(ctx context.Context, page, pageSize int, keyword string, categoryID int64, hideDisabled, hideZero bool) ([]model.Supplier, int64) {
 	var total int64
 	var list []model.Supplier
 	q := r.Scoped(ctx)
 	if keyword != "" {
 		q = q.Where("name LIKE ? OR code LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	}
+	if hideDisabled {
+		q = q.Where("status = 1")
+	}
+	if hideZero {
+		q = q.Where("total_payable <> 0")
 	}
 	if categoryID == -1 {
 		// 未分类：无分类或分类为 0

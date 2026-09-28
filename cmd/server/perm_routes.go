@@ -123,6 +123,7 @@ func permRoutes() perm.Routes {
 		"GET /api/shop/supplier/all":             perm.SupplierView,
 		"GET /api/shop/supplier/:id":             perm.SupplierView,
 		"POST /api/shop/supplier":                perm.SupplierAdd,
+		"POST /api/shop/supplier/batch":          perm.SupplierEdit,
 		"PUT /api/shop/supplier/:id":             perm.SupplierEdit,
 		"DELETE /api/shop/supplier/:id":          perm.SupplierDel,
 		"GET /api/shop/supplier-category/all":    perm.SupplierView,

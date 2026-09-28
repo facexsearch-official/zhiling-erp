@@ -25,8 +25,105 @@ func (h *SupplierHandler) List(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 	keyword := c.Query("keyword")
 	categoryID, _ := strconv.ParseInt(c.Query("category_id"), 10, 64)
-	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID)
+	hideDisabled := c.Query("hide_disabled") == "1"
+	hideZero := c.Query("hide_zero") == "1"
+	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID, hideDisabled, hideZero)
+	for i := range list {
+		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
+	}
 	response.OKPage(c, list, total, page, pageSize)
+}
+
+type supplierBatchFilters struct {
+	Keyword      string `json:"keyword"`
+	CategoryID   int64  `json:"category_id"`
+	HideDisabled bool   `json:"hide_disabled"`
+	HideZero     bool   `json:"hide_zero"`
+}
+
+type supplierBatchReq struct {
+	Action  string               `json:"action"` // update | delete
+	Scope   string               `json:"scope"`  // selected | query
+	IDs     []string             `json:"ids"`
+	Filters supplierBatchFilters `json:"filters"`
+	Patch   struct {
+		Status     *int8   `json:"status"`
+		CategoryID *string `json:"category_id"`
+	} `json:"patch"`
+}
+
+// BatchUpdate 批量修改/删除供应商
+func (h *SupplierHandler) BatchUpdate(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	var req supplierBatchReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	q := h.repo.DB.Table("suppliers").Where("tenant_id = ?", tenantID)
+	if req.Scope == "query" {
+		f := req.Filters
+		if f.Keyword != "" {
+			kw := "%" + f.Keyword + "%"
+			q = q.Where("(name LIKE ? OR code LIKE ?)", kw, kw)
+		}
+		if f.CategoryID == -1 {
+			q = q.Where("category_id IS NULL OR category_id = 0")
+		} else if f.CategoryID > 0 {
+			q = q.Where("category_id = ?", f.CategoryID)
+		}
+		if f.HideDisabled {
+			q = q.Where("status = 1")
+		}
+		if f.HideZero {
+			q = q.Where("total_payable <> 0")
+		}
+	} else {
+		ids := make([]int64, 0, len(req.IDs))
+		for _, s := range req.IDs {
+			if n, err := strconv.ParseInt(s, 10, 64); err == nil && n > 0 {
+				ids = append(ids, n)
+			}
+		}
+		if len(ids) == 0 {
+			response.BadRequest(c, "请选择供应商")
+			return
+		}
+		q = q.Where("id IN ?", ids)
+	}
+
+	if req.Action == "delete" {
+		res := q.Delete(&model.Supplier{})
+		if res.Error != nil {
+			response.ServerError(c, "批量删除失败")
+			return
+		}
+		response.OK(c, gin.H{"count": res.RowsAffected})
+		return
+	}
+
+	upd := map[string]interface{}{}
+	if req.Patch.Status != nil {
+		upd["status"] = *req.Patch.Status
+	}
+	if req.Patch.CategoryID != nil {
+		if *req.Patch.CategoryID == "" || *req.Patch.CategoryID == "0" {
+			upd["category_id"] = nil
+		} else if n, err := strconv.ParseInt(*req.Patch.CategoryID, 10, 64); err == nil {
+			upd["category_id"] = n
+		}
+	}
+	if len(upd) == 0 {
+		response.BadRequest(c, "没有需要修改的内容")
+		return
+	}
+	res := q.Updates(upd)
+	if res.Error != nil {
+		response.ServerError(c, "批量修改失败")
+		return
+	}
+	response.OK(c, gin.H{"count": res.RowsAffected})
 }
 
 func (h *SupplierHandler) ListAll(c *gin.Context) {

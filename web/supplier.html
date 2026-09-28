@@ -66,6 +66,44 @@ body{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-se
 .search-wrapper svg{color:var(--gray-400);width:16px;height:16px;flex-shrink:0}
 .search-input{border:none;outline:none;font-size:14px;color:var(--gray-700);width:100%;background:none}
 
+/* 供应商列表工具栏 / 批量操作 */
+.sp-filter{display:flex;align-items:center;gap:18px;margin-bottom:12px;flex-wrap:wrap}
+.sp-check{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--gray-600);cursor:pointer;white-space:nowrap}
+.sp-check input{accent-color:#00B8D4;width:15px;height:15px;cursor:pointer}
+.sp-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sp-tb-left,.sp-tb-right{display:flex;align-items:center;gap:10px}
+.btn-teal{background:#00B8D4;color:#fff;border:1px solid #00B8D4}
+.btn-teal:hover{background:#00A5C0;border-color:#00A5C0}
+.btn-teal-outline{background:#fff;color:#00B8D4;border:1px solid #00B8D4}
+.btn-teal-outline:hover{background:#E0F7FA}
+.sp-caret{width:12px;height:12px;margin-left:2px;fill:none;stroke:currentColor;stroke-width:2;vertical-align:middle}
+.sp-batch{position:relative;display:inline-block}
+.sp-batch-menu{display:none;position:absolute;left:0;top:calc(100% + 6px);min-width:140px;background:#fff;border:1px solid var(--gray-200);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:6px 0;z-index:60}
+.sp-batch-menu.show{display:block}
+.sp-batch-item{padding:9px 16px;font-size:13px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
+.sp-batch-item:hover{background:var(--gray-50);color:#00B8D4}
+.gb-scope{display:flex;align-items:center;gap:10px;margin:4px 0 22px;flex-wrap:wrap}
+.gb-scope label{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--gray-700);cursor:pointer;padding:9px 16px;border-radius:8px;transition:background .15s}
+.gb-scope label:hover{background:var(--gray-50)}
+.gb-scope label:has(input:checked){background:#E0F7FA}
+.gb-scope input{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:50%;border:2px solid #C7CDD4;background:#fff;cursor:pointer;flex:none;margin:0;position:relative;transition:border-color .15s}
+.gb-scope input:checked{border-color:#00B8D4}
+.gb-scope input:checked::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#00B8D4}
+.gb-field{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.gb-flabel{width:90px;flex:none;text-align:right;font-size:14px;color:var(--gray-600)}
+.gb-msg{font-size:15px;color:var(--gray-700);padding:8px 0}
+.gb-dd{position:relative;min-width:220px}
+.gb-dd-input{display:flex;align-items:center;gap:8px;height:42px;border:1px solid var(--gray-200);border-radius:8px;padding:0 12px;cursor:pointer;background:#fff;transition:border-color .15s}
+.gb-dd.open .gb-dd-input{border-color:#00B8D4}
+.gb-dd-label{flex:1;font-size:14px;color:var(--gray-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gb-dd-caret{flex:none;width:16px;height:16px;fill:none;stroke:#9AA3AE;stroke-width:2;transition:transform .15s}
+.gb-dd.open .gb-dd-caret{transform:rotate(180deg)}
+.gb-dd-menu{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--gray-200);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.14);z-index:50;padding:6px 0;max-height:280px;overflow-y:auto}
+.gb-dd-menu.open{display:block}
+.gb-dd-opt{padding:11px 16px;font-size:14px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
+.gb-dd-opt:hover{background:#E0F7FA}
+.gb-dd-opt.selected{background:#E0F7FA;color:#0097A7}
+
 /* Form */
 .form-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:24px 28px 30px}
 .fsection-title{font-size:16px;font-weight:600;color:var(--gray-800);margin:6px 0 20px}
@@ -162,8 +200,8 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
 
 .empty{padding:40px;text-align:center;color:var(--gray-400)}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261039">
-<link rel="stylesheet" href="/css/tabs.css?v=20261039">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261047">
+<link rel="stylesheet" href="/css/tabs.css?v=20261047">
 </head>
 <body>
 <script>(function(){try{var p=JSON.parse(localStorage.getItem('pisa_perms')||'null');if(p===null||p===undefined)return;var k='purchase.supplier.view';function ok(x){if(p['*']||p[x])return true;var a=x.split('.');for(var i=a.length-1;i>=1;i--){if(p[a.slice(0,i).join('.')+'.*'])return true;}return false;}if(!ok(k))location.replace('/index.html');}catch(e){}})();</script>
@@ -199,17 +237,29 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
         <div class="cat-tree" id="catTree"></div>
       </aside>
       <div class="split-main">
-        <div class="page-head">
-          <div class="page-title">供应商管理</div>
-          <div>
-            <button class="btn btn-secondary" onclick="exportTable()">导出</button>
-            <button class="btn btn-primary" onclick="showCreate()">+ 新增</button>
-          </div>
-        </div>
-        <div class="filter-bar">
+        <div class="sp-filter">
+          <label class="sp-check"><input type="checkbox" id="spHideDisabled" onchange="loadData(1)"> 隐藏停用供应商</label>
+          <label class="sp-check"><input type="checkbox" id="spHideZero" onchange="loadData(1)"> 隐藏零欠款供应商</label>
+          <div style="flex:1"></div>
           <div class="search-wrapper">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input class="search-input" id="searchInput" placeholder="输入名称或编码查询" oninput="searchDebounce()">
+          </div>
+        </div>
+        <div class="sp-toolbar">
+          <div class="sp-tb-left">
+            <button class="btn btn-teal" onclick="showCreate()">+ 新增供应商</button>
+            <div class="sp-batch">
+              <button class="btn btn-teal-outline" onclick="spToggleBatch(event)">批量操作 <svg class="sp-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+              <div class="sp-batch-menu" id="spBatchMenu">
+                <div class="sp-batch-item" onclick="spBatchDelete()">删除</div>
+                <div class="sp-batch-item" onclick="spBatchToggleStatus()">启用/停用</div>
+                <div class="sp-batch-item" onclick="spBatchMoveCategory()">移至分类</div>
+              </div>
+            </div>
+          </div>
+          <div class="sp-tb-right">
+            <button class="btn btn-secondary" onclick="exportTable()">导出</button>
           </div>
         </div>
         <div id="tableWrap" class="table-wrapper">
@@ -426,6 +476,8 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
   var totalCount = 0;
   var searchTimer = null;
   var formEditId = null;
+  var spList = [];
+  var spSelected = {};
 
   function catById(id){ if(!id) return null; return catList.filter(function(c){ return String(c.id)===String(id); })[0] || null; }
   function catChildren(pid){ return catList.filter(function(c){ return String(c.parent_id||0)===String(pid||0); }); }
@@ -578,6 +630,8 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
     var wrap = el('tableWrap');
     var path = '/shop/supplier/list?page=' + currentPage + '&page_size=10&category_id=' + currentCatId;
     if(currentKeyword) path += '&keyword=' + encodeURIComponent(currentKeyword);
+    var hd = el('spHideDisabled'); if(hd && hd.checked) path += '&hide_disabled=1';
+    var hz = el('spHideZero'); if(hz && hz.checked) path += '&hide_zero=1';
     apiGet(path).then(function(res){
       if(!res || res.code !== 0){ wrap.innerHTML = '<div class="empty">加载失败</div>'; return; }
       var list = res.data.list || [];
@@ -588,8 +642,10 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
   }
 
   function renderTable(list){
+    spList = list;
     var wrap = el('tableWrap');
     var h = '<table><thead><tr>';
+    h += '<th style="width:44px"><input type="checkbox" id="spCheckAll" onchange="spToggleAll(this.checked)"></th>';
     h += '<th style="width:56px">序号</th>';
     h += '<th>供应商名称</th>';
     h += '<th>分类</th>';
@@ -600,11 +656,13 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
     h += '<th style="width:140px">操作</th>';
     h += '</tr></thead><tbody>';
     if(list.length === 0){
-      h += '<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+      h += '<tr><td colspan="9" class="empty">暂无数据</td></tr>';
     } else {
       list.forEach(function(row, i){
         var no = (currentPage - 1) * 10 + i + 1;
-        h += '<tr>';
+        var rid = row.id_str || String(row.id);
+        h += '<tr' + (spSelected[rid] ? ' class="row-selected"' : '') + '>';
+        h += '<td><input type="checkbox" class="sp-row-check" data-id="' + rid + '"' + (spSelected[rid] ? ' checked' : '') + ' onchange="spToggleRow(this)"></td>';
         h += '<td>' + no + '</td>';
         h += '<td>' + esc(row.name || '-') + '</td>';
         h += '<td>' + esc(catName(row.category_id)) + '</td>';
@@ -612,7 +670,7 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
         h += '<td>' + esc(row.phone || '-') + '</td>';
         h += '<td class="num">¥' + Number(row.total_payable || 0).toLocaleString() + '</td>';
         h += '<td>' + esc(row.remark || '-') + '</td>';
-        h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(' + row.id + ')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(' + row.id + ')">删除</button></div></td>';
+        h += '<td><div class="op-btns"><button class="btn btn-ghost btn-sm" onclick="showEdit(\'' + rid + '\')">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteItem(\'' + rid + '\')">删除</button></div></td>';
         h += '</tr>';
       });
     }
@@ -626,6 +684,7 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
     h += '<button class="page-btn"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="loadData(' + (currentPage + 1) + ',currentKeyword)">下一页</button>';
     h += '</div></div>';
     wrap.innerHTML = h;
+    spSyncCheckAll();
   }
   window.loadData = loadData;
 
@@ -633,6 +692,140 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
     clearTimeout(searchTimer);
     var v = el('searchInput').value;
     searchTimer = setTimeout(function(){ loadData(1, v); }, 300);
+  };
+
+  /* ══════════ 批量操作 ══════════ */
+  window.spToggleBatch = function(e){
+    if(e) e.stopPropagation();
+    var m = el('spBatchMenu'); if(m) m.classList.toggle('show');
+  };
+  document.addEventListener('click', function(e){
+    var m = el('spBatchMenu');
+    if(m && m.classList.contains('show') && !e.target.closest('.sp-batch')) m.classList.remove('show');
+  });
+  function spCloseBatch(){ var m = el('spBatchMenu'); if(m) m.classList.remove('show'); }
+  window.spToggleRow = function(cb){
+    var id = cb.getAttribute('data-id');
+    if(cb.checked) spSelected[id] = true; else delete spSelected[id];
+    var tr = cb.closest('tr'); if(tr) tr.classList.toggle('row-selected', cb.checked);
+    spSyncCheckAll();
+  };
+  window.spToggleAll = function(checked){
+    (spList || []).forEach(function(r){ var id = r.id_str || String(r.id); if(checked) spSelected[id] = true; else delete spSelected[id]; });
+    document.querySelectorAll('#tableWrap .sp-row-check').forEach(function(cb){ cb.checked = checked; var tr = cb.closest('tr'); if(tr) tr.classList.toggle('row-selected', checked); });
+    spSyncCheckAll();
+  };
+  function spSyncCheckAll(){
+    var all = el('spCheckAll'); if(!all) return;
+    var ids = (spList || []).map(function(r){ return r.id_str || String(r.id); });
+    var sel = ids.filter(function(id){ return spSelected[id]; }).length;
+    all.checked = ids.length > 0 && sel === ids.length;
+    all.indeterminate = sel > 0 && sel < ids.length;
+  }
+  function spSelectedIds(){ return Object.keys(spSelected).filter(function(k){ return k && k !== 'undefined'; }); }
+  function spNeedSelection(){ var ids = spSelectedIds(); if(!ids.length){ showToast('请先勾选供应商', 'error'); return null; } return ids; }
+  function spFilters(){
+    var hd = el('spHideDisabled'), hz = el('spHideZero');
+    return { keyword: currentKeyword || '', category_id: currentCatId || 0, hide_disabled: !!(hd && hd.checked), hide_zero: !!(hz && hz.checked) };
+  }
+  function spInitDropdown(dd){
+    var input = dd.querySelector('.gb-dd-input'), menu = dd.querySelector('.gb-dd-menu');
+    if(!input || !menu) return;
+    input.addEventListener('click', function(e){
+      e.stopPropagation();
+      var willOpen = !menu.classList.contains('open');
+      var body = dd.closest('.modal-body');
+      if(body) body.querySelectorAll('.gb-dd.open').forEach(function(o){ o.classList.remove('open'); var m = o.querySelector('.gb-dd-menu'); if(m) m.classList.remove('open'); });
+      if(willOpen){ dd.classList.add('open'); menu.classList.add('open'); }
+    });
+    menu.addEventListener('click', function(e){
+      e.stopPropagation();
+      var opt = e.target.closest('.gb-dd-opt'); if(!opt) return;
+      dd.setAttribute('data-value', opt.getAttribute('data-v'));
+      dd.querySelector('.gb-dd-label').textContent = opt.textContent.trim();
+      Array.prototype.forEach.call(dd.querySelectorAll('.gb-dd-opt'), function(o){ o.classList.toggle('selected', o === opt); });
+      dd.classList.remove('open'); menu.classList.remove('open');
+    });
+  }
+  function spDropdownHTML(id, options, selected){
+    var opts = options.map(function(o){
+      return '<div class="gb-dd-opt' + (String(o.v) === String(selected) ? ' selected' : '') + '" data-v="' + escAttr(String(o.v)) + '">' + esc(o.t) + '</div>';
+    }).join('');
+    var sel = options.filter(function(o){ return String(o.v) === String(selected); })[0] || options[0] || { v:'', t:'' };
+    return '<div class="gb-dd" id="' + id + '" data-value="' + escAttr(String(sel.v)) + '">'
+      + '<div class="gb-dd-input"><span class="gb-dd-label">' + esc(sel.t) + '</span>'
+      + '<svg class="gb-dd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>'
+      + '<div class="gb-dd-menu">' + opts + '</div></div>';
+  }
+  function spModal(opts){
+    return new Promise(function(resolve){
+      var old = document.getElementById('spBatchModal'); if(old) old.remove();
+      var ov = document.createElement('div');
+      ov.className = 'modal-overlay show'; ov.id = 'spBatchModal';
+      var scopeHTML = '';
+      if(opts.scope){
+        var qLabel = opts.scope.queryLabel || ('修改当前查询条件下的所有商品（' + opts.scope.query + '个）');
+        scopeHTML = '<div class="gb-scope">'
+          + '<label><input type="radio" name="spScope" value="selected" checked> 只修改选中商品（' + opts.scope.selected + '个）</label>'
+          + '<label><input type="radio" name="spScope" value="query"> ' + esc(qLabel) + '</label>'
+          + '</div>';
+      }
+      ov.innerHTML = '<div class="modal" style="width:' + (opts.width || 560) + 'px">'
+        + '<div class="modal-header"><h2 style="flex:1;text-align:center">' + esc(opts.title) + '</h2>'
+        + '<button class="modal-close" type="button"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
+        + '<div class="modal-body">' + scopeHTML + (opts.body || '') + '</div>'
+        + '<div class="modal-footer"><button class="btn btn-secondary" type="button" data-cancel>取消</button>'
+        + '<button class="btn btn-teal" type="button" data-ok>' + esc(opts.confirmText || '确认') + '</button></div></div>';
+      document.body.appendChild(ov);
+      ov.querySelectorAll('.gb-dd').forEach(function(dd){ spInitDropdown(dd); });
+      ov.addEventListener('click', function(){ ov.querySelectorAll('.gb-dd.open').forEach(function(o){ o.classList.remove('open'); var m = o.querySelector('.gb-dd-menu'); if(m) m.classList.remove('open'); }); });
+      function close(v){ ov.remove(); resolve(v); }
+      ov.querySelector('.modal-close').onclick = function(){ close(null); };
+      ov.querySelector('[data-cancel]').onclick = function(){ close(null); };
+      ov.addEventListener('click', function(e){ if(e.target === ov) close(null); });
+      ov.querySelector('[data-ok]').onclick = function(){
+        var r = ov.querySelector('input[name=spScope]:checked');
+        var scope = r ? r.value : 'selected';
+        var vals = opts.read ? opts.read(ov, scope) : {};
+        if(vals === false) return;
+        vals.scope = scope;
+        close(vals);
+      };
+    });
+  }
+  async function spBatchApply(action, vals){
+    spCloseBatch();
+    var body = { action: action, scope: vals.scope || 'selected', ids: spSelectedIds(), filters: spFilters(), patch: vals.patch || {} };
+    var res = await apiPost('/api/shop/supplier/batch', body);
+    if(res && res.code === 0){
+      spSelected = {};
+      showToast('已处理 ' + ((res.data && res.data.count) || 0) + ' 个供应商', 'success');
+      loadData(action === 'delete' ? 1 : currentPage, currentKeyword);
+    } else showToast((res && res.message) || '操作失败', 'error');
+  }
+  window.spBatchDelete = async function(){
+    var ids = spNeedSelection(); if(!ids) return;
+    var vals = await spModal({ title:'批量删除供应商', width:520, body:'<div class="gb-msg">确定要删除选中的' + ids.length + '个供应商吗？</div>', confirmText:'确定' });
+    if(!vals) return;
+    await spBatchApply('delete', vals);
+  };
+  window.spBatchToggleStatus = async function(){
+    var ids = spNeedSelection(); if(!ids) return;
+    var body = '<div class="gb-field"><label class="gb-flabel">修改为</label>' + spDropdownHTML('spStatus', [{v:'1',t:'启用'},{v:'0',t:'停用'}], '1') + '</div>';
+    var vals = await spModal({ title:'批量启用/停用', scope:{selected:ids.length, query:totalCount}, body:body,
+      read:function(ov){ return { patch:{ status: parseInt(ov.querySelector('#spStatus').getAttribute('data-value'), 10) } }; } });
+    if(!vals) return;
+    await spBatchApply('update', vals);
+  };
+  window.spBatchMoveCategory = async function(){
+    var ids = spNeedSelection(); if(!ids) return;
+    var opts = flattenCats().map(function(c){ return { v:String(c.id), t:('　'.repeat(c.depth)) + c.name }; });
+    if(!opts.length) opts = [{ v:'0', t:'未分类' }];
+    var body = '<div class="gb-field"><label class="gb-flabel">移至为</label>' + spDropdownHTML('spCat', opts, opts[0].v) + '</div>';
+    var vals = await spModal({ title:'批量移至分类', scope:{selected:ids.length, query:totalCount, queryLabel:'修改某分类下的所有商品'}, body:body,
+      read:function(ov){ return { patch:{ category_id: ov.querySelector('#spCat').getAttribute('data-value') } }; } });
+    if(!vals) return;
+    await spBatchApply('update', vals);
   };
 
   /* ══════════ Form (full page) ══════════ */
@@ -992,7 +1185,7 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
   else boot();
 })();
 </script>
-<script src="/js/tabs.js?v=20261039"></script>
-<script src="/js/app-shell.js?v=20261039"></script>
+<script src="/js/tabs.js?v=20261047"></script>
+<script src="/js/app-shell.js?v=20261047"></script>
 </body>
 </html>

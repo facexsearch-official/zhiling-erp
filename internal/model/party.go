@@ -71,6 +71,7 @@ type SupplierCategory struct {
 // Supplier 供应商
 type Supplier struct {
 	ID           int64     `json:"id" gorm:"primaryKey"`
+	IDStr        string    `json:"id_str" gorm:"->"`
 	TenantID     int64     `json:"tenant_id" gorm:"index"`
 	Name         string    `json:"name" gorm:"size:220"`
 	Code         string    `json:"code" gorm:"size:64"`

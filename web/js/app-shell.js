@@ -39,109 +39,71 @@
         {key:'goods:unit',  label:'单位管理', href:'/unit.html'},
         {key:'goods:attr',  label:'商品属性', href:'/attr.html'},
         {key:'goods:price', label:'价格管理', href:'/price.html'}
-      ]},
-      {title:'\u00A0', items:[
-        {key:'goods:combo', label:'套餐', tabLabel:'套餐列表', href:'/#goods:combo'}
       ]}
     ]},
 
     {key:'customer', label:'客户', icon:IC.customer, cols:[
       {title:'客户', items:[
         {key:'customer:list',  label:'客户',     tabLabel:'客户列表', href:'/customer.html'},
-        {key:'customer:level', label:'价格等级', tabLabel:'价格等级', href:'/#customer:level'},
-        {key:'customer:quote', label:'报价管理', tabLabel:'报价管理', href:'/#customer:quote'}
+        {key:'customer:level', label:'价格等级', tabLabel:'价格等级', href:'/#customer:level'}
       ]}
     ]},
 
     {key:'purchase', label:'进货', icon:IC.purchase, cols:[
-      {title:'进货', guide:true, items:[
+      {title:'进货', items:[
         {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
         {key:'purchase:new',      label:'进货',     tabLabel:'进货单列表', href:'/#purchase:new',      plus:true},
-        {key:'purchase:order',    label:'进货预订', tabLabel:'进货预订列表', href:'/#purchase:order',    plus:true},
         {key:'purchase:return',   label:'进货退货', tabLabel:'进货退货列表', href:'/#purchase:return',   plus:true}
       ]}
     ]},
 
-    {key:'sales', label:'销售', icon:IC.sales, badge:'12', cols:[
-      {title:'销售', guide:true, items:[
+    {key:'sales', label:'销售', icon:IC.sales, cols:[
+      {title:'销售', items:[
         {key:'sales:new',    label:'销售',     tabLabel:'销售单列表',     plus:true},
-        {key:'sales:order',  label:'销售预订', tabLabel:'销售预订列表',   plus:true},
-        {key:'sales:return', label:'销售退货', tabLabel:'销售退货单列表', plus:true},
-        {key:'sales:quote',  label:'报价',     tabLabel:'报价',           plus:true}
-      ]},
-      {title:'其他', items:[
-        {key:'sales:commission', label:'业绩提成'}
+        {key:'sales:return', label:'销售退货', tabLabel:'销售退货单列表', plus:true}
       ]}
     ]},
 
     {key:'stock', label:'库存', icon:IC.stock, cols:[
-      {title:'库存', guide:true, items:[
-        {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take', plus:true},
-        {key:'stock:assembly',  label:'组装',     tabLabel:'组装单列表', href:'/#stock:assembly', plus:true},
-        {key:'stock:split',     label:'拆分',     tabLabel:'拆分单列表', href:'/#stock:split', plus:true}
+      {title:'库存', items:[
+        {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take', plus:true}
       ]},
       {title:'查询', items:[
         {key:'stock:query',  label:'库存查询', tabLabel:'库存查询', href:'/#stock:query'},
-        {key:'stock:alert',  label:'库存预警', tabLabel:'库存预警', href:'/#stock:alert'},
-        {key:'stock:batch',  label:'批次查询', tabLabel:'批次查询', href:'/#stock:batch'},
-        {key:'stock:expiry', label:'保质期查询', tabLabel:'保质期查询', href:'/#stock:expiry'}
+        {key:'stock:alert',  label:'库存预警', tabLabel:'库存预警', href:'/#stock:alert'}
       ]}
     ]},
 
     {key:'funds', label:'资金', icon:IC.funds, cols:[
       {title:'账户', items:[
-        {key:'funds:account',  label:'账户概览', tabLabel:'账户概览', href:'/#funds:account'},
-        {key:'funds:transfer', label:'转账',     tabLabel:'转账',     href:'/#funds:transfer'}
+        {key:'funds:account',  label:'账户概览', tabLabel:'账户概览', href:'/#funds:account'}
       ]},
-      {title:'收支', guide:true, items:[
+      {title:'收支', items:[
         {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt', plus:true},
-        {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment', plus:true},
-        {key:'funds:income',  label:'其他收入', tabLabel:'其他收入列表', href:'/#funds:income', plus:true},
-        {key:'funds:expense', label:'其他支出', tabLabel:'其他支出列表', href:'/#funds:expense', plus:true}
+        {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment', plus:true}
       ]},
       {title:'对账', items:[
-        {key:'funds:recon-customer', label:'客户对账',   tabLabel:'客户对账',   href:'/#funds:recon-customer'},
-        {key:'funds:recon-supplier', label:'供应商对账', tabLabel:'供应商对账', href:'/#funds:recon-supplier'},
         {key:'funds:cashflow',       label:'资金流水',   tabLabel:'资金流水',   href:'/#funds:cashflow'}
       ]}
     ]},
 
     {key:'analysis', label:'分析', icon:IC.analysis, cols:[
       {title:'销售分析', items:[
-        {key:'analysis:sales', label:'销售统计', tabLabel:'销售统计', href:'/#analysis:sales'},
-        {key:'analysis:hot',   label:'热销分析', tabLabel:'热销分析', href:'/#analysis:hot'},
-        {key:'analysis:staff', label:'员工业绩统计', tabLabel:'员工业绩统计', href:'/#analysis:staff'}
+        {key:'analysis:sales', label:'销售统计', tabLabel:'销售统计', href:'/#analysis:sales'}
       ]},
       {title:'库存分析', items:[
-        {key:'analysis:purchase', label:'进货统计', tabLabel:'进货统计', href:'/#analysis:purchase'},
         {key:'analysis:stock',    label:'库存统计', tabLabel:'库存统计', href:'/#analysis:stock'}
-      ]},
-      {title:'经营分析', items:[
-        {key:'analysis:profit', label:'经营利润', tabLabel:'经营利润', href:'/#analysis:profit'}
-      ]}
-    ]},
-
-    {sep:true},
-
-    {key:'settings', label:'设置', icon:IC.settings, cols:[
-      {title:'店铺管理', items:[
-        {key:'settings:shop',  label:'商户信息', tabLabel:'商户信息', href:'/#settings:shop'},
-        {key:'settings:shops', label:'门店管理', tabLabel:'门店管理', href:'/#settings:shops'},
-        {key:'settings:staff', label:'员工管理'},
-        {key:'settings:role',  label:'角色权限', tabLabel:'角色权限', href:'/#settings:role'},
-        {key:'settings:pos',   label:'POS设备'}
-      ]},
-      {title:'基础设置', items:[
-        {key:'settings:system', label:'系统设置', tabLabel:'系统设置', href:'/#settings:system'},
-        {key:'settings:pref',   label:'用户偏好设置', tabLabel:'用户偏好设置', href:'/#settings:pref'},
-        {key:'settings:print',  label:'打印设置', tabLabel:'打印设置', href:'/#settings:print'},
-        {key:'settings:points', label:'积分设置', tabLabel:'积分设置', href:'/#settings:points'},
-        {key:'settings:init',   label:'系统初始化'}
       ]}
     ]}
   ];
 
   /* ── helpers ───────────────────────────────────────────── */
+  // 顶栏「设置」下拉项（设置不再作为侧边栏模块）
+  var TOPBAR_SETTINGS = [
+    {key:'settings:shop',  label:'商户信息'},
+    {key:'settings:staff', label:'员工管理'},
+    {key:'settings:role',  label:'角色权限'}
+  ];
   // 导航项 → 所需「查看」权限 key
   var NAV_PERM = {
     'goods:list':'goods.goods.view','goods:spec':'goods.spec.view','goods:unit':'goods.unit.view',
@@ -270,6 +232,8 @@
       +     '<div class="u-meta"><span class="u-name" id="userName">用户</span>'
       +     '<span class="u-sub" id="userSub">我的店铺</span></div>'
       +   '</div>'
+      +   '<button class="topbar-icon-btn" id="topbarSetBtn" title="设置" onclick="pisaTopbarSettings(event)">' + IC.settings + '</button>'
+      +   '<div class="user-menu" id="topbarSetMenu" style="display:none"></div>'
       + '</div>';
     app.insertBefore(el, app.firstChild);
   }
@@ -297,10 +261,7 @@
       + '<div class="um-head">'
       +   '<div class="um-info"><div class="um-name">' + esc(name) + '</div><div class="um-sub">' + esc(tname) + '</div></div>'
       +   '<span class="um-view" onclick="pisaHideUserMenu();if(window.PisaShell)PisaShell.navGo(\'settings:shop\')">查看</span>'
-      + '</div>'
-      + '<div class="um-item" onclick="pisaHideUserMenu();pisaToast(\'操作记录开发中\')">操作记录</div>'
-      + '<div class="um-item" onclick="pisaHideUserMenu();pisaToast(\'网络诊断开发中\')">网络诊断</div>'
-      + '<div class="um-item um-danger" onclick="pisaLogout()">退出</div>';
+      + '</div>';
     document.body.appendChild(m);
     var r = host.getBoundingClientRect();
     m.style.top = (r.bottom + 8) + 'px';
@@ -319,6 +280,34 @@
   window.pisaLogout = function(){
     try{ ['pisa_token','pisa_user','pisa_tenants','pisa_currentTenant','pisa_perms','pisa_sens'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
     location.href = '/login.html';
+  };
+
+  // 顶栏「设置」入口（位于用户菜单右侧）
+  function topbarSetDocHandler(ev){
+    var m = byId('topbarSetMenu');
+    var btn = byId('topbarSetBtn');
+    if(m && !m.contains(ev.target) && !(btn && btn.contains(ev.target))) window.pisaHideTopbarSettings();
+  }
+  window.pisaHideTopbarSettings = function(){
+    var m = byId('topbarSetMenu'); if(m) m.style.display = 'none';
+    document.removeEventListener('click', topbarSetDocHandler);
+  };
+  window.pisaTopbarSettings = function(e){
+    if(e) e.stopPropagation();
+    var m = byId('topbarSetMenu'); if(!m) return;
+    if(m.style.display !== 'none'){ window.pisaHideTopbarSettings(); return; }
+    var items = TOPBAR_SETTINGS.filter(function(it){ return navAllowed(it.key); });
+    m.innerHTML = items.map(function(it){
+      return '<div class="um-item" onclick="pisaHideTopbarSettings();if(window.PisaShell)PisaShell.navGo(\'' + it.key + '\')">' + esc(it.label) + '</div>';
+    }).join('')
+      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaToast(\'操作记录开发中\')">操作记录</div>'
+      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaToast(\'网络诊断开发中\')">网络诊断</div>'
+      + '<div class="um-item um-danger" onclick="pisaHideTopbarSettings();pisaLogout()">退出</div>';
+    m.style.display = 'block';
+    var r = e.currentTarget.getBoundingClientRect();
+    m.style.top = (r.bottom + 8) + 'px';
+    m.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    setTimeout(function(){ document.addEventListener('click', topbarSetDocHandler); }, 0);
   };
 
   /* ── Sidebar ───────────────────────────────────────────── */
