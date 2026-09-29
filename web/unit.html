@@ -88,8 +88,8 @@ td.c-act .btn-text{margin-left:6px}
 .confirm-text h3{font-size:16px;font-weight:600;color:var(--gray-800);margin-bottom:6px}
 .confirm-text p{font-size:14px;color:var(--gray-500);line-height:1.6}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261047">
-<link rel="stylesheet" href="/css/tabs.css?v=20261047">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261054">
+<link rel="stylesheet" href="/css/tabs.css?v=20261054">
 </head>
 <body>
 <script>(function(){try{var p=JSON.parse(localStorage.getItem('pisa_perms')||'null');if(p===null||p===undefined)return;var k='goods.unit.view';function ok(x){if(p['*']||p[x])return true;var a=x.split('.');for(var i=a.length-1;i>=1;i--){if(p[a.slice(0,i).join('.')+'.*'])return true;}return false;}if(!ok(k))location.replace('/index.html');}catch(e){}})();</script>
@@ -173,8 +173,8 @@ td.c-act .btn-text{margin-left:6px}
   </div>
 </div>
 
-<script src="/js/tabs.js?v=20261047"></script>
-<script src="/js/app-shell.js?v=20261047"></script>
+<script src="/js/tabs.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261054"></script>
 <script>
 var units=[];
 var editId=0;
@@ -245,8 +245,8 @@ function renderList(){
       +'<td class="c-idx">'+(i+1)+'</td>'
       +'<td class="c-name">'+esc(u.name)+'</td>'
       +'<td class="c-act">'
-      +'<button class="btn-text" onclick="openEdit('+u.id+')">修改</button>'
-      +'<button class="btn-text danger" onclick="deleteUnit('+u.id+',\''+esc(u.name)+'\')">删除</button>'
+      +'<button class="btn-text" onclick="openEdit(\''+u.id_str+'\')">修改</button>'
+      +'<button class="btn-text danger" onclick="deleteUnit(\''+u.id_str+'\',\''+esc(u.name)+'\')">删除</button>'
       +'</td></tr>';
   });
   b.innerHTML=h;
@@ -266,7 +266,8 @@ function openAdd(){
   showModal();
 }
 function openEdit(id){
-  var u=units.filter(function(x){return x.id===id;})[0];
+  id=String(id);
+  var u=units.filter(function(x){return String(x.id_str)===id;})[0];
   if(!u) return;
   editId=id;
   document.getElementById('modalTitle').textContent='编辑单位';

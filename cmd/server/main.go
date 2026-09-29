@@ -78,6 +78,7 @@ func main() {
 	protected.Use(middleware.Auth(tokenManager))
 	{
 		protected.POST("/auth/switch-tenant", authHandler.SwitchTenant)
+		protected.POST("/auth/create-tenant", authHandler.CreateTenant)
 		protected.GET("/auth/me", authHandler.Me)
 
 		tenantGroup := protected.Group("/tenant")

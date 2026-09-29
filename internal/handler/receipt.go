@@ -20,7 +20,7 @@ type receiptCreateReq struct {
 	ShopID         int64   `json:"shop_id"`
 	RelatedNo      string  `json:"related_no"`
 	Type           string  `json:"type"`
-	CustomerID     int64   `json:"customer_id"`
+	CustomerID     model.FlexInt64 `json:"customer_id"`
 	SalesmanID     int64   `json:"salesman_id"`
 	BillDate       string  `json:"bill_date"`
 	Amount         float64 `json:"amount"`
@@ -127,7 +127,7 @@ func (h *ReceiptHandler) Create(c *gin.Context) {
 	r := model.Receipt{
 		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID,
 		OrderNo: nextNo(h.db, tenantID, "receipts", "SKD"), RelatedNo: req.RelatedNo, Type: req.Type,
-		CustomerID: req.CustomerID, SalesmanID: req.SalesmanID, BillDate: req.BillDate,
+		CustomerID: int64(req.CustomerID), SalesmanID: req.SalesmanID, BillDate: req.BillDate,
 		Amount: req.Amount, DiscountAmount: req.DiscountAmount, DepositOffset: req.DepositOffset,
 		AccountID: req.AccountID, Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
 	}
@@ -176,7 +176,7 @@ func (h *ReceiptHandler) Update(c *gin.Context) {
 			}
 		}
 		if err := tx.Table("receipts").Where("id = ?", r.ID).Updates(map[string]interface{}{
-			"related_no": req.RelatedNo, "type": req.Type, "customer_id": req.CustomerID,
+			"related_no": req.RelatedNo, "type": req.Type, "customer_id": int64(req.CustomerID),
 			"salesman_id": req.SalesmanID, "bill_date": req.BillDate, "amount": req.Amount,
 			"discount_amount": req.DiscountAmount, "deposit_offset": req.DepositOffset,
 			"account_id": req.AccountID, "remark": req.Remark,

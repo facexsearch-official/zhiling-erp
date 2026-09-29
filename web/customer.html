@@ -49,28 +49,11 @@ input{font:inherit}
 .search-box input:focus{border-color:var(--primary-400);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
 .search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2;pointer-events:none}
 
-/* 客户列表工具栏 / 批量操作 */
-.cu-filter{display:flex;align-items:center;gap:18px;margin-bottom:12px}
-.cu-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--gray-600);cursor:pointer;white-space:nowrap}
-.cu-check input{accent-color:#00B8D4;width:15px;height:15px;cursor:pointer}
-.cu-adv{font-size:14px;color:var(--gray-500);cursor:pointer;white-space:nowrap}
-.cu-adv:hover{color:var(--primary-600)}
+/* 客户列表工具栏 */
 .cu-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .cu-tb-left,.cu-tb-right{display:flex;align-items:center;gap:10px}
 .btn-teal{background:#00B8D4;color:#fff;border:1px solid #00B8D4}
 .btn-teal:hover{background:#00A5C0;border-color:#00A5C0}
-.btn-teal-outline{background:#fff;color:#00B8D4;border:1px solid #00B8D4}
-.btn-teal-outline:hover{background:#E0F7FA}
-.cu-caret{width:12px;height:12px;margin-left:2px;fill:none;stroke:currentColor;stroke-width:2;vertical-align:middle}
-.cu-batch{position:relative;display:inline-block}
-.cu-batch-menu{display:none;position:absolute;left:0;top:calc(100% + 6px);min-width:156px;background:#fff;border:1px solid var(--gray-200);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:6px 0;z-index:60}
-.cu-batch-menu.show{display:block}
-.cu-batch-item{padding:9px 16px;font-size:14px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
-.cu-batch-item:hover{background:var(--gray-50);color:#00B8D4}
-.cu-pick-list{max-height:320px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px}
-.cu-pick-item{padding:10px 14px;font-size:14px;color:var(--gray-700);cursor:pointer}
-.cu-pick-item:hover{background:var(--gray-50)}
-.cu-pick-item.sel{background:#E0F7FA;color:#0097A7}
 
 /* Table */
 .table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow-x:auto}
@@ -89,6 +72,8 @@ tr:hover td{background:var(--gray-50)}
 td.text-right{text-align:right;font-family:'Inter',monospace}
 td .yen{color:var(--gray-400);font-size:13px;margin-right:2px}
 .actions{display:flex;gap:4px}
+.actions .btn-ghost{color:var(--accent-600);padding:6px 12px;font-size:13px}
+.actions .btn-ghost:hover{background:var(--accent-50);color:var(--accent-700)}
 .c-goods{min-width:200px}
 .goods-cell{display:flex;align-items:center;gap:10px}
 .goods-cell-txt{min-width:0}
@@ -123,7 +108,7 @@ td .yen{color:var(--gray-400);font-size:13px;margin-right:2px}
 /* 固定列：左侧勾选/齿轮/序号，右侧操作 */
 .table-wrap th.th-check,.table-wrap td.c-check{position:sticky;left:0;z-index:2;background:#fff}
 .table-wrap thead th.th-check{background:var(--gray-50);z-index:3}
-.table-wrap th.th-tools,.table-wrap td.c-idx{position:sticky;left:44px;z-index:2;background:#fff}
+.table-wrap th.th-tools,.table-wrap td.c-idx{position:sticky;left:0;z-index:2;background:#fff}
 .table-wrap thead th.th-tools{background:var(--gray-50);z-index:3}
 .table-wrap th.th-actions,.table-wrap td.c-actions{position:sticky;right:0;z-index:2;background:#fff}
 .table-wrap thead th.th-actions{background:var(--gray-50);z-index:3}
@@ -292,12 +277,13 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;margin:36px 0 12px}
 .detail-foot .btn{min-width:110px;justify-content:center}
 .cu-more-menu{position:fixed;z-index:300;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 10px 24px rgba(15,23,42,.14);min-width:110px;padding:6px 0}
-.cu-more-item{padding:10px 18px;font-size:15px;color:var(--gray-700);cursor:pointer}
-.cu-more-item:hover{background:var(--gray-50)}
+.cu-more-item{padding:10px 18px;font-size:15px;color:var(--accent-600);cursor:pointer}
+.cu-more-item:hover{background:var(--accent-50)}
 .cu-more-item.danger{color:var(--danger-500)}
+.cu-more-item.danger:hover{background:var(--danger-50)}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261047">
-<link rel="stylesheet" href="/css/tabs.css?v=20261047">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261054">
+<link rel="stylesheet" href="/css/tabs.css?v=20261054">
 <script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
@@ -334,34 +320,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       <div class="cat-tree" id="catTree"></div>
     </aside>
     <div class="split-main">
-    <div class="cu-filter">
-      <label class="cu-check"><input type="checkbox" id="cuHideDisabled" onchange="loadData(1)"> 隐藏停用客户</label>
-      <label class="cu-check"><input type="checkbox" id="cuHideZero" onchange="loadData(1)"> 隐藏零欠款客户</label>
-      <div style="flex:1"></div>
-      <div class="search-box">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="输入客户名称/联系人/手机号/备注/邮箱" oninput="onSearchInput()">
-      </div>
-      <span class="cu-adv" onclick="showToast('高级查询功能开发中', 'info')">高级查询 <svg class="cu-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
-    </div>
-
     <div class="cu-toolbar">
       <div class="cu-tb-left">
-        <button class="btn btn-teal" onclick="showCreate()">+ 新增客户</button>
-        <div class="cu-batch">
-          <button class="btn btn-teal-outline" onclick="cuToggleBatch(event)">批量操作 <svg class="cu-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="cu-batch-menu" id="cuBatchMenu">
-            <div class="cu-batch-item" onclick="cuBatchDelete()">删除</div>
-            <div class="cu-batch-item" onclick="cuBatchToggleStatus()">启用/停用</div>
-            <div class="cu-batch-item" onclick="cuBatchMoveCategory()">移至分类</div>
-            <div class="cu-batch-item" onclick="cuBatchSalesman()">更改关联业务员</div>
-            <div class="cu-batch-item" onclick="cuBatchPriceLevel()">修改价格等级</div>
-          </div>
-        </div>
+        <button class="btn btn-primary" onclick="showCreate()">+ 新增客户</button>
       </div>
       <div class="cu-tb-right">
-        <button class="btn btn-secondary" onclick="showToast('导入功能开发中', 'info')">导入 <svg class="cu-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <button class="btn btn-secondary" onclick="exportData()">导出 <svg class="cu-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="输入客户名称/联系人/手机号/备注/邮箱" oninput="onSearchInput()">
+        </div>
       </div>
     </div>
 
@@ -878,7 +845,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   var token = localStorage.getItem('pisa_token');
   if(!token){ location.href='/login.html'; return; }
 
-  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{}, selected:{} };
+  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{} };
   var searchTimer = null;
 
   // --- Auth fetch helper ---
@@ -913,7 +880,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     }
     var h = '';
     var allOpen = kw ? true : !catUI.collapsed['all'];
-    h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="pickCat(this,0)">'
+    h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="catNodeClick(this,0)">'
       + '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (allOpen ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'all\')"><polyline points="9 18 15 12 9 6"/></svg>'
       + '<span>全部</span>';
     if(catUI.editMode) h += '<div class="cat-actions-row"><button class="cat-node-actions" title="新增分类" onclick="event.stopPropagation();catAddChild(0)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>';
@@ -924,7 +891,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       var hasKids = kids.length > 0;
       var expanded = kw ? true : !catUI.collapsed[cat.id];
       var depthClass = level === 1 ? ' child' : level === 2 ? ' child2' : level === 3 ? ' child3' : ' child4';
-      h += '<div class="cat-node' + depthClass + (String(state.catId) === String(cat.id) ? ' active' : '') + '" onclick="pickCat(this,\'' + cat.id + '\')">';
+      h += '<div class="cat-node' + depthClass + (String(state.catId) === String(cat.id) ? ' active' : '') + '" onclick="catNodeClick(this,\'' + cat.id + '\')">';
       if(hasKids){
         h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'' + cat.id + '\')"><polyline points="9 18 15 12 9 6"/></svg>';
       } else {
@@ -964,6 +931,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     if(el) el.classList.add('active');
     state.catId = catId;
     loadData(1);
+  };
+  window.catNodeClick = function(el, catId){
+    pickCat(el, catId);
+    var hasKids;
+    if(catId === 0) hasKids = catTopLevels().length > 0;
+    else if(catId === -1) hasKids = false;
+    else hasKids = catChildren(catId).length > 0;
+    if(!hasKids) return;
+    catToggleCollapse(catId === 0 ? 'all' : catId);
   };
   window.catToggleCollapse = function(catId){
     catUI.collapsed[catId] = !catUI.collapsed[catId];
@@ -1093,8 +1069,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     params.set('page_size', state.pageSize);
     if(state.keyword) params.set('keyword', state.keyword);
     if(state.catId !== 0) params.set('category_id', state.catId);
-    var hd = document.getElementById('cuHideDisabled'); if(hd && hd.checked) params.set('hide_disabled', '1');
-    var hz = document.getElementById('cuHideZero'); if(hz && hz.checked) params.set('hide_zero', '1');
     apiFetch('/api/shop/customer/list?' + params.toString()).then(function(res){
       if(res.code !== 0){ showToast(res.message || '加载失败', 'error'); return; }
       state.list = res.data.list || [];
@@ -1128,12 +1102,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     { key:'salesman', label:'关联业务员', render:function(c){ return esc(c.item.salesman_name || '--'); } },
     { key:'status', label:'状态', render:function(c){ return Number(c.item.status) === 1 ? '<span style="color:#059669">启用中</span>' : '<span style="color:#9CA3AF">已停用</span>'; } },
     { key:'actions', label:'操作', fixed:true, td:'c-actions', render:function(c){
-        var it = c.item;
+        var it = c.item; var rid = it.id_str || String(it.id);
         return '<div class="actions">'
-          + '<button class="btn btn-ghost btn-sm" onclick="cuGoView(' + it.id + ')">查看</button>'
-          + '<button class="btn btn-ghost btn-sm" onclick="cuGoReceipt(' + it.id + ')">收款</button>'
-          + '<button class="btn btn-ghost btn-sm" onclick="cuGoStatement(' + it.id + ')">对账</button>'
-          + '<button class="btn btn-ghost btn-sm" onclick="cuMoreMenu(event,' + it.id + ')">更多</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="cuGoView(\'' + rid + '\')">查看</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="cuGoReceipt(\'' + rid + '\')">收款</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="cuGoStatement(\'' + rid + '\')">对账</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="cuMoreMenu(event,\'' + rid + '\')">更多</button>'
           + '</div>';
       } }
   ];
@@ -1166,8 +1140,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   function renderTableHead(){
     var head = document.getElementById('tableHead');
     if(!head) return;
-    var h = '<tr><th class="th-check"><input type="checkbox" id="checkAll" onchange="toggleAllRows(this.checked)"></th>'
-      + '<th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openColDrawer()">'
+    var h = '<tr><th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openColDrawer()">'
       + '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
       + '</button></th>';
     state.columns.forEach(function(k){
@@ -1180,7 +1153,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     });
     h += '</tr>';
     head.innerHTML = h;
-    enableColResize(head.closest('table'), ['th-check','th-tools','th-actions']);
+    enableColResize(head.closest('table'), ['th-tools','th-actions']);
   }
 
   // 表头左右拖拽调整列宽
@@ -1234,14 +1207,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     renderTableHead();
     var tbody = document.getElementById('tableBody');
     if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 2) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无客户数据</p></div></td></tr>';
-      syncCheckAll();
+      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 1) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无客户数据</p></div></td></tr>';
       return;
     }
     var html = '';
     state.list.forEach(function(item){ html += renderGoodsRow(item); });
     tbody.innerHTML = html;
-    syncCheckAll();
   }
 
   function priceRange(min, max){
@@ -1258,149 +1229,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     var ctx = rowCtx(item);
     var idx = state.list.indexOf(item);
     var rowNo = idx >= 0 ? (state.page - 1) * state.pageSize + idx + 1 : '';
-    var html = '<td class="c-check"><input type="checkbox" class="row-check" data-id="' + item.id + '" onchange="toggleRowCheck(this)"' + (state.selected[item.id] ? ' checked' : '') + '></td>'
-      + '<td class="c-idx">' + rowNo + '</td>';
+    var html = '<td class="c-idx">' + rowNo + '</td>';
     state.columns.forEach(function(k){
       var def = colDef(k);
       if(!def) return;
       var cls = def.align === 'right' ? ' class="text-right"' : (def.td ? ' class="' + def.td + '"' : '');
       html += '<td' + cls + '>' + def.render(ctx) + '</td>';
     });
-    return '<tr data-row-id="' + item.id + '"' + (state.selected[item.id] ? ' class="row-selected"' : '') + '>' + html + '</tr>';
+    return '<tr data-row-id="' + item.id + '">' + html + '</tr>';
   }
-
-  // --- 行选择 ---
-  function syncCheckAll(){
-    var all = document.getElementById('checkAll');
-    if(!all) return;
-    var ids = state.list.map(function(i){ return i.id; });
-    var sel = ids.filter(function(id){ return state.selected[id]; }).length;
-    all.checked = ids.length > 0 && sel === ids.length;
-    all.indeterminate = sel > 0 && sel < ids.length;
-  }
-  window.toggleRowCheck = function(cb){
-    var id = parseInt(cb.getAttribute('data-id'), 10);
-    if(cb.checked) state.selected[id] = true; else delete state.selected[id];
-    var tr = cb.closest('tr');
-    if(tr) tr.classList.toggle('row-selected', cb.checked);
-    syncCheckAll();
-  };
-  window.toggleAllRows = function(checked){
-    state.list.forEach(function(item){
-      if(checked) state.selected[item.id] = true; else delete state.selected[item.id];
-    });
-    document.querySelectorAll('#tableBody .row-check').forEach(function(cb){
-      cb.checked = checked;
-      var tr = cb.closest('tr');
-      if(tr) tr.classList.toggle('row-selected', checked);
-    });
-    syncCheckAll();
-  };
-
-  // --- 批量操作 ---
-  window.cuToggleBatch = function(e){
-    if(e) e.stopPropagation();
-    var m = el('cuBatchMenu');
-    if(m) m.classList.toggle('show');
-  };
-  document.addEventListener('click', function(e){
-    var m = el('cuBatchMenu');
-    if(m && m.classList.contains('show') && !e.target.closest('.cu-batch')) m.classList.remove('show');
-  });
-  function cuCloseBatch(){ var m = el('cuBatchMenu'); if(m) m.classList.remove('show'); }
-  function cuSelectedIds(){
-    return Object.keys(state.selected).map(function(k){ return parseInt(k, 10); }).filter(function(n){ return n; });
-  }
-  function cuNeedSelection(){
-    var ids = cuSelectedIds();
-    if(!ids.length){ showToast('请先勾选客户', 'error'); return null; }
-    return ids;
-  }
-  // 通用选择弹窗（Promise）
-  function cuPick(title, options){
-    return new Promise(function(resolve){
-      var old = document.getElementById('cuPickModal'); if(old) old.remove();
-      var ov = document.createElement('div');
-      ov.className = 'modal-overlay show'; ov.id = 'cuPickModal';
-      var items = (options || []).map(function(o){
-        return '<div class="cu-pick-item" data-v="' + escAttr(String(o.v)) + '">' + esc(o.t) + '</div>';
-      }).join('') || '<div class="cu-pick-item" style="color:var(--gray-400)">暂无可选项</div>';
-      ov.innerHTML = '<div class="modal" style="width:420px">'
-        + '<div class="modal-header"><h2 style="flex:1;text-align:center">' + esc(title) + '</h2>'
-        + '<button class="modal-close" onclick="document.getElementById(\'cuPickModal\').remove()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-        + '<div class="modal-body"><div class="cu-pick-list">' + items + '</div></div>'
-        + '<div class="modal-footer"><button class="btn btn-secondary" onclick="document.getElementById(\'cuPickModal\').remove()">取消</button></div>'
-        + '</div>';
-      ov.addEventListener('click', function(e){
-        if(e.target === ov){ ov.remove(); resolve(null); return; }
-        var it = e.target.closest('.cu-pick-item');
-        if(it && it.getAttribute('data-v') !== null){
-          var v = it.getAttribute('data-v');
-          ov.remove(); resolve(v);
-        }
-      });
-      document.body.appendChild(ov);
-    });
-  }
-  async function cuBatchUpdate(patch){
-    var ids = cuNeedSelection(); if(!ids) return;
-    var ok = 0;
-    for(var i=0;i<ids.length;i++){
-      try{
-        var res = await apiFetch('/api/shop/customer/' + ids[i], { method:'PUT', body: patch });
-        if(res && res.code === 0) ok++;
-      }catch(e){}
-    }
-    cuCloseBatch();
-    state.selected = {};
-    showToast('已更新 ' + ok + '/' + ids.length + ' 个客户', 'success');
-    loadData(state.page);
-  }
-  window.cuBatchDelete = async function(){
-    var ids = cuNeedSelection(); if(!ids) return;
-    var yes = await showConfirm({ title:'批量删除', message:'确定删除选中的 ' + ids.length + ' 个客户？', desc:'删除后不可恢复', iconType:'danger', okText:'删除', okClass:'btn-danger' });
-    if(!yes) return;
-    var ok = 0;
-    for(var i=0;i<ids.length;i++){
-      try{ var res = await apiFetch('/api/shop/customer/' + ids[i], { method:'DELETE' }); if(res && res.code === 0) ok++; }catch(e){}
-    }
-    cuCloseBatch();
-    state.selected = {};
-    showToast('已删除 ' + ok + '/' + ids.length + ' 个客户', 'success');
-    loadData(1);
-  };
-  window.cuBatchToggleStatus = async function(){
-    var ids = cuNeedSelection(); if(!ids) return;
-    // 若存在启用中的客户，则批量停用；否则批量启用
-    var anyEnabled = state.list.some(function(it){ return ids.indexOf(it.id) >= 0 && Number(it.status) === 1; });
-    var target = anyEnabled ? 0 : 1;
-    var yes = await showConfirm({ title: target ? '批量启用' : '批量停用', message:(target ? '启用' : '停用') + '选中的 ' + ids.length + ' 个客户？' });
-    if(!yes) return;
-    await cuBatchUpdate({ status: target });
-  };
-  window.cuBatchMoveCategory = async function(){
-    var ids = cuNeedSelection(); if(!ids) return;
-    var opts = [{ v:'0', t:'未分类' }].concat((meta.categories || []).map(function(c){ return { v:String(c.id), t:c.name }; }));
-    var v = await cuPick('移至分类', opts);
-    if(v === null) return;
-    await cuBatchUpdate({ category_id: v === '0' ? null : parseInt(v, 10) });
-  };
-  window.cuBatchPriceLevel = async function(){
-    var ids = cuNeedSelection(); if(!ids) return;
-    var res = await apiFetch('/api/shop/price-level/list');
-    var opts = ((res && res.data) || []).map(function(p){ return { v:p.name, t:p.name }; });
-    var v = await cuPick('修改价格等级', opts);
-    if(v === null) return;
-    await cuBatchUpdate({ price_level: v });
-  };
-  window.cuBatchSalesman = async function(){
-    var ids = cuNeedSelection(); if(!ids) return;
-    var res = await apiFetch('/api/shop/salesmen');
-    var opts = [{ v:'0', t:'不关联' }].concat(((res && res.data) || []).map(function(s){ return { v:String(s.id), t:s.name }; }));
-    var v = await cuPick('更改关联业务员', opts);
-    if(v === null) return;
-    await cuBatchUpdate({ salesman_id: parseInt(v, 10) || 0 });
-  };
 
   // --- 自定义表头抽屉 ---
   var dragColKey = null;
@@ -4062,15 +3899,24 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 
   // --- Delete ---
   window.deleteItem = function(id){
-    if(!confirm('确定要删除该商品吗？')) return;
-    apiFetch('/api/shop/customer/' + id, { method: 'DELETE' }).then(function(res){
-      if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
-      showToast('删除成功', 'success');
-      var totalPages = Math.ceil(state.total / state.pageSize);
-      if(state.page > totalPages && totalPages > 0) state.page = totalPages;
-      loadData(state.page);
-    }).catch(function(e){
-      if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
+    showConfirm({
+      title: '删除确认',
+      message: '确定要删除该客户吗？',
+      desc: '删除后不可恢复，请谨慎操作。',
+      iconType: 'danger',
+      okText: '确定删除',
+      okClass: 'btn-danger'
+    }).then(function(ok){
+      if(!ok) return;
+      apiFetch('/api/shop/customer/' + id, { method: 'DELETE' }).then(function(res){
+        if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
+        showToast('删除成功', 'success');
+        var totalPages = Math.ceil(state.total / state.pageSize);
+        if(state.page > totalPages && totalPages > 0) state.page = totalPages;
+        loadData(state.page);
+      }).catch(function(e){
+        if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
+      });
     });
   };
 
@@ -4174,9 +4020,9 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     e.stopPropagation();
     var old = document.getElementById('cuMoreMenu'); if(old) old.remove();
     var m = document.createElement('div'); m.className = 'cu-more-menu'; m.id = 'cuMoreMenu';
-    m.innerHTML = '<div class="cu-more-item" onclick="cuGoEdit(' + id + ')">修改</div>'
-      + '<div class="cu-more-item" onclick="cuToggleStatus(' + id + ')">停用</div>'
-      + '<div class="cu-more-item danger" onclick="deleteItem(' + id + ')">删除</div>';
+    m.innerHTML = '<div class="cu-more-item" onclick="cuGoEdit(\'' + id + '\')">修改</div>'
+      + '<div class="cu-more-item" onclick="cuToggleStatus(\'' + id + '\')">停用</div>'
+      + '<div class="cu-more-item danger" onclick="deleteItem(\'' + id + '\')">删除</div>';
     document.body.appendChild(m);
     var r = e.target.getBoundingClientRect();
     m.style.left = Math.max(8, r.left - 40) + 'px';
@@ -4185,18 +4031,18 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   window.cuToggleStatus = function(id){
     var m = document.getElementById('cuMoreMenu'); if(m) m.remove();
     apiFetch('/api/shop/customer/' + id).then(function(res){
-      if(res.code !== 0){ showToast('操作失败', 'error'); return; }
-      var c = res.data || {}; c.status = Number(c.status) === 1 ? 0 : 1;
-      apiFetch('/api/shop/customer/' + id, { method:'PUT', body:c }).then(function(r2){
-        if(r2.code === 0){ showToast('操作成功'); loadData(state.page); } else showToast(r2.message || '操作失败', 'error');
+      if(res.code !== 0){ showToast(res.message || '操作失败', 'error'); return; }
+      var c = res.data || {}; var next = Number(c.status) === 1 ? 0 : 1;
+      apiFetch('/api/shop/customer/' + id, { method:'PUT', body:{ status: next } }).then(function(r2){
+        if(r2.code === 0){ showToast(next ? '已启用' : '已停用', 'success'); loadData(state.page); } else showToast(r2.message || '操作失败', 'error');
       });
-    });
+    }).catch(function(e){ if(e.message !== 'Unauthorized') showToast('网络错误', 'error'); });
   };
   document.addEventListener('click', function(){ var m = document.getElementById('cuMoreMenu'); if(m) m.remove(); });
 })();
 
 </script>
-<script src="/js/tabs.js?v=20261047"></script>
-<script src="/js/app-shell.js?v=20261047"></script>
+<script src="/js/tabs.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261054"></script>
 </body>
 </html>

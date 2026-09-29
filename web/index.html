@@ -43,6 +43,7 @@
 .btn-primary{background:var(--primary-500);color:#fff}.btn-primary:hover{background:var(--primary-600)}
 .btn-secondary{background:#fff;color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
 .btn-teal{background:var(--success-500);color:#fff}.btn-teal:hover{background:var(--success-600)}
+.btn-cyan{background:#00B8D4;color:#fff;border:1px solid #00B8D4}.btn-cyan:hover{background:#00A5C0;border-color:#00A5C0}
 .btn-danger{background:#fff;color:var(--danger-500);border:1px solid var(--danger-500)}.btn-danger:hover{background:var(--danger-50)}
 .btn-ghost{background:none;color:var(--gray-600);padding:6px 10px}.btn-ghost:hover{background:var(--gray-100)}
 .btn-sm{padding:5px 10px;font-size:13px}
@@ -538,6 +539,9 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 /* 地区选择 */
 .region-ctrl{position:relative}
 .region-input-wrap{position:relative}
+.region-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--gray-300);color:#fff;font-size:13px;display:none;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.region-input-wrap.filled .region-clear{display:flex}
+.region-clear:hover{background:var(--gray-400)}
 .region-input{width:100%;height:40px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 36px 0 12px;font-size:15px;color:var(--gray-800);outline:none;background:#fff;box-sizing:border-box}
 .region-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(14,165,160,.10)}
 .region-input::placeholder{color:var(--gray-400)}
@@ -656,8 +660,8 @@ thead th{position:relative}
 .content::-webkit-scrollbar{width:6px}
 .content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261047">
-<link rel="stylesheet" href="/css/tabs.css?v=20261047">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261054">
+<link rel="stylesheet" href="/css/tabs.css?v=20261054">
 </head>
 <body>
 <div class="app">
@@ -699,41 +703,10 @@ thead th{position:relative}
   </div>
 </div>
 
-<div class="modal-overlay" id="tenantModal">
-  <div class="modal" style="width:540px">
-    <div class="modal-header">
-      <span class="modal-title">创建新商户</span>
-      <button class="modal-close" onclick="pisaHideTenantModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div><label class="form-label">商户名称 <span style="color:var(--danger-500)">*</span></label>
-          <input class="form-input" id="newTenantName" placeholder="如：张三五金店"></div>
-        <div><label class="form-label">商户类型</label>
-          <select class="form-input"><option>个体户</option><option>有限公司</option><option>合伙企业</option></select></div>
-      </div>
-      <div class="form-row">
-        <div><label class="form-label">联系人</label><input class="form-input" value="张三"></div>
-        <div><label class="form-label">联系电话</label><input class="form-input" value="138-0000-0000"></div>
-      </div>
-      <div class="form-row">
-        <div><label class="form-label">选择套餐</label>
-          <select class="form-input" id="newTenantPlan"><option>免费版</option><option>开单版</option><option selected>单店版</option><option>多店版</option></select></div>
-        <div><label class="form-label">创建后角色</label><input class="form-input" value="主账号（老板）" disabled></div>
-      </div>
-      <div style="font-size:13px;color:var(--gray-400);margin-top:4px">创建后该账号将成为新商户的主账号，并自动切换到新商户。</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="pisaHideTenantModal()">取消</button>
-      <button class="btn btn-primary" onclick="pisaCreateTenantFromModal()">创建并切换</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
-<script src="/js/tabs.js?v=20261047"></script>
-<script src="/js/app-shell.js?v=20261047"></script>
+<script src="/js/tabs.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261054"></script>
 <script>
 /* ═══════════ State ═══════════ */
 const State = {
@@ -1033,9 +1006,9 @@ function noPermHTML(){
 function showPage(key, arg){
   active=key;
   if(arg){
-    if(key==='customer:view'||key==='customer:statement') CU.viewId=Number(arg);
-    else if(key==='customer:create') CU.editId=Number(arg);
-    else if(key==='funds:receipt:create') RC._prefill={customerId:Number(arg)};
+    if(key==='customer:view'||key==='customer:statement') CU.viewId=String(arg);
+    else if(key==='customer:create') CU.editId=String(arg);
+    else if(key==='funds:receipt:create') RC._prefill={customerId:String(arg)};
     else if(key==='settings:shops:edit') SH.editId=Number(arg)||null;
     else if(key==='settings:role:edit') ROLE.editId=Number(arg)||null;
   }
@@ -1653,7 +1626,7 @@ function homeHTML(){
       <div class="dash-sub">今天是 2026-09-12 星期六，祝您生意兴隆！</div>
     </div>
     <div class="dash-actions">
-      <button class="btn btn-secondary" onclick="openNav('sales:order')">+ 客户订单</button>
+      <button class="btn btn-secondary" onclick="openNav('sales:return')">+ 销售退货</button>
       <button class="btn btn-secondary" onclick="openNav('purchase:new')">+ 购货单</button>
       <button class="btn btn-primary" onclick="openNav('sales:new')">+ 新增销货单</button>
     </div>
@@ -1668,7 +1641,7 @@ function homeHTML(){
 
   <div class="grid-2b">
     <div class="card">
-      <div class="card-title">近 7 日销售趋势 <span class="link" onclick="openNav('analysis:hot')">销售报表 ›</span></div>
+      <div class="card-title">近 7 日销售趋势 <span class="link" onclick="openNav('analysis:sales')">销售报表 ›</span></div>
       <div class="chart-bars">${bars}</div>
     </div>
     <div class="card">
@@ -1696,7 +1669,7 @@ function homeHTML(){
       ${warnHtml}
     </div>
     <div class="card">
-      <div class="card-title">热销商品 Top5 <span class="link" onclick="openNav('analysis:hot')">更多 ›</span></div>
+      <div class="card-title">热销商品 Top5 <span class="link" onclick="openNav('analysis:sales')">更多 ›</span></div>
       ${rankHtml}
     </div>
   </div>
@@ -1711,8 +1684,8 @@ function homeHTML(){
       <div class="quick-grid">
         <div class="quick-tile" data-perm="sale.sale.view" onclick="openNav('sales:new')">${IC.sales}<div>新增销货单</div></div>
         <div class="quick-tile" data-perm="purchase.purchase.view" onclick="openNav('purchase:new')">${IC.purchase}<div>新增购货单</div></div>
-        <div class="quick-tile" data-perm="sale.order.view" onclick="openNav('sales:order')">${IC.report}<div>客户订单</div></div>
-        <div class="quick-tile" data-perm="purchase.order.view" onclick="openNav('purchase:order')">${IC.purchase}<div>进货预订</div></div>
+        <div class="quick-tile" data-perm="sale.return.view" onclick="openNav('sales:return')">${IC.report}<div>销售退货</div></div>
+        <div class="quick-tile" data-perm="purchase.return.view" onclick="openNav('purchase:return')">${IC.purchase}<div>进货退货</div></div>
         <div class="quick-tile" data-perm="funds.receipt.view" onclick="openNav('funds:receipt')">${IC.finance}<div>收款单</div></div>
         <div class="quick-tile" data-perm="goods.goods.view" onclick="openNav('goods:list')">${IC.stock}<div>商品管理</div></div>
       </div>
@@ -2196,7 +2169,6 @@ function purchasesListHTML(kind){
     +'<input type="date" class="mini-input" id="pcDateFrom" onchange="loadPurchases(1)">'
     +'<span style="color:var(--gray-400)">至</span>'
     +'<input type="date" class="mini-input" id="pcDateTo" onchange="loadPurchases(1)">'
-    +'<label class="plist-check"><input type="checkbox" id="pcHideVoid" checked onchange="loadPurchases(1)"> 隐藏作废单据</label>'
     +'<div style="flex:1"></div>'
     +'<div class="search-wrapper" style="width:320px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
     +'<input class="search-input" id="pcSearch" placeholder="单据编号/供应商/商品名称/货号/备注" onkeyup="pcSearchDebounce()"></div>'
@@ -2204,7 +2176,6 @@ function purchasesListHTML(kind){
     +'</div>';
   h+='<div class="plist-toolbar">'
     +'<button class="btn btn-primary"'+pattr(PC_KINDS[pcListKind].perm+'.add')+' onclick="openPurchaseCreate(\''+pcListKind+'\')">+ '+PC_KINDS[pcListKind].createLabel+'</button>'
-    +'<button class="btn btn-secondary"'+pattr(PC_KINDS[pcListKind].perm+'.export')+' onclick="exportTable(\'purchases\')">导出</button>'
     +'</div>';
   h+='<div class="plist-wrap" id="purchaseListBody"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
   return h;
@@ -2229,7 +2200,6 @@ async function loadPurchases(page){
   PC_PAGE.keyword=gv('pcSearch');
   PC_PAGE.dateFrom=gv('pcDateFrom');
   PC_PAGE.dateTo=gv('pcDateTo');
-  var hv=document.getElementById('pcHideVoid'); PC_PAGE.hideVoid=hv?hv.checked:true;
   var wrap=document.getElementById('purchaseListBody'); if(!wrap) return;
   var path=PC_KINDS[pcListKind].base+'/list?page='+PC_PAGE.page+'&page_size=10';
   if(PC_PAGE.keyword) path+='&keyword='+encodeURIComponent(PC_PAGE.keyword);
@@ -3430,19 +3400,13 @@ function stockTakeListHTML(){
     +'</div>'
     + dateFieldHTML('stDateFrom','',"loadStockCounts(1)")
     + dateFieldHTML('stDateTo','',"loadStockCounts(1)")
-    +'<label class="plist-check"><input type="checkbox" id="stHideVoid" checked onchange="loadStockCounts(1)"> 隐藏作废单据</label>'
-    +'<label class="plist-check"><input type="checkbox" id="stHideZero" onchange="loadStockCounts(1)"> 隐藏无盈亏单据</label>'
     +'<div style="flex:1"></div>'
     +'<div class="search-wrapper" style="width:340px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
     +'<input class="search-input" id="stSearch" placeholder="单据编号/商品名称/货号/备注" onkeyup="stSearchDebounce()"></div>'
     +'<span class="link" onclick="showToast(\'高级查询开发中\')">高级查询 ▾</span>'
     +'</div>';
   h+='<div class="plist-toolbar">'
-    +'<div style="display:flex;gap:12px">'
     +'<button class="btn btn-primary"'+pattr('stock.count.add')+' onclick="openStockTakeCreate()">+ 新增盘点单</button>'
-    +'<button class="btn btn-secondary" onclick="showToast(\'Excel盘点开发中\')">Excel盘点</button>'
-    +'</div>'
-    +'<button class="btn btn-secondary" onclick="exportTable(\'stocktake\')">导出</button>'
     +'</div>';
   h+='<div class="plist-wrap" id="stListBody"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
   return h;
@@ -3464,12 +3428,9 @@ async function loadStockCounts(page){
   var wrap=document.getElementById('stListBody'); if(!wrap) return;
   var path='/shop/stock-count/list?page='+ST.page+'&page_size=10';
   var kw=gv('stSearch'), df=gv('stDateFrom'), dt=gv('stDateTo');
-  var hv=document.getElementById('stHideVoid'), hz=document.getElementById('stHideZero');
   if(kw) path+='&keyword='+encodeURIComponent(kw);
   if(df) path+='&date_from='+df;
   if(dt) path+='&date_to='+dt;
-  if(hv&&hv.checked) path+='&hide_void=1';
-  if(hz&&hz.checked) path+='&hide_zero=1';
   var res=await apiGet(path);
   if(!res||res.code!==0){ wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>'; return; }
   ST.list=res.data.list||[]; ST.total=res.data.total||0;
@@ -4763,14 +4724,14 @@ function rcCustomerSearch(el){
   var h='<table class="cpnd-tbl"><thead><tr><th>客户名称</th><th style="width:140px">联系人</th><th style="width:150px">联系电话</th><th style="width:120px">价格等级</th><th style="width:160px">备注</th></tr></thead><tbody>';
   if(!list.length) h+='<tr><td colspan="5" class="pcnd-empty">无匹配客户</td></tr>';
   list.forEach(function(c,idx){
-    h+='<tr'+(idx===0?' class="active"':'')+' onmousedown="event.preventDefault();rcPickCustomer('+c.id+')">'
+    h+='<tr'+(idx===0?' class="active"':'')+' onmousedown="event.preventDefault();rcPickCustomer(\''+c.id_str+'\')">'
       +'<td><div class="pcnd-goods"><span class="cpnd-avatar">客</span><span>'+stEsc(c.name)+'</span></div></td>'
       +'<td>'+stEsc(c.contact||'--')+'</td><td>'+stEsc(c.phone||'--')+'</td><td>零售价</td><td>'+stEsc(c.remark||'')+'</td></tr>';
   });
   h+='</tbody></table>';
   drop.innerHTML=h; drop.style.display='block';
 }
-function rcPickCustomer(id){ var c=RC.customers.filter(function(x){return x.id===id;})[0]; if(!c) return; RC.form.customerId=c.id; RC.form.customerName=c.name; var el=document.getElementById('rcCustomerName'); if(el) el.value=c.name; cpndClose(); }
+function rcPickCustomer(id){ var c=RC.customers.filter(function(x){return String(x.id_str||x.id)===String(id);})[0]; if(!c) return; RC.form.customerId=c.id_str||c.id; RC.form.customerName=c.name; var el=document.getElementById('rcCustomerName'); if(el) el.value=c.name; cpndClose(); }
 function pmSupplierSearch(el){
   var drop=cpndEl();
   var kw=(el.value||'').trim().toLowerCase();
@@ -4904,7 +4865,7 @@ async function rcInit(){
   if(!RC.editId){
     RC.form={ customerId:0, customerName:'', salesmanId: RC.salesmen[0]?String(RC.salesmen[0].id):'0', billDate:today, remark:'', relatedNo:'', type:'直接收款', discount:0, deposit:0 };
     RC.pays=[{ amount:'0.00', accountId: RC.accounts[0]?RC.accounts[0].id:0 }];
-    if(RC._prefill){ RC.form.customerId=RC._prefill.customerId; RC.form.customerName=RC._prefill.customerName||''; if(!RC.form.customerName){ var pc=RC.customers.filter(function(x){return String(x.id)===String(RC._prefill.customerId);})[0]; if(pc) RC.form.customerName=pc.name; } RC._prefill=null; }
+    if(RC._prefill){ RC.form.customerId=RC._prefill.customerId; RC.form.customerName=RC._prefill.customerName||''; if(!RC.form.customerName){ var pc=RC.customers.filter(function(x){return String(x.id_str||x.id)===String(RC._prefill.customerId);})[0]; if(pc) RC.form.customerName=pc.name; } RC._prefill=null; }
   }
   rcRender();
 }
@@ -4959,7 +4920,7 @@ async function rcSave(andPrint){
   if(total<=0){ showToast('请输入收款金额','error'); return; }
   var cust=RC.customers.filter(function(c){return c.name===RC.form.customerName;})[0];
   var body={
-    customer_id: cust?cust.id:0, salesman_id:Number(RC.form.salesmanId)||0, bill_date:RC.form.billDate,
+    customer_id: cust?(cust.id_str||cust.id):0, salesman_id:Number(RC.form.salesmanId)||0, bill_date:RC.form.billDate,
     amount:total, discount_amount:Number(RC.form.discount)||0, deposit_offset:Number(RC.form.deposit)||0,
     account_id: Number(RC.pays[0].accountId)||0, type:RC.form.type||'直接收款', related_no:RC.form.relatedNo||'', remark:RC.form.remark
   };
@@ -6154,7 +6115,7 @@ async function ddLoad(){
 }
 
 /* ═══════════ 客户 ═══════════ */
-const CU = { list:[], total:0, page:1, categories:[], form:{}, editId:null, viewId:null, view:null, addresses:[], catId:0 };
+const CU = { list:[], total:0, page:1, categories:[], priceLevels:[], form:{}, editId:null, viewId:null, view:null, addresses:[], catId:0 };
 function openCustomerCreate(){ CU.editId=null; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
 function openCustomerEdit(id){ CU.editId=id; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
 function openCustomerView(id){ CU.viewId=id; if(window.PisaTabs) PisaTabs.touch('customer:view','客户详情','/#customer:view'); showPage('customer:view'); }
@@ -6270,7 +6231,7 @@ function cuRender(){
       +'<td>'+stEsc(r.contact||'')+'</td><td>'+stEsc(r.phone||'')+'</td><td>'+stEsc(r.email||'')+'</td>'
       +'<td class="num">'+Number(r.total_receivable||0).toFixed(2)+'</td><td class="num">0.00</td><td>'+stEsc(r.remark||'')+'</td>'
       +'<td>'+(Number(r.status)===1?'<span style="color:var(--success-600)">启用中</span>':'<span style="color:var(--gray-400)">已停用</span>')+'</td>'
-      +'<td class="plist-actions"><span class="link" style="color:var(--accent-600)" onclick="openCustomerView('+r.id+')">查看</span> <span class="link" style="color:var(--accent-600)" onclick="openReceiptForCustomer('+r.id+',\''+stEsc(r.name).replace(/'/g,"\\'")+'\')">收款</span> <span class="link" style="color:var(--accent-600)" onclick="openCustomerStatement('+r.id+')">对账</span> <span class="link" style="color:var(--gray-500)" onclick="showToast(\'更多开发中\')">更多</span></td></tr>';
+      +'<td class="plist-actions"><span class="link" style="color:var(--accent-600)" onclick="openCustomerView(\''+r.id_str+'\')">查看</span> <span class="link" style="color:var(--accent-600)" onclick="openReceiptForCustomer(\''+r.id_str+'\',\''+stEsc(r.name).replace(/'/g,"\\'")+'\')">收款</span> <span class="link" style="color:var(--accent-600)" onclick="openCustomerStatement(\''+r.id_str+'\')">对账</span> <span class="link" style="color:var(--gray-500)" onclick="showToast(\'更多开发中\')">更多</span></td></tr>';
   });
   h+='</tbody></table></div>';
   wrap.innerHTML=h;
@@ -6290,31 +6251,42 @@ async function cuCatSubmit(id, parentId){
   var name=gv('cuCatName').trim(); if(!name){ showToast('请输入分类名称','error'); return; }
   var body={name:name, parent_id:parentId||0};
   var res = id ? await apiPut('/shop/customer-category/'+id, body) : await apiPost('/shop/customer-category', body);
-  if(res&&res.code===0){ showToast('保存成功'); var m=document.getElementById('cuCatModal'); if(m)m.remove(); cuInit(); } else showToast('保存失败','error');
+  if(res&&res.code===0){
+    showToast('保存成功');
+    var m=document.getElementById('cuCatModal'); if(m)m.remove();
+    if(document.getElementById('cuCatInput')){
+      var r=await apiGet('/shop/customer-category/list');
+      CU.categories=(r&&r.code===0)?r.data||[]:[];
+      cuRenderCategoryPicker();
+    } else { cuInit(); }
+  } else showToast('保存失败','error');
 }
 /* 新增/编辑客户 */
 function customerFormHTML(){ setTimeout(cuFormInit,0); return '<div id="cuForm"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>'; }
 async function cuFormInit(){
   var r=await apiGet('/shop/customer-category/list');
   CU.categories=(r&&r.code===0)?r.data||[]:[];
+  var pr=await apiGet('/shop/price-level/list');
+  CU.priceLevels=(pr&&pr.code===0)?pr.data||[]:[];
   if(CU.editId){ var g=await apiGet('/shop/customer/'+CU.editId); if(g&&g.code===0){ CU.form=g.data||{}; } else CU.editId=null; }
-  if(!CU.editId){ CU.form={ name:'', category_id:0, price_level:'零售价', discount:100, points:0, init_debt:0, contact:'', phone:'', address:'', address_detail:'', email:'', tax_no:'', fax:'', bank_name:'', bank_account:'', birthday:'', wechat:'', qq:'', remark:'' }; }
+  if(!CU.editId){ CU.form={ name:'', category_id:'', price_level:'零售价', discount:100, points:0, init_debt:0, contact:'', phone:'', address:'', address_detail:'', email:'', tax_no:'', fax:'', bank_name:'', bank_account:'', birthday:'', wechat:'', qq:'', remark:'' }; }
+  CU.form.category_id=CU.form.category_id_str||(CU.form.category_id!=null?String(CU.form.category_id):'');
   CU.addresses=[{receiver:'',phone:'',region:'',detail:'',is_default:1}];
   cuFormRender();
 }
 function cuField(label,id,val,ph,req,type){ return '<div class="cu-frow"><label class="cu-flabel">'+label+(req?'<span class="req">*</span>':'')+'</label><input class="fa-input" id="'+id+'" type="'+(type||'text')+'" value="'+stEsc(val==null?'':val)+'" placeholder="'+(ph||'请输入')+'"></div>'; }
+function cuFieldUnit(label,id,val,ph,unit,type){ return '<div class="cu-frow"><label class="cu-flabel">'+label+'</label><input class="fa-input" id="'+id+'" type="'+(type||'text')+'" value="'+stEsc(val==null?'':val)+'" placeholder="'+(ph||'请输入')+'"><span style="color:var(--gray-400);font-size:14px;flex:none">'+unit+'</span></div>'; }
 function cuFormRender(){
   var page=document.getElementById('cuForm'); if(!page) return;
   var f=CU.form||{};
-  var catOpts='<option value="0">未分类</option>'+CU.categories.map(function(c){return '<option value="'+c.id+'"'+(String(f.category_id)===String(c.id)?' selected':'')+'>'+stEsc(c.name)+'</option>';}).join('');
   var h='<div class="pc-head" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:12px"><div></div><div class="pc-title">'+(CU.editId?'编辑客户':'新增客户')+'</div><div></div></div>';
   h+='<div class="pc-divider"></div>';
   h+='<div class="fsection-title">基础信息</div>';
   h+='<div class="cu-grid">'
     + cuField('客户名称','cuName',f.name,'请输入',true)
-    +'<div class="cu-frow"><label class="cu-flabel">客户分类<span class="req">*</span></label><div style="flex:1;display:flex;align-items:center;gap:10px"><select class="fa-input" id="cuCategory">'+catOpts+'</select><span class="link" style="color:var(--accent-600)" onclick="cuCatModal()">新增客户分类</span></div></div>'
-    +'<div class="cu-frow"><label class="cu-flabel">价格等级</label><select class="fa-input" id="cuPriceLevel"><option'+(f.price_level==='零售价'?' selected':'')+'>零售价</option><option'+(f.price_level==='批发价'?' selected':'')+'>批发价</option><option'+(f.price_level==='VIP'?' selected':'')+'>VIP</option></select></div>'
-    + cuField('专属折扣','cuDiscount',f.discount,'100',false,'number')
+    +'<div class="cu-frow"><label class="cu-flabel">客户分类<span class="req">*</span></label><div class="cat-field" style="flex:1"><div class="cat-picker"><div class="picker-input" id="cuCatWrap" onclick="cuOpenCatDrop()"><input class="picker-field" id="cuCatInput" placeholder="未分类" readonly><span class="picker-clear" onclick="event.stopPropagation();cuClearCat()">×</span></div><div class="cat-drop" id="cuCatDrop" onmouseleave="cuCancelHoverCat()"></div></div><span class="link" style="color:var(--accent-600)" onclick="cuCatModal()">新增客户分类</span></div></div>'
+    +'<div class="cu-frow"><label class="cu-flabel">价格等级</label><div class="picker" id="cuPlPicker" style="flex:1;min-width:0"><div class="picker-input" id="cuPlWrap" onclick="cuPlOpenDrop()"><input class="picker-field" id="cuPriceLevelInput" placeholder="零售价" readonly><svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="picker-drop" id="cuPlDrop"><div class="picker-list" id="cuPlList"></div></div></div></div>'
+    + cuFieldUnit('专属折扣','cuDiscount',f.discount,'100','%','number')
     + cuField('初始积分','cuPoints',f.points,'0',false,'number')
     + cuField('初始欠款','cuInitDebt',f.init_debt,'0',false,'number')
     + cuField('联系人','cuContact',f.contact,'请输入')
@@ -6343,22 +6315,145 @@ function cuFormRender(){
     +'<button class="btn btn-primary" onclick="cuSave(false)">保存</button></div>';
   page.innerHTML=h;
   cuAddrRender();
+  cuRenderCategoryPicker();
+  cuPlRenderPicker();
 }
+
+/* ── 价格等级选择器 + 新增 ── */
+var CU_PL_CHECK='<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+function cuPlRenderPicker(){
+  var inp=document.getElementById('cuPriceLevelInput'); if(!inp) return;
+  inp.value=CU.form.price_level||'';
+}
+function cuPlRenderList(){
+  var c=document.getElementById('cuPlList'); if(!c) return;
+  var cur=CU.form.price_level||'';
+  var h=(CU.priceLevels||[]).map(function(p){
+    return '<div class="picker-opt'+(p.name===cur?' selected':'')+'" onclick="cuPlSelect(\''+encodeURIComponent(p.name)+'\')">'+stEsc(p.name)+'<span class="opt-check">'+CU_PL_CHECK+'</span></div>';
+  }).join('');
+  h+='<div class="picker-opt add" onclick="cuPlAdd()">+ 新增</div>';
+  c.innerHTML=h;
+}
+window.cuPlOpenDrop=function(){
+  cuPlRenderList();
+  var d=document.getElementById('cuPlDrop'), w=document.getElementById('cuPlWrap');
+  if(d) d.classList.add('open'); if(w) w.classList.add('open');
+};
+function cuPlCloseDrop(){
+  var d=document.getElementById('cuPlDrop'), w=document.getElementById('cuPlWrap');
+  if(d) d.classList.remove('open'); if(w) w.classList.remove('open');
+}
+window.cuPlSelect=function(name){ CU.form.price_level=decodeURIComponent(name); cuPlRenderPicker(); cuPlCloseDrop(); };
+window.cuPlAdd=function(){ cuPlCloseDrop(); plOpenModal(0); };
+document.addEventListener('click', function(e){
+  var p=document.getElementById('cuPlPicker');
+  if(p && !p.contains(e.target)) cuPlCloseDrop();
+});
+
+/* ── 客户分类级联选择器（样式对齐「商品类别」）── */
+var CU_CAT_CHECK='<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+var cuCatUI={hoverPath:[]}, _cuHoverTimer=null;
+function cuCatHasChild(id){ return cuCatChildren(id).length>0; }
+function cuCatPath(id){ var c=cuCatById(id); if(!c) return ''; var p=c.parent_id?cuCatById(c.parent_id):null; return p?(p.name+' / '+c.name):c.name; }
+function cuCatAncestorPath(id){ var path=[],c=id?cuCatById(id):null; while(c){ path.unshift(String(c.id)); c=c.parent_id?cuCatById(c.parent_id):null; } return path; }
+function cuBuildCascade(hoverPath, selectedId){
+  hoverPath=hoverPath||[];
+  function opt(id,depth,label){
+    var active=String(hoverPath[depth])===String(id);
+    var sel=String(selectedId)===String(id);
+    var hasChild=(id && String(id)!=='0' && cuCatHasChild(id));
+    return '<div class="cat-opt'+(active?' active':'')+(sel?' selected':'')+'" onmouseover="cuHoverCat(\''+id+'\','+depth+')" onclick="cuSelectCategory(\''+id+'\')">'+stEsc(label)
+      +(hasChild?'<svg class="cat-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>':'<span class="opt-check">'+CU_CAT_CHECK+'</span>')+'</div>';
+  }
+  var cols=[], col0=opt('0',0,'未分类');
+  cuCatChildren(0).forEach(function(c){ col0+=opt(c.id,0,c.name); });
+  cols.push(col0);
+  for(var depth=1;depth<=5;depth++){
+    var pid=hoverPath[depth-1]; if(!pid) break;
+    var kids=cuCatChildren(pid);
+    if(!kids.length){ cols.push('<div class="cat-opt empty">暂无子类别</div>'); break; }
+    var html=''; kids.forEach(function(c){ html+=opt(c.id,depth,c.name); });
+    cols.push(html);
+  }
+  while(cols.length<2) cols.push('<div class="cat-opt empty">请选择左侧类别</div>');
+  return cols;
+}
+function cuSamePath(a,b){ if(a.length!==b.length) return false; for(var i=0;i<a.length;i++){ if(String(a[i])!==String(b[i])) return false; } return true; }
+function cuRenderCatCols(){
+  var d=document.getElementById('cuCatDrop'); if(!d) return;
+  var cols=cuBuildCascade(cuCatUI.hoverPath, CU.form.category_id);
+  d.innerHTML=cols.map(function(h){ return '<div class="cat-col">'+h+'</div>'; }).join('');
+}
+function cuCancelHoverCat(){ if(_cuHoverTimer) clearTimeout(_cuHoverTimer); }
+window.cuHoverCat=function(id,depth){
+  if(_cuHoverTimer) clearTimeout(_cuHoverTimer);
+  _cuHoverTimer=setTimeout(function(){
+    id=(id && String(id)!=='0')?String(id):'';
+    var cur=cuCatUI.hoverPath||[]; var path=cur.slice(0,depth);
+    if(id) path[depth]=id;
+    if(cuSamePath(path,cur)) return;
+    cuCatUI.hoverPath=path; cuRenderCatCols();
+  },50);
+};
+function cuRenderCategoryPicker(){
+  var inp=document.getElementById('cuCatInput'); if(!inp) return;
+  inp.value=CU.form.category_id?cuCatPath(CU.form.category_id):'';
+  var w=document.getElementById('cuCatWrap'); if(w) w.classList.toggle('filled', !!CU.form.category_id);
+}
+window.cuOpenCatDrop=function(){
+  cuCatUI.hoverPath=CU.form.category_id?cuCatAncestorPath(CU.form.category_id).slice(0,-1):[];
+  cuRenderCatCols();
+  var d=document.getElementById('cuCatDrop'), w=document.getElementById('cuCatWrap');
+  if(d) d.classList.add('open'); if(w) w.classList.add('open');
+};
+function cuCloseCatDrop(){
+  if(_cuHoverTimer) clearTimeout(_cuHoverTimer);
+  var d=document.getElementById('cuCatDrop'), w=document.getElementById('cuCatWrap');
+  if(d) d.classList.remove('open'); if(w) w.classList.remove('open');
+}
+window.cuSelectCategory=function(id){
+  CU.form.category_id=(id && String(id)!=='0')?String(id):'';
+  cuRenderCategoryPicker(); cuCloseCatDrop();
+};
+window.cuClearCat=function(){ CU.form.category_id=''; cuRenderCategoryPicker(); };
 function cuAddrRender(){
   var w=document.getElementById('cuAddrWrap'); if(!w) return;
   w.innerHTML=(CU.addresses||[]).map(function(a,i){
-    return '<div class="cu-addr"><div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><label class="cu-flabel">收货人</label><input class="fa-input" style="width:160px" value="'+stEsc(a.receiver||'')+'" oninput="CU.addresses['+i+'].receiver=this.value" placeholder="请输入"><label class="cu-flabel">收货人电话</label><input class="fa-input" style="width:180px" value="'+stEsc(a.phone||'')+'" oninput="CU.addresses['+i+'].phone=this.value" placeholder="请输入"><div style="flex:1"></div>'+(i===0?'<span class="cu-def">默认</span>':'<span class="link" style="color:var(--danger-500)" onclick="cuDelAddr('+i+')">删除</span>')+'</div>'
-      +'<div style="display:flex;gap:14px;align-items:center"><label class="cu-flabel">收货地址</label><input class="fa-input" style="width:300px" value="'+stEsc(a.region||'')+'" oninput="CU.addresses['+i+'].region=this.value" placeholder="请选择地区"><div style="flex:1"></div><span class="link" style="color:var(--accent-600)" onclick="cuUseContactAddr('+i+')">使用客户联系地址</span></div>'
-      +'<div style="margin-top:10px;padding-left:96px"><input class="fa-input" style="width:300px" value="'+stEsc(a.detail||'')+'" oninput="CU.addresses['+i+'].detail=this.value" placeholder="请输入详情地址"></div></div>';
+    var filled=a.region?' filled':'';
+    return '<div class="cu-addr">'
+      +'<div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><label class="cu-flabel">收货人</label><input class="fa-input" style="width:160px" value="'+stEsc(a.receiver||'')+'" oninput="CU.addresses['+i+'].receiver=this.value" placeholder="请输入"><label class="cu-flabel">收货人电话</label><input class="fa-input" style="width:180px" value="'+stEsc(a.phone||'')+'" oninput="CU.addresses['+i+'].phone=this.value" placeholder="请输入"><div style="flex:1"></div>'+(i===0?'<span class="cu-def">默认</span>':'<span class="link" style="color:var(--danger-500)" onclick="cuDelAddr('+i+')">删除</span>')+'</div>'
+      +'<div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><label class="cu-flabel">收货地址</label>'
+        +'<div class="region-ctrl" data-addr-idx="'+i+'" style="width:300px"><div class="region-input-wrap'+filled+'"><input class="region-input" readonly value="'+stEsc(a.region||'')+'" placeholder="请选择地区" onclick="cuAddrRegionToggle(this)"><span class="region-clear" onclick="event.stopPropagation();cuClearAddrRegion('+i+')">&times;</span></div><div class="region-drop"></div></div>'
+        +'<div style="flex:1"></div><span class="link" style="color:var(--accent-600)" onclick="cuUseContactAddr('+i+')">使用客户联系地址</span></div>'
+      +'<div style="display:flex;gap:14px;align-items:center"><label class="cu-flabel"></label><input class="fa-input" style="width:300px" value="'+stEsc(a.detail||'')+'" oninput="CU.addresses['+i+'].detail=this.value" placeholder="请输入详情地址"></div>'
+      +'</div>';
   }).join('');
+  (CU.addresses||[]).forEach(function(a,i){
+    var ctrl=w.querySelector('.region-ctrl[data-addr-idx="'+i+'"]'); if(!ctrl) return;
+    initRegionPicker(ctrl, { value: parseRegionText(a.region), onSelect: function(sel){
+      CU.addresses[i].region=regionText(sel);
+      var wrap=ctrl.querySelector('.region-input-wrap'); if(wrap) wrap.classList.toggle('filled', !!CU.addresses[i].region);
+    }});
+  });
 }
+window.cuClearAddrRegion=function(i){
+  CU.addresses[i].region='';
+  var ctrl=document.querySelector('.region-ctrl[data-addr-idx="'+i+'"]');
+  if(ctrl){ setRegionInputValue(ctrl,{}); var wrap=ctrl.querySelector('.region-input-wrap'); if(wrap) wrap.classList.remove('filled'); }
+};
+window.cuAddrRegionToggle=function(input){
+  var ctrl=input.closest('.region-ctrl'); if(!ctrl) return;
+  var drop=ctrl.querySelector('.region-drop');
+  if(drop && drop.classList.contains('open')){ drop.classList.remove('open'); return; }
+  openRegionDrop(input);
+};
 function cuAddAddr(){ CU.addresses.push({receiver:'',phone:'',region:'',detail:'',is_default:0}); cuAddrRender(); }
 function cuDelAddr(i){ CU.addresses.splice(i,1); cuAddrRender(); }
 function cuUseContactAddr(i){ CU.addresses[i].region=gv('cuAddress'); CU.addresses[i].detail=gv('cuAddressDetail'); cuAddrRender(); }
 async function cuSave(andNew){
   var name=gv('cuName').trim(); if(!name){ showToast('请输入客户名称','error'); return; }
   var body={
-    name:name, category_id:Number(gv('cuCategory'))||null, price_level:gv('cuPriceLevel'), discount:Number(gv('cuDiscount'))||100,
+    name:name, category_id:CU.form.category_id||null, price_level:CU.form.price_level||'零售价', discount:Number(gv('cuDiscount'))||100,
     points:Number(gv('cuPoints'))||0, init_debt:Number(gv('cuInitDebt'))||0, contact:gv('cuContact'), phone:gv('cuPhone'),
     address:gv('cuAddress'), address_detail:gv('cuAddressDetail'), email:gv('cuEmail'), tax_no:gv('cuTaxNo'), fax:gv('cuFax'),
     bank_name:gv('cuBankName'), bank_account:gv('cuBankAccount'), birthday:gv('cuBirthday'), wechat:gv('cuWechat'), qq:gv('cuQQ'), remark:gv('cuRemark')
@@ -6413,7 +6508,7 @@ function customerStatementHTML(){ setTimeout(cuStmtLoad,0); return '<div id="cuS
 async function cuStmtLoad(){
   var page=document.getElementById('cuStmt'); if(!page) return;
   var c=CU.view||null;
-  if(!c||c.id!==CU.viewId){ var g=await apiGet('/shop/customer/'+CU.viewId); c=(g&&g.code===0)?g.data:null; }
+  if(!c||String(c.id)!==String(CU.viewId)){ var g=await apiGet('/shop/customer/'+CU.viewId); c=(g&&g.code===0)?g.data:null; }
   CU.view=c||{};
   var today=new Date();
   var df=new Date(today.getFullYear()-1,today.getMonth(),today.getDate()).toISOString().slice(0,10);
@@ -6484,15 +6579,24 @@ function plOpenModal(id){
   var t=id?(PL.list.filter(function(x){return String(x.id)===String(id);})[0]||null):null;
   var old=document.getElementById('plModal'); if(old) old.remove();
   var m=document.createElement('div'); m.className='modal-overlay show'; m.id='plModal';
-  m.innerHTML='<div class="modal" style="width:560px;max-width:96vw"><div class="modal-header"><span class="modal-title">'+(t?'修改价格等级':'新增价格等级')+'</span><button class="modal-close" onclick="document.getElementById(\'plModal\').remove()">&times;</button></div>'
+  m.innerHTML='<div class="modal" style="width:560px;max-width:96vw"><div class="modal-header" style="justify-content:center;position:relative"><span class="modal-title">'+(t?'修改价格等级':'新增价格等级')+'</span><button class="modal-close" style="position:absolute;right:16px;top:50%;transform:translateY(-50%)" onclick="document.getElementById(\'plModal\').remove()">&times;</button></div>'
     +'<div class="modal-body" style="padding:26px 30px"><div class="fa-frow"><label class="fa-flabel">价格等级名称</label><input class="fa-input" id="plName" maxlength="20" placeholder="请输入20字以内的价格等级名称" value="'+stEsc(t?t.name:'')+'"></div></div>'
-    +'<div class="modal-footer"><button class="btn btn-secondary" onclick="document.getElementById(\'plModal\').remove()">取消</button><button class="btn btn-primary" onclick="plSubmit('+(id||0)+')">保存</button></div></div>';
+    +'<div class="modal-footer"><button class="btn btn-secondary" onclick="document.getElementById(\'plModal\').remove()">取消</button><button class="btn btn-cyan" onclick="plSubmit('+(id||0)+')">保存</button></div></div>';
   document.body.appendChild(m);
 }
 async function plSubmit(id){
   var name=gv('plName').trim(); if(!name){ showToast('请输入价格等级名称','error'); return; }
   var res = id ? await apiPut('/shop/price-level/'+id, {name:name}) : await apiPost('/shop/price-level', {name:name});
-  if(res&&res.code===0){ showToast('保存成功'); var m=document.getElementById('plModal'); if(m)m.remove(); plLoad(); } else showToast((res&&res.message)||'保存失败','error');
+  if(res&&res.code===0){
+    showToast('保存成功');
+    var m=document.getElementById('plModal'); if(m)m.remove();
+    if(document.getElementById('cuPriceLevelInput')){
+      var r=await apiGet('/shop/price-level/list');
+      CU.priceLevels=(r&&r.code===0)?r.data||[]:[];
+      CU.form.price_level=name;
+      cuPlRenderPicker();
+    } else { plLoad(); }
+  } else showToast((res&&res.message)||'保存失败','error');
 }
 async function plToggle(id){
   var t=PL.list.filter(function(x){return String(x.id)===String(id);})[0]; if(!t) return;
@@ -7150,7 +7254,7 @@ function sysCheckbox(key,label,desc){
   return h+'</div>';
 }
 function sysCheckboxBtn(key,label,btnLabel,onclick,desc){
-  var h='<div class="sys-item"><div class="sys-row"><label class="sys-check"><input type="checkbox"'+(sysBool(key)?' checked':'')+' onchange="sysToggle(\''+key+'\',this.checked)">'+sysBoxSVG()+'<span>'+label+'</span></label><button class="sys-btn" onclick="'+onclick+'">'+btnLabel+'</button></div>';
+  var h='<div class="sys-item"><div class="sys-row"><label class="sys-check"><input type="checkbox"'+(sysBool(key)?' checked':'')+' onchange="sysToggle(\''+key+'\',this.checked)">'+sysBoxSVG()+'<span>'+label+'</span></label>'+(btnLabel?'<button class="sys-btn" onclick="'+onclick+'">'+btnLabel+'</button>':'')+'</div>';
   if(desc) h+='<div class="sys-desc">'+desc+'</div>';
   return h+'</div>';
 }
@@ -7171,7 +7275,7 @@ function sysRender(){
   h+='</div></div><div class="sys-splitter" onmousedown="sysStartResize(event)"></div><div class="sys-body">';
 
   h+='<div class="sys-sec" id="sysSecBase"><div class="sys-sec-title">基础设置</div>';
-  h+=sysCheckboxBtn('multi_shop','启用多门店','管理门店',"openNav('settings:shops')",'勾选后，可实现多门店统一管理,支持直营店和加盟店');
+  h+=sysCheckboxBtn('multi_shop','启用多门店','','','勾选后，可实现多门店统一管理,支持直营店和加盟店');
   h+=sysCheckboxBtn('multi_warehouse','启用多仓库','管理仓库',"location.href='/warehouse.html'",'勾选后，可实现门店和仓库的库存分开管理');
   h+='</div>';
 
@@ -7514,7 +7618,7 @@ function printDocName(key){
 /* ═══════════ 地区选择 ═══════════ */
 var AREA=null, REGION_ROOTS=[{code:'86',name:'中国'},{code:'__oversea',name:'海外'}];
 function ensureArea(cb){ if(AREA){ if(cb)cb(); return; } fetch('/lib/area.json').then(function(r){return r.json();}).then(function(d){ AREA=d||{}; if(cb)cb(); }).catch(function(){ AREA={}; if(cb)cb(); }); }
-function regionChildren(code){ if(code==='__root') return REGION_ROOTS; if(code==='__oversea') return []; if(!AREA||!AREA[code]) return []; return Object.keys(AREA[code]).map(function(k){ return {code:k,name:AREA[code][k]}; }); }
+function regionChildren(code){ if(code==='__root') return REGION_ROOTS; if(!AREA||!AREA[code]) return []; return Object.keys(AREA[code]).map(function(k){ return {code:k,name:AREA[code][k]}; }); }
 function regionNameOf(code){ if(!AREA) return ''; var f=''; Object.keys(AREA).some(function(p){ if(AREA[p][code]){ f=AREA[p][code]; return true; } return false; }); return f; }
 function regionText(sel){ return [sel.province,sel.city,sel.district].filter(Boolean).join(' / '); }
 function setRegionInputValue(ctrl,sel){ var i=ctrl.querySelector('.region-input'); if(i) i.value=regionText(sel||{}); }
@@ -7523,9 +7627,9 @@ function closeRegionDrop(ctrl){ var d=ctrl.querySelector('.region-drop'); if(d) 
 function closeAllRegionDrops(){ document.querySelectorAll('.region-drop.open').forEach(function(d){ d.classList.remove('open'); }); }
 function regionCol(nodes,depth,ctrl){ if(!nodes.length) return ''; var h=''; nodes.forEach(function(n){ var active=String(ctrl.__region.path[depth])===String(n.code); var hasKids=regionChildren(n.code).length>0; h+='<div class="region-opt'+(active?' active':'')+'" data-code="'+n.code+'" data-depth="'+depth+'">'+stEsc(n.name)+(hasKids?'<svg class="region-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>':'')+'</div>'; }); return '<div class="region-col">'+h+'</div>'; }
 function renderRegionDrop(ctrl){ var drop=ctrl.querySelector('.region-drop'); if(!drop) return; var r=ctrl.__region; if(r.search){ var res=searchRegion(r.search); var h=res.length?res.map(function(x){ return '<div class="region-opt" data-search="1" data-province="'+stEsc(x.province)+'" data-city="'+stEsc(x.city)+'" data-district="'+stEsc(x.district)+'">'+stEsc(regionText(x))+'</div>'; }).join(''):'<div class="region-empty">无匹配地区</div>'; drop.innerHTML='<div class="region-col wide">'+h+'</div>'; return; } var cols=regionCol(REGION_ROOTS,0,ctrl); for(var d=0; d<r.path.length && d<3; d++){ var kids=regionChildren(r.path[d]); if(!kids.length) break; cols+=regionCol(kids,d+1,ctrl); } drop.innerHTML=cols; }
-function searchRegion(q){ var out=[]; if(!AREA) return out; var provs=AREA['86']||{}; Object.keys(provs).forEach(function(pc){ var pn=provs[pc]; if(pn.indexOf(q)>=0) out.push({province:pn,city:'',district:''}); var cities=AREA[pc]||{}; Object.keys(cities).forEach(function(cc){ var cn=cities[cc]; if(cn.indexOf(q)>=0) out.push({province:pn,city:cn,district:''}); var dists=AREA[cc]||{}; Object.keys(dists).forEach(function(dc){ var dn=dists[dc]; if(dn.indexOf(q)>=0) out.push({province:pn,city:cn,district:dn}); }); }); }); return out.slice(0,60); }
+function searchRegion(q){ var out=[]; if(!AREA) return out; var provs=AREA['86']||{}; Object.keys(provs).forEach(function(pc){ var pn=provs[pc]; if(pn.indexOf(q)>=0) out.push({province:pn,city:'',district:''}); var cities=AREA[pc]||{}; Object.keys(cities).forEach(function(cc){ var cn=cities[cc]; if(cn.indexOf(q)>=0) out.push({province:pn,city:cn,district:''}); var dists=AREA[cc]||{}; Object.keys(dists).forEach(function(dc){ var dn=dists[dc]; if(dn.indexOf(q)>=0) out.push({province:pn,city:cn,district:dn}); }); }); }); var ov=AREA['__oversea']||{}; Object.keys(ov).forEach(function(cc){ var cn=ov[cc]; if(cn.indexOf(q)>=0) out.push({province:cn,city:'',district:''}); var sts=AREA[cc]||{}; Object.keys(sts).forEach(function(sc){ var sn=sts[sc]; if(sn.indexOf(q)>=0) out.push({province:cn,city:sn,district:''}); var cts=AREA[sc]||{}; Object.keys(cts).forEach(function(ctc){ var ctn=cts[ctc]; if(ctn.indexOf(q)>=0) out.push({province:cn,city:sn,district:ctn}); }); }); }); return out.slice(0,60); }
 function applyRegion(ctrl,sel){ ctrl.__region.search=''; setRegionInputValue(ctrl,sel); if(ctrl.__region.onSelect) ctrl.__region.onSelect(sel); closeRegionDrop(ctrl); }
-function finalizeRegion(ctrl){ var names=ctrl.__region.names.slice(); if(names[0]==='中国') names=names.slice(1); applyRegion(ctrl,{province:names[0]||'',city:names[1]||'',district:names[2]||''}); }
+function finalizeRegion(ctrl){ var names=ctrl.__region.names.slice(); if(names[0]==='中国'||names[0]==='海外') names=names.slice(1); applyRegion(ctrl,{province:names[0]||'',city:names[1]||'',district:names[2]||''}); }
 function pickRegion(ctrl,code,depth){ var r=ctrl.__region; r.path=r.path.slice(0,depth); r.names=r.names.slice(0,depth); r.path[depth]=code; r.names[depth]=(code==='__oversea')?'海外':((code==='86')?'中国':regionNameOf(code)); r.search=''; var input=ctrl.querySelector('.region-input'); if(input) input.value=''; var kids=regionChildren(code); if(!kids.length){ finalizeRegion(ctrl); return; } renderRegionDrop(ctrl); }
 window.openRegionDrop=function(input){ var ctrl=input.closest('.region-ctrl'); if(!ctrl) return; closeAllRegionDrops(); ensureArea(function(){ renderRegionDrop(ctrl); }); ctrl.querySelector('.region-drop').classList.add('open'); };
 window.onRegionInput=function(input){ var ctrl=input.closest('.region-ctrl'); if(!ctrl) return; ctrl.__region.search=(input.value||'').trim(); ensureArea(function(){ renderRegionDrop(ctrl); }); ctrl.querySelector('.region-drop').classList.add('open'); };

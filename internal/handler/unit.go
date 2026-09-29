@@ -27,6 +27,9 @@ func (h *UnitHandler) ListAll(c *gin.Context) {
 		response.ServerError(c, "查询单位失败")
 		return
 	}
+	for i := range list {
+		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
+	}
 	response.OK(c, list)
 }
 

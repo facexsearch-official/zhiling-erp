@@ -50,11 +50,6 @@ input{font:inherit}
 .search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2;pointer-events:none}
 
 /* 商品列表工具栏 / 批量操作 */
-.gd-filter{display:flex;align-items:center;gap:18px;margin-bottom:12px}
-.gd-check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--gray-600);cursor:pointer;white-space:nowrap}
-.gd-check input{accent-color:#00B8D4;width:15px;height:15px;cursor:pointer}
-.gd-adv{font-size:14px;color:var(--gray-500);cursor:pointer;white-space:nowrap}
-.gd-adv:hover{color:var(--primary-600)}
 .gd-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .gd-tb-left,.gd-tb-right{display:flex;align-items:center;gap:10px}
 .btn-teal{background:#00B8D4;color:#fff;border:1px solid #00B8D4}
@@ -197,7 +192,7 @@ td .yen{color:var(--gray-400);font-size:13px;margin-right:2px}
 /* 固定列：左侧勾选/齿轮/序号，右侧操作 */
 .table-wrap th.th-check,.table-wrap td.c-check{position:sticky;left:0;z-index:2;background:#fff}
 .table-wrap thead th.th-check{background:var(--gray-50);z-index:3}
-.table-wrap th.th-tools,.table-wrap td.c-idx{position:sticky;left:44px;z-index:2;background:#fff}
+.table-wrap th.th-tools,.table-wrap td.c-idx{position:sticky;left:0;z-index:2;background:#fff}
 .table-wrap thead th.th-tools{background:var(--gray-50);z-index:3}
 .table-wrap th.th-actions,.table-wrap td.c-actions{position:sticky;right:0;z-index:2;background:#fff}
 .table-wrap thead th.th-actions{background:var(--gray-50);z-index:3}
@@ -366,8 +361,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;margin:36px 0 12px}
 .detail-foot .btn{min-width:110px;justify-content:center}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261047">
-<link rel="stylesheet" href="/css/tabs.css?v=20261047">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261054">
+<link rel="stylesheet" href="/css/tabs.css?v=20261054">
 <script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
 </head>
 <body>
@@ -404,48 +399,17 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       <div class="cat-tree" id="catTree"></div>
     </aside>
     <div class="split-main">
-    <div class="gd-filter">
-      <label class="gd-check"><input type="checkbox" id="gdHideDisabled" onchange="loadData(1)"> 隐藏停用商品</label>
-      <label class="gd-check"><input type="checkbox" id="gdHideZero" onchange="loadData(1)"> 隐藏无库存商品</label>
-      <div style="flex:1"></div>
-      <div class="search-box">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="商品名称/简拼/条形码/规格/货号/备注" oninput="onSearchInput()">
-      </div>
-      <span class="gd-adv" onclick="showToast('高级查询功能开发中', 'info')">高级查询 <svg class="gd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
-    </div>
-
     <div class="gd-toolbar">
       <div class="gd-tb-left">
-        <button class="btn btn-teal" onclick="showCreate()">+ 新增商品</button>
-        <div class="gd-batch">
-          <button class="btn btn-teal-outline" onclick="gdToggleBatch(event)">批量操作 <svg class="gd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="gd-batch-menu" id="gdBatchMenu">
-            <div class="gd-batch-item" onclick="gdBatchDelete()">删除</div>
-            <div class="gd-batch-item" onclick="gdBatchToggleStatus()">启用/停用</div>
-            <div class="gd-batch-item" onclick="gdBatchGenBarcode()">生成条形码</div>
-            <div class="gd-batch-item" onclick="printLabels()">打印标签</div>
-            <div class="gd-batch-item" onclick="gdBatchMoveCategory()">移至分类</div>
-            <div class="gd-batch-item gd-has-sub">更多
-              <svg class="gd-caret" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-              <div class="gd-sub-menu">
-                <div class="gd-batch-item" onclick="gdBatchStockAlert()">设置库存预警</div>
-                <div class="gd-batch-item" onclick="gdBatchBatch()">启用批次管理</div>
-                <div class="gd-batch-item" onclick="gdBatchShelf()">启用保质期管理</div>
-                <div class="gd-batch-item" onclick="gdBatchSerial()">序列号管理</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="btn btn-teal-outline" onclick="gdOpenPriceModal()">快捷改价</button>
-        <button class="btn btn-teal-outline" onclick="gdBatchUploadImages()">批量上传图片</button>
+        <button class="btn btn-primary" onclick="showCreate()">+ 新增商品</button>
       </div>
       <div class="gd-tb-right">
-        <button class="btn btn-secondary" onclick="showToast('导入新增功能开发中', 'info')">导入新增 <svg class="gd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <button class="btn btn-secondary" onclick="exportData()">导出 <svg class="gd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="商品名称/简拼/条形码/规格/货号/备注" oninput="onSearchInput()">
+        </div>
       </div>
     </div>
-    <input type="file" id="gdImgInput" accept="image/*" multiple style="display:none" onchange="gdOnImagesPicked(event)">
 
     <div class="table-wrap">
       <table>
@@ -520,7 +484,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
             <div class="picker-input" id="brandInputWrap" onclick="focusBrandInput()">
               <input class="picker-field" id="brandInput" autocomplete="off" placeholder="请选择品牌"
                      oninput="onBrandInput(this.value)" onkeydown="onBrandKeydown(event)" onfocus="openBrandDrop()">
-              <svg class="picker-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
             <div class="picker-drop" id="brandDrop">
               <div class="picker-list" id="brandList"></div>
@@ -540,6 +504,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
               <input class="picker-field" id="supplierInput" autocomplete="off" placeholder="请选择供货商"
                      oninput="onSupplierInput(this.value)" onkeydown="onSupplierKeydown(event)" onfocus="openSupplierDrop()">
               <span class="picker-clear" onclick="event.stopPropagation();clearSuppliers()">×</span>
+              <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
             <div class="picker-drop" id="supplierDrop">
               <div class="picker-list" id="supplierList"></div>
@@ -571,36 +536,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
             <div class="picker-opt add" id="unitAdd" onclick="openUnitModal()">+ 新增单位</div>
           </div>
         </div>
-        <label class="fswitch" style="margin-left:12px"><input type="checkbox" id="fMultiUnit" onchange="toggleMultiUnit()"> 启用多单位</label>
       </div>
       <div class="fhint" style="margin-top:7px">主单位需设置成商品的最小单位</div>
-
-      <div id="unitWrap" style="display:none">
-        <div id="unitBoxes"></div>
-        <div style="margin-top:10px" id="addUnitRowWrap"><span class="flink" onclick="addUnitRow()">+ 添加辅单位</span></div>
-
-        <div class="unit-default-title">请选择开单默认单位</div>
-        <div class="unit-default-box">
-          <div class="fitem"><label class="flabel">销售单位</label>
-            <div class="picker du-picker">
-              <div class="picker-input" onclick="toggleDU('sales')">
-                <input class="picker-field" id="fSalesUnit" placeholder="请选择" readonly>
-                <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-              <div class="picker-drop" id="duDropSales"><div class="picker-list" id="duListSales"></div></div>
-            </div>
-          </div>
-          <div class="fitem"><label class="flabel">进货单位</label>
-            <div class="picker du-picker">
-              <div class="picker-input" onclick="toggleDU('purchase')">
-                <input class="picker-field" id="fPurchaseUnit" placeholder="请选择" readonly>
-                <svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-              <div class="picker-drop" id="duDropPurchase"><div class="picker-list" id="duListPurchase"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="spec-head">
         <span class="spec-head-label">规格</span>
@@ -638,17 +575,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <div class="fsection" id="formSecStock">
       <div class="fsection-title">商品库存</div>
       <div class="stock-opts">
-        <label class="fswitch" id="swBatchWrap" style="display:none"><input type="checkbox" id="fHasBatch"> 启用批次管理 <span class="help-dot help-dot-up" title="启用批次管理后，出入库时必须填写批次信息，且不支持无库存出库，启用后，开单时选择该商品批次为必填项">?</span></label>
-        <label class="fswitch" id="swShelfWrap" style="display:none"><input type="checkbox" id="fHasShelf" onchange="toggleShelf()"> 启用保质期管理 <span class="help-dot help-dot-up" title="启用保质期管理后，出入库时必须填写保质期信息，且不支持无库存出库，启用后，需要填写保质期天数，必填，且只能是正整数">?</span></label>
-        <span class="stock-shelf" id="swShelfFields" style="display:none">
-          <span class="stock-shelf-label">保质期<span class="req">*</span></span>
-          <span class="stock-shelf-input"><input class="mini-input" id="fShelfDays" type="number" min="1" step="1" value="0"><select class="mini-sel" id="fShelfUnit"><option value="day">天</option><option value="month">月</option><option value="year">年</option></select></span>
-          <label class="fswitch"><input type="checkbox" id="fShelfAlert" onchange="toggleShelfWarn()"> 启用预警</label>
-          <span class="stock-shelf-warn" id="swShelfWarn" style="display:none">提前 <input class="mini-input" id="fShelfWarnDays" type="number" min="0" step="1" value="0"> 天预警</span>
-        </span>
-      </div>
-      <div class="stock-opts" style="margin-top:14px">
-        <label class="fswitch" id="swSerialWrap" style="display:none"><input type="checkbox" id="fHasSerial"> 启用序列号管理 <span class="help-dot help-dot-up" title="勾选后，可对商品实现一物一码管理，适用于电器设备等高价值商品">?</span></label>
         <label class="fswitch"><input type="checkbox" id="fAlert" onchange="toggleAlert()"> 启用库存预警 <span class="help-dot help-dot-up" title="低于最低库存或高于最高库存时提醒">?</span></label>
       </div>
       <div id="stockSimple" style="margin-top:16px">
@@ -972,7 +898,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   var token = localStorage.getItem('pisa_token');
   if(!token){ location.href='/login.html'; return; }
 
-  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{}, selected:{} };
+  var state = { page:1, pageSize:10, keyword:'', catId:0, total:0, list:[], editId:null, detailId:null, detailImages:[], detailStockUnits:{}, unitSel:{} };
   var searchTimer = null;
 
   // --- Auth fetch helper ---
@@ -1007,7 +933,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     }
     var h = '';
     var allOpen = kw ? true : !catUI.collapsed['all'];
-    h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="pickCat(this,0)">'
+    h += '<div class="cat-node' + (state.catId === 0 ? ' active' : '') + '" onclick="catNodeClick(this,0)">'
       + '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (allOpen ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(\'all\')"><polyline points="9 18 15 12 9 6"/></svg>'
       + '<span>全部</span>';
     if(catUI.editMode) h += '<div class="cat-actions-row"><button class="cat-node-actions" title="新增分类" onclick="event.stopPropagation();catAddChild(0)"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>';
@@ -1018,7 +944,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       var hasKids = kids.length > 0;
       var expanded = kw ? true : !catUI.collapsed[cat.id];
       var depthClass = level === 1 ? ' child' : level === 2 ? ' child2' : level === 3 ? ' child3' : ' child4';
-      h += '<div class="cat-node' + depthClass + (String(state.catId) === String(cat.id) ? ' active' : '') + '" onclick="pickCat(this,' + cat.id + ')">';
+      h += '<div class="cat-node' + depthClass + (String(state.catId) === String(cat.id) ? ' active' : '') + '" onclick="catNodeClick(this,' + cat.id + ')">';
       if(hasKids){
         h += '<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate(' + (expanded ? '90' : '0') + 'deg)" onclick="event.stopPropagation();catToggleCollapse(' + cat.id + ')"><polyline points="9 18 15 12 9 6"/></svg>';
       } else {
@@ -1058,6 +984,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     if(el) el.classList.add('active');
     state.catId = catId;
     loadData(1);
+  };
+  window.catNodeClick = function(el, catId){
+    pickCat(el, catId);
+    var hasKids;
+    if(catId === 0) hasKids = catTopLevels().length > 0;
+    else if(catId === -1) hasKids = false;
+    else hasKids = catChildren(catId).length > 0;
+    if(!hasKids) return;
+    catToggleCollapse(catId === 0 ? 'all' : catId);
   };
   window.catToggleCollapse = function(catId){
     catUI.collapsed[catId] = !catUI.collapsed[catId];
@@ -1187,8 +1122,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     params.set('page_size', state.pageSize);
     if(state.keyword) params.set('keyword', state.keyword);
     if(state.catId !== 0) params.set('category_id', state.catId);
-    var hd = document.getElementById('gdHideDisabled'); if(hd && hd.checked) params.set('hide_disabled', '1');
-    var hz = document.getElementById('gdHideZero'); if(hz && hz.checked) params.set('hide_zero', '1');
     apiFetch('/api/shop/goods/list?' + params.toString()).then(function(res){
       if(res.code !== 0){ showToast(res.message || '加载失败', 'error'); return; }
       state.list = res.data.list || [];
@@ -1210,7 +1143,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   var COL_DEFS = [
     { key:'goods', label:'商品', fixed:true, td:'c-goods', render:function(c){
         var item = c.item, tags = '';
-        if(item.has_multi_unit) tags += '<span class="minitag">多单位</span>';
         if(item.has_multi_spec) tags += '<span class="minitag">多规格</span>';
         return '<div class="goods-cell">' + c.img + '<div class="goods-cell-txt"><div class="g-name">' + esc(item.name || '') + tags + '</div><div class="g-code">' + esc(item.code || '') + '</div></div></div>';
       } },
@@ -1270,8 +1202,9 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   function renderTableHead(){
     var head = document.getElementById('tableHead');
     if(!head) return;
-    var h = '<tr><th class="th-check"><input type="checkbox" id="checkAll" onchange="toggleAllRows(this.checked)"></th>'
-      + '<th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openColDrawer()">'
+    var tbl = head.closest('table');
+    if(tbl){ tbl.dataset.frozen = '0'; tbl.style.tableLayout = ''; tbl.style.width = ''; }
+    var h = '<tr><th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openColDrawer()">'
       + '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
       + '</button></th>';
     state.columns.forEach(function(k){
@@ -1284,7 +1217,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     });
     h += '</tr>';
     head.innerHTML = h;
-    enableColResize(head.closest('table'), ['th-check','th-tools','th-actions']);
+    enableColResize(head.closest('table'), ['th-tools','th-actions']);
   }
 
   // 表头左右拖拽调整列宽
@@ -1362,14 +1295,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     renderTableHead();
     var tbody = document.getElementById('tableBody');
     if(state.list.length === 0){
-      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 2) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无商品数据</p></div></td></tr>';
-      syncCheckAll();
+      tbody.innerHTML = '<tr><td colspan="' + (state.columns.length + 1) + '"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无商品数据</p></div></td></tr>';
       return;
     }
     var html = '';
     state.list.forEach(function(item){ html += renderGoodsRow(item); });
     tbody.innerHTML = html;
-    syncCheckAll();
   }
 
   function priceRange(min, max){
@@ -1387,370 +1318,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     var idx = state.list.indexOf(item);
     var rowNo = idx >= 0 ? (state.page - 1) * state.pageSize + idx + 1 : '';
     var rid = item.id_str || String(item.id);
-    var html = '<td class="c-check"><input type="checkbox" class="row-check" data-id="' + rid + '" onchange="toggleRowCheck(this)"' + (state.selected[rid] ? ' checked' : '') + '></td>'
-      + '<td class="c-idx">' + rowNo + '</td>';
+    var html = '<td class="c-idx">' + rowNo + '</td>';
     state.columns.forEach(function(k){
       var def = colDef(k);
       if(!def) return;
       var cls = def.align === 'right' ? ' class="text-right"' : (def.td ? ' class="' + def.td + '"' : '');
       html += '<td' + cls + '>' + def.render(ctx) + '</td>';
     });
-    return '<tr data-row-id="' + rid + '"' + (state.selected[rid] ? ' class="row-selected"' : '') + '>' + html + '</tr>';
+    return '<tr data-row-id="' + rid + '">' + html + '</tr>';
   }
-
-  // --- 行选择 ---
-  function syncCheckAll(){
-    var all = document.getElementById('checkAll');
-    if(!all) return;
-    var ids = state.list.map(function(i){ return i.id_str || String(i.id); });
-    var sel = ids.filter(function(id){ return state.selected[id]; }).length;
-    all.checked = ids.length > 0 && sel === ids.length;
-    all.indeterminate = sel > 0 && sel < ids.length;
-  }
-  window.toggleRowCheck = function(cb){
-    var id = cb.getAttribute('data-id');
-    if(cb.checked) state.selected[id] = true; else delete state.selected[id];
-    var tr = cb.closest('tr');
-    if(tr) tr.classList.toggle('row-selected', cb.checked);
-    syncCheckAll();
-  };
-  window.toggleAllRows = function(checked){
-    state.list.forEach(function(item){
-      var id = item.id_str || String(item.id);
-      if(checked) state.selected[id] = true; else delete state.selected[id];
-    });
-    document.querySelectorAll('#tableBody .row-check').forEach(function(cb){
-      cb.checked = checked;
-      var tr = cb.closest('tr');
-      if(tr) tr.classList.toggle('row-selected', checked);
-    });
-    syncCheckAll();
-  };
-
-  // --- 批量操作 ---
-  window.gdToggleBatch = function(e){
-    if(e) e.stopPropagation();
-    var m = el('gdBatchMenu');
-    if(m) m.classList.toggle('show');
-  };
-  document.addEventListener('click', function(e){
-    var m = el('gdBatchMenu');
-    if(m && m.classList.contains('show') && !e.target.closest('.gd-batch')) m.classList.remove('show');
-  });
-  function gdCloseBatch(){ var m = el('gdBatchMenu'); if(m) m.classList.remove('show'); }
-  function gdSelectedIds(){
-    return Object.keys(state.selected).filter(function(k){ return k && k !== 'undefined'; });
-  }
-  function gdNeedSelection(){
-    var ids = gdSelectedIds();
-    if(!ids.length){ showToast('请先勾选商品', 'error'); return null; }
-    return ids;
-  }
-  function gdFilters(){
-    var hd = el('gdHideDisabled'), hz = el('gdHideZero');
-    return {
-      keyword: state.keyword || '',
-      category_id: state.catId || 0,
-      hide_disabled: !!(hd && hd.checked),
-      hide_zero: !!(hz && hz.checked)
-    };
-  }
-  // 通用批量操作弹窗（支持"选中/查询条件"范围）
-  // 自定义下拉
-  function gbInitDropdown(dd){
-    var input = dd.querySelector('.gb-dd-input');
-    var menu = dd.querySelector('.gb-dd-menu');
-    if(!input || !menu) return;
-    input.addEventListener('click', function(e){
-      e.stopPropagation();
-      var willOpen = !menu.classList.contains('open');
-      var body = dd.closest('.modal-body');
-      if(body) body.querySelectorAll('.gb-dd.open').forEach(function(o){ o.classList.remove('open'); var m = o.querySelector('.gb-dd-menu'); if(m) m.classList.remove('open'); });
-      if(willOpen){ dd.classList.add('open'); menu.classList.add('open'); }
-    });
-    menu.addEventListener('click', function(e){
-      e.stopPropagation();
-      var opt = e.target.closest('.gb-dd-opt'); if(!opt) return;
-      dd.setAttribute('data-value', opt.getAttribute('data-v'));
-      dd.querySelector('.gb-dd-label').textContent = opt.textContent.trim();
-      Array.prototype.forEach.call(dd.querySelectorAll('.gb-dd-opt'), function(o){ o.classList.toggle('selected', o === opt); });
-      dd.classList.remove('open'); menu.classList.remove('open');
-    });
-  }
-  function gbDropdownHTML(id, options, selected){
-    var opts = options.map(function(o){
-      return '<div class="gb-dd-opt' + (String(o.v) === String(selected) ? ' selected' : '') + '" data-v="' + escAttr(String(o.v)) + '">' + esc(o.t) + '</div>';
-    }).join('');
-    var sel = options.filter(function(o){ return String(o.v) === String(selected); })[0] || options[0] || { v:'', t:'' };
-    return '<div class="gb-dd" id="' + id + '" data-value="' + escAttr(String(sel.v)) + '">'
-      + '<div class="gb-dd-input"><span class="gb-dd-label">' + esc(sel.t) + '</span>'
-      + '<svg class="gb-dd-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>'
-      + '<div class="gb-dd-menu">' + opts + '</div></div>';
-  }
-  function gdBatchModal(opts){
-    return new Promise(function(resolve){
-      var old = document.getElementById('gdBatchModal'); if(old) old.remove();
-      var ov = document.createElement('div');
-      ov.className = 'modal-overlay show'; ov.id = 'gdBatchModal';
-      var scopeHTML = '';
-      if(opts.scope){
-        var qLabel = opts.scope.queryLabel || ('修改当前查询条件下的所有商品（' + opts.scope.query + '个）');
-        scopeHTML = '<div class="gb-scope">'
-          + '<label><input type="radio" name="gbScope" value="selected" checked> 只修改选中商品（' + opts.scope.selected + '个）</label>'
-          + '<label><input type="radio" name="gbScope" value="query"> ' + esc(qLabel) + '</label>'
-          + '</div>';
-      }
-      ov.innerHTML = '<div class="modal" style="width:' + (opts.width || 560) + 'px">'
-        + '<div class="modal-header"><h2 style="flex:1;text-align:center">' + esc(opts.title) + '</h2>'
-        + '<button class="modal-close" type="button"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-        + '<div class="modal-body">' + (opts.scopeLabel ? '<div class="gb-label">' + esc(opts.scopeLabel) + '</div>' : '') + scopeHTML + (opts.body || '') + '</div>'
-        + '<div class="modal-footer"><button class="btn btn-secondary" type="button" data-cancel>取消</button>'
-        + '<button class="btn btn-teal" type="button" data-ok>' + esc(opts.confirmText || '确认') + '</button></div></div>';
-      document.body.appendChild(ov);
-      ov.querySelectorAll('.gb-dd').forEach(function(dd){ gbInitDropdown(dd); });
-      ov.addEventListener('click', function(){ ov.querySelectorAll('.gb-dd.open').forEach(function(o){ o.classList.remove('open'); var m = o.querySelector('.gb-dd-menu'); if(m) m.classList.remove('open'); }); });
-      if(opts.onMount) opts.onMount(ov);
-      function close(v){ ov.remove(); resolve(v); }
-      ov.querySelector('.modal-close').onclick = function(){ close(null); };
-      ov.querySelector('[data-cancel]').onclick = function(){ close(null); };
-      ov.addEventListener('click', function(e){ if(e.target === ov) close(null); });
-      ov.querySelector('[data-ok]').onclick = function(){
-        var r = ov.querySelector('input[name=gbScope]:checked');
-        var scope = r ? r.value : 'selected';
-        var vals = opts.read ? opts.read(ov, scope) : {};
-        if(vals === false) return;
-        vals.scope = scope;
-        close(vals);
-      };
-    });
-  }
-  async function gdBatchApply(action, vals){
-    gdCloseBatch();
-    var body = { action: action, scope: vals.scope || 'selected', ids: gdSelectedIds(), filters: gdFilters(), patch: vals.patch || {} };
-    var res = await apiFetch('/api/shop/goods/batch', { method:'POST', body: body });
-    if(res && res.code === 0){
-      state.selected = {};
-      showToast('已处理 ' + ((res.data && res.data.count) || 0) + ' 个商品', 'success');
-      loadData(action === 'delete' ? 1 : state.page);
-    } else showToast((res && res.message) || '操作失败', 'error');
-  }
-  // 通用表单弹窗
-  function gdForm(title, fields){
-    return new Promise(function(resolve){
-      var old = document.getElementById('gdFormModal'); if(old) old.remove();
-      var ov = document.createElement('div');
-      ov.className = 'modal-overlay show'; ov.id = 'gdFormModal';
-      var body = fields.map(function(f){
-        return '<div class="gd-frow"><label class="gd-flabel">' + esc(f.label) + '</label>'
-          + '<input class="gd-finput" id="gdf_' + f.key + '" type="' + (f.type || 'text') + '" placeholder="' + esc(f.ph || '') + '"></div>';
-      }).join('');
-      ov.innerHTML = '<div class="modal" style="width:460px">'
-        + '<div class="modal-header"><h2 style="flex:1;text-align:center">' + esc(title) + '</h2>'
-        + '<button class="modal-close" onclick="document.getElementById(\'gdFormModal\').remove()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>'
-        + '<div class="modal-body">' + body + '</div>'
-        + '<div class="modal-footer"><button class="btn btn-secondary" onclick="document.getElementById(\'gdFormModal\').remove()">取消</button>'
-        + '<button class="btn btn-teal" id="gdFormOk">确定</button></div></div>';
-      document.body.appendChild(ov);
-      ov.querySelector('#gdFormOk').onclick = function(){
-        var out = {};
-        fields.forEach(function(f){ out[f.key] = (document.getElementById('gdf_' + f.key).value || '').trim(); });
-        ov.remove(); resolve(out);
-      };
-    });
-  }
-  window.gdBatchDelete = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var vals = await gdBatchModal({ title:'批量删除商品', width:520,
-      body:'<div class="gb-msg">确定要删除选中的' + ids.length + '个商品吗？</div>', confirmText:'确定' });
-    if(!vals) return;
-    await gdBatchApply('delete', vals);
-  };
-  window.gdBatchToggleStatus = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var body = '<div class="gb-field"><label class="gb-flabel">修改为</label>'
-      + gbDropdownHTML('gbStatus', [{v:'1',t:'启用'},{v:'0',t:'停用'}], '1') + '</div>';
-    var vals = await gdBatchModal({ title:'批量启用/停用', scope:{selected:ids.length, query:state.total}, body:body,
-      read:function(ov){ return { patch:{ status: parseInt(ov.querySelector('#gbStatus').getAttribute('data-value'), 10) } }; } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  var gbCat = { list: [], sel: null };
-  function gbCatRoots(){ return gbCat.list.filter(function(c){ return String(c.parent_id_str) === '0'; }); }
-  function gbCatChildren(id){ return gbCat.list.filter(function(c){ return String(c.parent_id_str) === String(id); }); }
-  function gbRenderCatDrop(openRootId){
-    var drop = document.getElementById('gbCatDrop'); if(!drop) return;
-    var roots = gbCatRoots();
-    var col1 = roots.map(function(c){
-      var kids = gbCatChildren(c.id_str);
-      var active = String(c.id_str) === String(openRootId);
-      return '<div class="gb-catopt' + (active ? ' active' : '') + '" data-root="' + c.id_str + '" data-name="' + escAttr(c.name) + '">'
-        + '<span>' + esc(c.name) + '</span>'
-        + (kids.length ? '<svg class="gb-catarrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>' : '')
-        + '</div>';
-    }).join('');
-    col1 += '<div class="gb-catopt" data-root="0" data-name="未分类"><span>未分类</span></div>';
-    var h = '<div class="gb-catcol">' + col1 + '</div>';
-    if(openRootId && openRootId !== '0'){
-      var kids = gbCatChildren(openRootId);
-      if(kids.length){
-        var rootName = (roots.filter(function(c){ return String(c.id_str) === String(openRootId); })[0] || {}).name || '';
-        h += '<div class="gb-catcol">' + kids.map(function(c){
-          return '<div class="gb-catopt" data-leaf="' + c.id_str + '" data-name="' + escAttr(c.name) + '" data-path="' + escAttr(rootName + ' / ' + c.name) + '"><span>' + esc(c.name) + '</span></div>';
-        }).join('') + '</div>';
-      }
-    }
-    drop.innerHTML = h;
-    drop.classList.add('open');
-  }
-  function gbPickCat(id, name, path){
-    gbCat.sel = { id: id, name: name, path: path || name };
-    var lab = document.getElementById('gbCatLabel');
-    var clr = document.getElementById('gbCatClear');
-    if(lab){ lab.textContent = gbCat.sel.path; lab.classList.remove('ph'); }
-    if(clr) clr.style.display = '';
-    var drop = document.getElementById('gbCatDrop'); if(drop) drop.classList.remove('open');
-  }
-  window.gdBatchMoveCategory = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var res = await apiFetch('/api/shop/category/all');
-    gbCat.list = (res && res.data) || [];
-    gbCat.sel = null;
-    var body = '<div class="gb-field"><label class="gb-flabel">移至为</label>'
-      + '<div class="gb-catpicker" id="gbCatPicker">'
-      + '<div class="gb-catinput" id="gbCatInput"><span class="gb-catlabel ph" id="gbCatLabel">请选择分类</span>'
-      + '<span class="gb-catclear" id="gbCatClear" style="display:none">×</span>'
-      + '<svg class="gb-catcaret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>'
-      + '<div class="gb-catdrop" id="gbCatDrop"></div></div></div>';
-    var vals = await gdBatchModal({ title:'批量移至分类', scope:{selected:ids.length, query:state.total, queryLabel:'修改某分类下的所有商品'}, body:body,
-      onMount:function(ov){
-        var input = ov.querySelector('#gbCatInput');
-        var clear = ov.querySelector('#gbCatClear');
-        var drop = ov.querySelector('#gbCatDrop');
-        input.addEventListener('click', function(e){
-          e.stopPropagation();
-          if(drop.classList.contains('open')) drop.classList.remove('open');
-          else gbRenderCatDrop(null);
-        });
-        clear.addEventListener('click', function(e){
-          e.stopPropagation();
-          gbCat.sel = null;
-          var lab = ov.querySelector('#gbCatLabel'); lab.textContent = '请选择分类'; lab.classList.add('ph');
-          clear.style.display = 'none';
-        });
-        drop.addEventListener('click', function(e){
-          e.stopPropagation();
-          var leaf = e.target.closest('[data-leaf]');
-          if(leaf){ gbPickCat(leaf.getAttribute('data-leaf'), leaf.getAttribute('data-name'), leaf.getAttribute('data-path')); return; }
-          var root = e.target.closest('[data-root]');
-          if(root){
-            var rid = root.getAttribute('data-root');
-            var rname = root.getAttribute('data-name');
-            if(rid === '0'){ gbPickCat('0', '未分类', '未分类'); return; }
-            if(gbCatChildren(rid).length){ gbRenderCatDrop(rid); }
-            else { gbPickCat(rid, rname, rname); }
-          }
-        });
-        ov.addEventListener('click', function(){ drop.classList.remove('open'); });
-      },
-      read:function(){
-        if(!gbCat.sel){ showToast('请选择分类', 'error'); return false; }
-        return { patch:{ category_id: gbCat.sel.id } };
-      } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  window.gdBatchStockAlert = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var body = '<div class="gb-label">设置预警值</div>'
-      + '<div class="gb-field"><label class="gb-flabel">最低库存</label><input class="gb-input" id="gbMin" type="number"></div>'
-      + '<div class="gb-field"><label class="gb-flabel">安全库存</label><input class="gb-input" id="gbSafe" type="number"></div>'
-      + '<div class="gb-field"><label class="gb-flabel">最高库存</label><input class="gb-input" id="gbMax" type="number"></div>';
-    var vals = await gdBatchModal({ title:'批量设置库存预警', scopeLabel:'选择商品', scope:{selected:ids.length, query:state.total}, body:body, confirmText:'确定',
-      read:function(ov){
-        var patch = { enable_stock_alert: 1 };
-        var mn = ov.querySelector('#gbMin').value, sf = ov.querySelector('#gbSafe').value, mx = ov.querySelector('#gbMax').value;
-        if(mn !== '') patch.min_stock = parseInt(mn, 10) || 0;
-        if(sf !== '') patch.safety_stock = parseInt(sf, 10) || 0;
-        if(mx !== '') patch.max_stock = parseInt(mx, 10) || 0;
-        return { patch:patch };
-      } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  window.gdBatchBatch = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var vals = await gdBatchModal({ title:'批量启用批次管理', scope:{selected:ids.length, query:state.total},
-      read:function(){ return { patch:{ has_batch:1 } }; } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  window.gdBatchShelf = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var body = '<div class="gb-label">设置保质期</div>'
-      + '<div class="gb-field"><label class="gb-flabel">保质期<span class="req">*</span></label>'
-      + '<input class="gb-input" id="gbShelf" type="number" min="1" step="1" style="width:130px">'
-      + '<select class="gb-select" id="gbShelfUnit" style="min-width:90px"><option value="day">天</option><option value="month">月</option><option value="year">年</option></select>'
-      + '<label class="gb-check"><input type="checkbox" id="gbShelfAlert"> 启用预警</label></div>';
-    var vals = await gdBatchModal({ title:'批量启用保质期管理', scopeLabel:'选择商品', scope:{selected:ids.length, query:state.total}, body:body, confirmText:'确定',
-      read:function(ov){
-        var raw = (ov.querySelector('#gbShelf').value || '').trim();
-        var n = Number(raw);
-        if(!raw || !isFinite(n) || n <= 0 || Math.floor(n) !== n){ showToast('保质期天数必填，且只能为正整数', 'error'); return false; }
-        var unit = ov.querySelector('#gbShelfUnit').value;
-        var factor = unit === 'month' ? 30 : (unit === 'year' ? 365 : 1);
-        return { patch:{ has_shelf_life:1, shelf_life_days: n * factor, expiry_alert: ov.querySelector('#gbShelfAlert').checked ? 1 : 0 } };
-      } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  window.gdBatchSerial = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var body = '<div class="gb-field"><label class="gb-flabel">修改为</label>'
-      + gbDropdownHTML('gbSerial', [{v:'1',t:'启用'},{v:'0',t:'关闭'}], '1') + '</div>';
-    var vals = await gdBatchModal({ title:'批量修改序列号状态', scope:{selected:ids.length, query:state.total}, body:body,
-      read:function(ov){ return { patch:{ has_serial: parseInt(ov.querySelector('#gbSerial').getAttribute('data-value'), 10) } }; } });
-    if(!vals) return;
-    await gdBatchApply('update', vals);
-  };
-  window.gdOpenPriceModal = async function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    var f = await gdForm('快捷改价', [
-      { key:'purchase_price', label:'进货价', type:'number', ph:'留空不修改' },
-      { key:'retail_price', label:'零售价', type:'number', ph:'留空不修改' },
-      { key:'wholesale_price', label:'批发价', type:'number', ph:'留空不修改' }
-    ]);
-    if(!f) return;
-    var patch = {};
-    ['purchase_price','retail_price','wholesale_price'].forEach(function(k){ if(f[k] !== '') patch[k] = parseFloat(f[k]); });
-    if(!Object.keys(patch).length){ showToast('请输入要修改的价格', 'error'); return; }
-    await gdBatchApply('update', { scope:'selected', patch: patch });
-  };
-  window.gdBatchGenBarcode = function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    gdCloseBatch();
-    showToast('生成条形码功能开发中', 'info');
-  };
-  window.gdBatchUploadImages = function(){
-    var ids = gdNeedSelection(); if(!ids) return;
-    gdCloseBatch();
-    el('gdImgInput').click();
-  };
-  window.gdOnImagesPicked = async function(e){
-    var files = Array.prototype.slice.call(e.target.files || []);
-    e.target.value = '';
-    if(!files.length) return;
-    var ids = gdSelectedIds();
-    if(!ids.length){ showToast('请先勾选商品', 'error'); return; }
-    // 上传图片
-    var urls = [];
-    for(var i=0;i<files.length;i++){
-      if(!/^image\//.test(files[i].type)) continue;
-      var fd = new FormData(); fd.append('file', files[i]);
-      try{ var res = await apiFetch('/api/shop/upload', { method:'POST', body: fd }); if(res && res.code === 0 && res.data && res.data.url) urls.push(res.data.url); }catch(err){}
-    }
-    if(!urls.length){ showToast('图片上传失败', 'error'); return; }
-    await gdBatchApply('update', { scope:'selected', patch:{ images: JSON.stringify(urls) } });
-  };
 
   // --- 自定义表头抽屉 ---
   var dragColKey = null;
@@ -1983,7 +1559,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 
   // ═══════════ 抽屉表单 ═══════════
   var meta = { categories: [], units: [], suppliers: [], brands: [], extraBrands: [], attributes: [], loaded: false };
-  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', priceColumns: [], simpleRow: { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }, simpleStock: { stock:'', init_cost:'', min_stock:'', max_stock:'' }, suppliers: [], brand: '', categoryId: 0, unitId: 0, salesUnit: '', purchaseUnit: '', editId: null };
+  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', priceColumns: [], simpleRow: { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }, simpleStock: { stock:'', init_cost:'', min_stock:'', max_stock:'' }, suppliers: [], brand: '', categoryId: 0, unitId: 0, editId: null };
 
   function el(id){ return document.getElementById(id); }
   function num(id){ return parseFloat(el(id).value) || 0; }
@@ -2026,8 +1602,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       renderSupplierTags();
       renderBrandTags();
       renderCatTree();
-      if(checked('fMultiUnit')) renderUnits();
-      else syncDefaultUnitOptions();
       if(checked('fMultiSpec')) renderSpecGroups();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('基础资料加载失败', 'error');
@@ -2136,7 +1710,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     openDrawer();
     addFormTab();
     loadMeta();
-    loadSysOpts(applyStockOpts);
   };
 
   function fillFormFromGoods(d){
@@ -2171,30 +1744,11 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       }
       renderSupplierTags();
 
-      el('fMultiUnit').checked = !!d.has_multi_unit;
       el('fMultiSpec').checked = !!d.has_multi_spec;
       el('fAlert').checked     = !!d.enable_stock_alert;
-      el('fHasBatch').checked  = !!d.has_batch;
-      el('fHasShelf').checked  = !!d.has_shelf_life;
-      el('fHasSerial').checked = !!d.has_serial;
-      el('fShelfDays').value   = d.shelf_life_days || 0;
-      el('fShelfUnit').value   = 'day';
-      el('fShelfAlert').checked = !!d.expiry_alert;
-      el('fShelfWarnDays').value = d.expiry_warn_days || 0;
-      toggleMultiUnit();
       toggleMultiSpec();
       toggleAlert();
-      toggleShelf();
-      toggleShelfWarn();
 
-      var rawUnits = (d.units || []).filter(function(u){ return !u.is_main; });
-      var absArr = rawUnits.map(function(u){ return u.factor || 1; });
-      var relArr = absToRel(absArr);
-      form.units = rawUnits.map(function(u, i){
-        return { unit_id: u.unit_id, unit_name: u.unit_name || '', factor: absArr[i], rel: relArr[i] };
-      });
-      form.salesUnit = d.sales_unit || '';
-      form.purchaseUnit = d.purchase_unit || '';
       try{ form.specGroups = JSON.parse(d.spec_groups || '[]') || []; }catch(e){ form.specGroups = []; }
       if(!Array.isArray(form.specGroups)) form.specGroups = [];
       form.specGroups.forEach(function(g){
@@ -2230,7 +1784,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       try{ form.images = JSON.parse(d.images || '[]') || []; }catch(e){ form.images = []; }
       if(!form.images.length && d.image_url) form.images = [d.image_url];
       renderSimplePrice(); renderSimpleStock();
-      renderImages(); renderUnits(); renderSpecGroups();
+      renderImages(); renderSpecGroups();
   }
 
   window.showEdit = function(id){
@@ -2247,7 +1801,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       formInited = true;
       openDrawer();
       addFormTab();
-      loadSysOpts(applyStockOpts);
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
     });
@@ -2466,7 +2019,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
         disabled: !!p.disabled, custom: parseCustom(p.custom)
       };
     });
-    var isSimple = !d.has_multi_unit && !d.has_multi_spec;
+    var isSimple = !d.has_multi_spec;
     var stockRows = {};
     (d.stocks || []).forEach(function(s){
       stockRows[s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
@@ -2627,29 +2180,19 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
      'fWholesalePrice','fStock','fInitCost','fMinStock','fMaxStock'].forEach(function(id){
       var e = el(id); if(e) e.value = '';
     });
-    ['fMultiUnit','fMultiSpec','fAlert','fHasBatch','fHasShelf','fHasSerial','fShelfAlert'].forEach(function(id){ el(id).checked = false; });
-    el('fShelfDays').value = 0; el('fShelfUnit').value = 'day'; el('fShelfWarnDays').value = 0;
+    ['fMultiSpec','fAlert'].forEach(function(id){ el(id).checked = false; });
     form.categoryId = 0; renderCategoryPicker();
     form.unitId = 0; renderUnitPicker();
     form.brand = '';
     renderBrandTags();
-    form.images = []; form.units = []; form.specGroups = []; form.suppliers = [];
+    form.images = []; form.specGroups = []; form.suppliers = [];
     form.priceRows = {}; form.stockRows = {}; form.priceUnit = ''; form.priceColumns = []; form.simpleRow = { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }; form.simpleStock = { stock:'', init_cost:'', min_stock:'', max_stock:'' };
-    form.salesUnit = ''; form.purchaseUnit = '';
-    renderImages(); renderUnits(); renderSpecGroups(); renderSupplierTags();
-    toggleMultiUnit(); toggleMultiSpec(); toggleAlert(); toggleShelf(); toggleShelfWarn();
+    renderImages(); renderSpecGroups(); renderSupplierTags();
+    toggleMultiSpec(); toggleAlert();
     el('drawerHint').textContent = '';
   }
 
   // --- 开关联动 ---
-  window.toggleMultiUnit = function(){
-    var on = checked('fMultiUnit');
-    el('unitWrap').style.display = on ? '' : 'none';
-    if(on && !form.units.length){
-      form.units = [{ unit_name:'', rel:1 }];
-    }
-    renderUnits();
-  };
   window.toggleMultiSpec = function(){
     var on = checked('fMultiSpec');
     el('specWrap').style.display = on ? '' : 'none';
@@ -2661,44 +2204,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     renderSimpleStock();
     if(checked('fMultiSpec')) renderStockTable();
   };
-
-  // --- 批次 / 保质期 / 序列号（受系统设置控制）---
-  var sysOpts = { loaded: false, batch_manage: 0, shelf_life: 0, serial_manage: 0 };
-  function loadSysOpts(cb){
-    if(sysOpts.loaded){ if(cb) cb(); return; }
-    apiFetch('/api/shop/system-setting').then(function(res){
-      var d = (res && res.code === 0 && res.data) || {};
-      sysOpts.batch_manage = Number(d.batch_manage) || 0;
-      sysOpts.shelf_life = Number(d.shelf_life) || 0;
-      sysOpts.serial_manage = Number(d.serial_manage) || 0;
-      sysOpts.loaded = true;
-      if(cb) cb();
-    }).catch(function(){ sysOpts.loaded = true; if(cb) cb(); });
-  }
-  function applyStockOpts(){
-    var b = el('swBatchWrap'), s = el('swShelfWrap'), n = el('swSerialWrap');
-    if(b) b.style.display = sysOpts.batch_manage ? '' : 'none';
-    if(s) s.style.display = sysOpts.shelf_life ? '' : 'none';
-    if(n) n.style.display = sysOpts.serial_manage ? '' : 'none';
-    if(!sysOpts.shelf_life){ var sf = el('swShelfFields'); if(sf) sf.style.display = 'none'; }
-    else toggleShelf();
-  }
-  window.toggleShelf = function(){
-    var on = checked('fHasShelf');
-    var sf = el('swShelfFields');
-    if(sf) sf.style.display = on ? '' : 'none';
-    if(on) toggleShelfWarn();
-  };
-  window.toggleShelfWarn = function(){
-    var w = el('swShelfWarn');
-    if(w) w.style.display = checked('fShelfAlert') ? '' : 'none';
-  };
-  function shelfDaysValue(){
-    var v = parseInt((el('fShelfDays') || {}).value, 10) || 0;
-    var u = (el('fShelfUnit') || {}).value || 'day';
-    var f = u === 'month' ? 30 : (u === 'year' ? 365 : 1);
-    return v * f;
-  }
 
   // --- 自动生成 ---
   function ean13(){
@@ -3372,8 +2877,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     closeCatParentDrop();
     closeUnitDrop();
     if(window.closeUnitDrop) window.closeUnitDrop();
-    closeAllAuxDrops();
-    closeAllDUDrops();
   });
 
   // --- 图片 ---
@@ -3461,232 +2964,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     });
   })();
 
-  // --- 多单位（主单位 + 辅单位链式换算）---
+  // --- 主单位 ---
   function mainUnitName(){
     return form.unitId ? unitNameById(form.unitId) : '';
   }
-  // 第 i 行辅单位的换算基准：第 0 行为主单位，其余为上一行辅单位
-  function refUnitName(i){
-    if(i === 0) return mainUnitName() || '主单位';
-    return form.units[i-1].unit_name || '—';
-  }
   var TRASH_SVG = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/>'
     + '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-
-  function renderUnits(){
-    var c = el('unitBoxes');
-    var addWrap = el('addUnitRowWrap');
-    if(addWrap) addWrap.style.display = form.units.length >= 2 ? 'none' : '';
-    if(!form.units.length){ c.innerHTML = ''; syncDefaultUnitOptions(); refreshSpecDependents(); return; }
-    var h = '';
-    form.units.forEach(function(u, i){
-      h += '<div class="unit-box">'
-        + '<span class="ub-label">辅单位' + (i+1) + '</span>'
-        + '<div class="picker ub-picker" data-unit-idx="' + i + '">'
-        +   '<div class="picker-input">'
-        +     '<input class="picker-field" autocomplete="off" placeholder="选择" value="' + escAttr(u.unit_name) + '" data-unit-idx="' + i + '"'
-        +       ' oninput="onAuxUnitInput(this)" onfocus="openAuxDrop(' + i + ')">'
-        +     '<svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
-        +   '</div>'
-        +   '<div class="picker-drop"></div>'
-        + '</div>'
-        + (u.unit_name ? '<span class="ub-formula">1<span class="ub-ref-unit">' + esc(u.unit_name) + '</span> ='
-        +   '<input type="number" step="0.0001" min="0" class="ub-factor" value="' + (u.rel || 1) + '">'
-        +   '<span class="ub-ref">' + esc(refUnitName(i)) + '</span></span>' : '')
-        + '<span class="ub-del" onclick="removeUnitRow(' + i + ')" title="删除">' + TRASH_SVG + '</span>'
-        + '</div>';
-    });
-    c.innerHTML = h;
-    syncDefaultUnitOptions();
-    refreshSpecDependents();
-  }
-  window.syncUnitName = function(i, v){
-    form.units[i].unit_name = v;
-    var u = meta.units.filter(function(x){ return x.name === v; })[0];
-    form.units[i].unit_id = u ? u.id : null;
-    readUnits();
-    renderUnits();
-  };
-  // --- 辅单位（可搜索下拉）---
-  function auxPickerEl(i){
-    return el('unitBoxes').querySelector('.ub-picker[data-unit-idx="' + i + '"]');
-  }
-  function auxDropEl(i){
-    var p = auxPickerEl(i);
-    return p ? p.querySelector('.picker-drop') : null;
-  }
-  function auxInputEl(i){
-    var p = auxPickerEl(i);
-    return p ? p.querySelector('.picker-field') : null;
-  }
-  window.openAuxDrop = function(i){
-    renderAuxUnitList(i, true);
-    var d = auxDropEl(i);
-    if(d) d.classList.add('open');
-    var inp = auxInputEl(i);
-    if(inp && form.units[i] && form.units[i].unit_name)
-      setTimeout(function(){ try{ inp.select(); }catch(e){} }, 0);
-  };
-  window.closeAuxDrop = function(i){
-    var d = auxDropEl(i);
-    if(d) d.classList.remove('open');
-    var inp = auxInputEl(i);
-    if(inp && form.units[i]) inp.value = form.units[i].unit_name || '';
-  };
-  function closeAllAuxDrops(){
-    var boxes = el('unitBoxes');
-    if(!boxes) return;
-    boxes.querySelectorAll('.picker-drop.open').forEach(function(d){ d.classList.remove('open'); });
-  }
-  window.onAuxUnitInput = function(inp){
-    var i = parseInt(inp.getAttribute('data-unit-idx'), 10);
-    renderAuxUnitList(i, false);
-    var d = auxDropEl(i);
-    if(d && !d.classList.contains('open')) d.classList.add('open');
-  };
-  function renderAuxUnitList(idx, showAll){
-    var d = auxDropEl(idx);
-    if(!d) return;
-    var inp = auxInputEl(idx);
-    var kw = showAll ? '' : (inp ? inp.value.trim().toLowerCase() : '');
-    var list = (meta.units || []).filter(function(u){ return textMatch(u.name, kw); });
-    var h = '';
-    list.forEach(function(u){
-      var sel = form.units[idx] && form.units[idx].unit_name === u.name;
-      h += '<div class="picker-opt' + (sel ? ' selected' : '') + '" data-name="' + esc(u.name) + '">'
-        + esc(u.name) + '<span class="opt-check">' + checkSVG() + '</span></div>';
-    });
-    if(!h) h = '<div class="picker-opt empty">暂无单位</div>';
-    h += '<div class="picker-opt add" data-act="add">+ 新增单位</div>';
-    d.innerHTML = h;
-    d.querySelectorAll('.picker-opt:not(.empty):not(.add)').forEach(function(opt){
-      opt.addEventListener('click', function(e){
-        e.stopPropagation();
-        pickAuxUnit(idx, opt.getAttribute('data-name'));
-      });
-    });
-    var addBtn = d.querySelector('.picker-opt.add');
-    if(addBtn) addBtn.addEventListener('click', function(e){
-      e.stopPropagation();
-      closeAllAuxDrops();
-      openUnitModal();
-    });
-  }
-  window.pickAuxUnit = function(idx, name){
-    if(!form.units[idx]) return;
-    readUnits();
-    form.units[idx].unit_name = name;
-    var m = meta.units.filter(function(x){ return x.name === name; })[0];
-    form.units[idx].unit_id = m ? m.id : null;
-    renderUnits();
-    syncDefaultUnitOptions();
-    refreshSpecDependents();
-    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
-  };
-  window.clearAuxUnit = function(idx){
-    if(!form.units[idx]) return;
-    readUnits();
-    form.units[idx].unit_name = '';
-    form.units[idx].unit_id = null;
-    renderUnits();
-    syncDefaultUnitOptions();
-    refreshSpecDependents();
-    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
-  };
-  window.onMainUnitChange = function(){
-    if(checked('fMultiUnit')){ readUnits(); renderUnits(); }
-    else {
-      readSimplePrice(); renderSimplePrice();
-      readSimpleStock(); renderSimpleStock();
-      reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
-    }
-  };
-  window.addUnitRow = function(){
-    if(form.units.length >= 2){ showToast('最多 2 个辅单位', 'error'); return; }
-    readUnits();
-    form.units.push({ unit_name:'', rel:1 });
-    renderUnits();
-  };
-  window.removeUnitRow = function(i){
-    readUnits();
-    form.units.splice(i, 1);
-    renderUnits();
-    syncDefaultUnitOptions();
-    reconcileRows(); renderPriceTabs(); renderPriceTable(); renderStockTable();
-  };
-  function readUnits(){
-    var boxes = el('unitBoxes').querySelectorAll('.unit-box');
-    boxes.forEach(function(box, i){
-      if(!form.units[i]) return;
-      var inp = box.querySelector('.picker-field');
-      var fac = box.querySelector('.ub-factor');
-      if(inp) form.units[i].unit_name = inp.value.trim();
-      if(fac) form.units[i].rel = parseFloat(fac.value) || 1;
-      var m = meta.units.filter(function(x){ return x.name === form.units[i].unit_name; })[0];
-      form.units[i].unit_id = m ? m.id : null;
-    });
-  }
-  // 开单默认单位下拉：主单位 + 全部辅单位
-  function duNames(){
-    var names = [];
-    var m = mainUnitName();
-    if(m) names.push(m);
-    form.units.forEach(function(u){ if(u.unit_name && names.indexOf(u.unit_name) < 0) names.push(u.unit_name); });
-    return names;
-  }
-  function duId(which){ return which === 'sales' ? 'fSalesUnit' : 'fPurchaseUnit'; }
-  function duDropId(which){ return which === 'sales' ? 'duDropSales' : 'duDropPurchase'; }
-  function duListId(which){ return which === 'sales' ? 'duListSales' : 'duListPurchase'; }
-  window.closeAllDUDrops = function(){
-    ['duDropSales','duDropPurchase'].forEach(function(id){ var e = el(id); if(e) e.classList.remove('open'); });
-  };
-  window.toggleDU = function(which){
-    var d = el(duDropId(which));
-    var was = d && d.classList.contains('open');
-    closeAllDUDrops();
-    if(was) return;
-    renderDUList(which);
-    if(d) d.classList.add('open');
-  };
-  function renderDUList(which){
-    var c = el(duListId(which)); if(!c) return;
-    var inp = el(duId(which));
-    var cur = inp ? inp.value : '';
-    var h = '';
-    duNames().forEach(function(n){
-      h += '<div class="picker-opt' + (n===cur?' selected':'') + '" onclick="pickDU(\'' + which + '\',\'' + jsesc(n) + '\')">'
-        + esc(n) + '<span class="opt-check">' + checkSVG() + '</span></div>';
-    });
-    c.innerHTML = h || '<div class="picker-opt empty">暂无单位</div>';
-  }
-  window.pickDU = function(which, name){
-    var inp = el(duId(which)); if(inp) inp.value = name;
-    form[which === 'sales' ? 'salesUnit' : 'purchaseUnit'] = name;
-    closeAllDUDrops();
-  };
-  function syncDefaultUnitOptions(){
-    var names = duNames();
-    [['sales','fSalesUnit','salesUnit'],['purchase','fPurchaseUnit','purchaseUnit']].forEach(function(t){
-      var inp = el(t[1]); if(!inp) return;
-      if(names.indexOf(inp.value) < 0){
-        if(form[t[2]] && names.indexOf(form[t[2]]) >= 0) inp.value = form[t[2]];
-        else inp.value = names.length ? names[0] : '';
-      }
-      form[t[2]] = inp.value;
-    });
-    renderDUList('sales'); renderDUList('purchase');
-  }
-  // 相对换算率（界面） ⇄ 绝对换算率（相对主单位，存储）
-  function relToAbs(rels){
-    var out = [], acc = 1;
-    rels.forEach(function(r){ acc *= (parseFloat(r) || 1); out.push(acc); });
-    return out;
-  }
-  function absToRel(abs){
-    var out = [];
-    abs.forEach(function(a, i){ out.push(i === 0 ? a : (abs[i-1] ? a / abs[i-1] : a)); });
-    return out;
-  }
 
   // --- 多规格（规格组）---
   var specUI = { nameIdx: -1, valueIdx: -1, nameFilter: '', valueFilter: '' };
@@ -4158,8 +3441,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 
   function refreshSpecDependents(){
     var multiSpec = checked('fMultiSpec');
-    var multiUnit = checked('fMultiUnit');
-    var priceMulti = multiSpec || multiUnit;
+    var priceMulti = multiSpec;
     el('priceSimple').style.display = priceMulti ? 'none' : '';
     el('priceMulti').style.display  = priceMulti ? '' : 'none';
     el('stockSimple').style.display = multiSpec ? 'none' : '';
@@ -4410,14 +3692,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     var name = el('fName').value.trim();
     if(!name){ showToast('请输入商品名称', 'error'); el('fName').focus(); return; }
 
-    readUnits();
     readSimplePrice();
     readSimpleStock();
-    if(checked('fMultiUnit')){
-      if(!mainUnitName()){ showToast('请先选择主单位', 'error'); return; }
-      form.units = form.units.filter(function(u){ return (u.unit_name||'').trim() !== ''; });
-      if(!form.units.length){ showToast('启用多单位时请至少选择 1 个辅单位', 'error'); return; }
-    }
     if(checked('fMultiSpec')){
       form.specGroups = form.specGroups.filter(function(g){ return (g.name||'').trim() !== ''; });
       if(!form.specGroups.length){ showToast('启用多规格时请至少添加 1 组规格', 'error'); return; }
@@ -4428,18 +3704,11 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
         }
       }
     }
-    if(checked('fMultiUnit') || checked('fMultiSpec')){
+    if(checked('fMultiSpec')){
       readPriceTable();
     }
     if(checked('fMultiSpec')){
       readStockTable();
-    }
-    if(checked('fHasShelf')){
-      var shelfRaw = (el('fShelfDays').value || '').trim();
-      var shelfNum = Number(shelfRaw);
-      if(!shelfRaw || !isFinite(shelfNum) || shelfNum <= 0 || Math.floor(shelfNum) !== shelfNum){
-        showToast('保质期天数必填，且只能为正整数', 'error'); el('fShelfDays').focus(); return;
-      }
     }
 
     var body = {
@@ -4454,17 +3723,11 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       unit_id: form.unitId ? parseInt(form.unitId, 10) : null,
       supplier_id: form.suppliers.length ? form.suppliers[0] : null,
       suppliers: JSON.stringify(form.suppliers),
-      has_multi_unit: checked('fMultiUnit') ? 1 : 0,
+      has_multi_unit: 0,
       has_multi_spec: checked('fMultiSpec') ? 1 : 0,
-      sales_unit: checked('fMultiUnit') ? (el('fSalesUnit').value || '') : '',
-      purchase_unit: checked('fMultiUnit') ? (el('fPurchaseUnit').value || '') : '',
+      sales_unit: '',
+      purchase_unit: '',
       enable_stock_alert: checked('fAlert') ? 1 : 0,
-      has_batch: checked('fHasBatch') ? 1 : 0,
-      has_shelf_life: checked('fHasShelf') ? 1 : 0,
-      shelf_life_days: checked('fHasShelf') ? shelfDaysValue() : 0,
-      expiry_alert: (checked('fHasShelf') && checked('fShelfAlert')) ? 1 : 0,
-      expiry_warn_days: (checked('fHasShelf') && checked('fShelfAlert')) ? int('fShelfWarnDays') : 0,
-      has_serial: checked('fHasSerial') ? 1 : 0,
       init_cost: num('fInitCost'),
       current_stock: int('fStock'),
       min_stock: checked('fAlert') ? int('fMinStock') : 0,
@@ -4474,19 +3737,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       wholesale_price: num('fWholesalePrice'),
       images: JSON.stringify(form.images),
       image_url: form.images[0] || '',
-      units: (function(){
-        if(!checked('fMultiUnit')) return [];
-        var rels = form.units.map(function(u){ return parseFloat(u.rel) || 1; });
-        var abs = relToAbs(rels);
-        return form.units.map(function(u, i){
-          return {
-            unit_id: u.unit_id || null,
-            unit_name: u.unit_name || '',
-            factor: abs[i],
-            is_main: 0
-          };
-        });
-      })(),
+      units: [],
       specs: [],
       spec_groups: checked('fMultiSpec') ? JSON.stringify(form.specGroups) : '',
       price_rows: JSON.stringify((function(){
@@ -4587,7 +3838,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     if(el('unitModal') && el('unitModal').classList.contains('show')){ closeUnitModal(); return; }
     if(el('specValueModal') && el('specValueModal').classList.contains('show')){ closeSpecValueModal(); return; }
     if(el('priceLevelModal') && el('priceLevelModal').classList.contains('show')){ closePriceLevelModal(); return; }
-    closeAllAuxDrops();
     closeDrawer();
   });
 
@@ -4643,7 +3893,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
 })();
 </script>
-<script src="/js/tabs.js?v=20261047"></script>
-<script src="/js/app-shell.js?v=20261047"></script>
+<script src="/js/tabs.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261054"></script>
 </body>
 </html>

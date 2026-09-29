@@ -20,6 +20,15 @@ func NewCustomerHandler(repo *repository.CustomerRepository, db *gorm.DB) *Custo
 	return &CustomerHandler{repo: repo, db: db}
 }
 
+func fillCustomerCatStr(list []model.Customer) {
+	for i := range list {
+		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
+		if list[i].CategoryID != nil {
+			list[i].CategoryIDStr = strconv.FormatInt(int64(*list[i].CategoryID), 10)
+		}
+	}
+}
+
 func (h *CustomerHandler) List(c *gin.Context) {
 	ctx := c.Request.Context()
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -29,6 +38,7 @@ func (h *CustomerHandler) List(c *gin.Context) {
 	hideDisabled := c.Query("hide_disabled") == "1"
 	hideZero := c.Query("hide_zero") == "1"
 	list, total := h.repo.List(ctx, page, pageSize, keyword, categoryID, hideDisabled, hideZero)
+	fillCustomerCatStr(list)
 	response.OKPage(c, list, total, page, pageSize)
 }
 
@@ -39,6 +49,7 @@ func (h *CustomerHandler) ListAll(c *gin.Context) {
 		response.ServerError(c, "查询客户失败")
 		return
 	}
+	fillCustomerCatStr(list)
 	response.OK(c, list)
 }
 
@@ -49,6 +60,10 @@ func (h *CustomerHandler) GetByID(c *gin.Context) {
 	if err != nil {
 		response.NotFound(c, "客户不存在")
 		return
+	}
+	customer.IDStr = strconv.FormatInt(customer.ID, 10)
+	if customer.CategoryID != nil {
+		customer.CategoryIDStr = strconv.FormatInt(int64(*customer.CategoryID), 10)
 	}
 	response.OK(c, customer)
 }
@@ -70,6 +85,10 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 		response.ServerError(c, "创建客户失败")
 		return
 	}
+	customer.IDStr = strconv.FormatInt(customer.ID, 10)
+	if customer.CategoryID != nil {
+		customer.CategoryIDStr = strconv.FormatInt(int64(*customer.CategoryID), 10)
+	}
 	response.OK(c, customer)
 }
 
@@ -88,6 +107,10 @@ func (h *CustomerHandler) Update(c *gin.Context) {
 	if err := h.repo.Update(ctx, existing); err != nil {
 		response.ServerError(c, "更新客户失败")
 		return
+	}
+	existing.IDStr = strconv.FormatInt(existing.ID, 10)
+	if existing.CategoryID != nil {
+		existing.CategoryIDStr = strconv.FormatInt(int64(*existing.CategoryID), 10)
 	}
 	response.OK(c, existing)
 }

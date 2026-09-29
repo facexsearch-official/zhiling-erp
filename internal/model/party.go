@@ -5,11 +5,13 @@ import "time"
 // Customer 客户
 type Customer struct {
 	ID              int64     `json:"id" gorm:"primaryKey"`
+	IDStr           string    `json:"id_str" gorm:"->"`
 	TenantID        int64     `json:"tenant_id" gorm:"index"`
 	Name            string    `json:"name" gorm:"size:128"`
 	Code            string    `json:"code" gorm:"size:64"`
 	Type            int8      `json:"type"` // 1=客户 2=供应商 3=双身份
-	CategoryID      *int64    `json:"category_id"`
+	CategoryID      *FlexInt64 `json:"category_id"`
+	CategoryIDStr   string    `json:"category_id_str" gorm:"->"`
 	PriceLevel      string    `json:"price_level" gorm:"size:32"`
 	SalesmanID      int64     `json:"salesman_id" gorm:"index"`
 	Discount        float64   `json:"discount" gorm:"default:100"`

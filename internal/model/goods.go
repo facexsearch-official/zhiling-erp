@@ -14,6 +14,7 @@ type GoodsCategory struct {
 // Unit 单位
 type Unit struct {
 	ID        int64     `json:"id" gorm:"primaryKey"`
+	IDStr     string    `json:"id_str" gorm:"->"`
 	TenantID  int64     `json:"tenant_id" gorm:"index"`
 	Name      string    `json:"name" gorm:"size:20"`
 	CreatedAt time.Time `json:"created_at"`

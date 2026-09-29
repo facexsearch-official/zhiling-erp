@@ -36,9 +36,7 @@
       {title:'商品', items:[
         {key:'goods:list',  label:'商品列表', tabLabel:'商品列表', href:'/goods.html'},
         {key:'goods:spec',  label:'规格管理', href:'/spec.html'},
-        {key:'goods:unit',  label:'单位管理', href:'/unit.html'},
-        {key:'goods:attr',  label:'商品属性', href:'/attr.html'},
-        {key:'goods:price', label:'价格管理', href:'/price.html'}
+        {key:'goods:unit',  label:'单位管理', href:'/unit.html'}
       ]}
     ]},
 
@@ -52,21 +50,21 @@
     {key:'purchase', label:'进货', icon:IC.purchase, cols:[
       {title:'进货', items:[
         {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
-        {key:'purchase:new',      label:'进货',     tabLabel:'进货单列表', href:'/#purchase:new',      plus:true},
-        {key:'purchase:return',   label:'进货退货', tabLabel:'进货退货列表', href:'/#purchase:return',   plus:true}
+        {key:'purchase:new',      label:'进货',     tabLabel:'进货单列表', href:'/#purchase:new'},
+        {key:'purchase:return',   label:'进货退货', tabLabel:'进货退货列表', href:'/#purchase:return'}
       ]}
     ]},
 
     {key:'sales', label:'销售', icon:IC.sales, cols:[
       {title:'销售', items:[
-        {key:'sales:new',    label:'销售',     tabLabel:'销售单列表',     plus:true},
-        {key:'sales:return', label:'销售退货', tabLabel:'销售退货单列表', plus:true}
+        {key:'sales:new',    label:'销售',     tabLabel:'销售单列表',     href:'/#sales:new'},
+        {key:'sales:return', label:'销售退货', tabLabel:'销售退货单列表', href:'/#sales:return'}
       ]}
     ]},
 
     {key:'stock', label:'库存', icon:IC.stock, cols:[
       {title:'库存', items:[
-        {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take', plus:true}
+        {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take'}
       ]},
       {title:'查询', items:[
         {key:'stock:query',  label:'库存查询', tabLabel:'库存查询', href:'/#stock:query'},
@@ -79,8 +77,8 @@
         {key:'funds:account',  label:'账户概览', tabLabel:'账户概览', href:'/#funds:account'}
       ]},
       {title:'收支', items:[
-        {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt', plus:true},
-        {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment', plus:true}
+        {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt'},
+        {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment'}
       ]},
       {title:'对账', items:[
         {key:'funds:cashflow',       label:'资金流水',   tabLabel:'资金流水',   href:'/#funds:cashflow'}
@@ -100,7 +98,6 @@
   /* ── helpers ───────────────────────────────────────────── */
   // 顶栏「设置」下拉项（设置不再作为侧边栏模块）
   var TOPBAR_SETTINGS = [
-    {key:'settings:shop',  label:'商户信息'},
     {key:'settings:staff', label:'员工管理'},
     {key:'settings:role',  label:'角色权限'}
   ];
@@ -204,6 +201,16 @@
   }
   window.pisaToast = toast;
 
+  /* ── API helper ────────────────────────────────────────── */
+  function authPost(path, body){
+    var t = localStorage.getItem('pisa_token');
+    return fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': t ? ('Bearer ' + t) : '' },
+      body: JSON.stringify(body || {})
+    }).then(function(r){ return r.json(); });
+  }
+
   /* ── Topbar ────────────────────────────────────────────── */
   function renderTopbar(){
     var app = document.querySelector('.app');
@@ -260,7 +267,6 @@
     m.innerHTML = ''
       + '<div class="um-head">'
       +   '<div class="um-info"><div class="um-name">' + esc(name) + '</div><div class="um-sub">' + esc(tname) + '</div></div>'
-      +   '<span class="um-view" onclick="pisaHideUserMenu();if(window.PisaShell)PisaShell.navGo(\'settings:shop\')">查看</span>'
       + '</div>';
     document.body.appendChild(m);
     var r = host.getBoundingClientRect();
@@ -507,7 +513,6 @@
     });
     html += '<div class="tenant-option" data-create="1" style="color:var(--accent-700);font-weight:500">'
       + '<span style="font-size:17px;line-height:1;width:18px;text-align:center">+</span>创建新商户</div>';
-    html += '<div class="tenant-menu-foot" onclick="pisaNavGo(\'settings:shop\')">商户信息 / 套餐订阅 ›</div>';
     menu.innerHTML = html;
 
     menu.querySelectorAll('.tenant-option').forEach(function(el){
@@ -527,45 +532,97 @@
     var s = byId('tenantSwitch');
     if(s) s.classList.remove('open');
   });
+  function applyTenantSession(data, tenant){
+    if(data.token) localStorage.setItem('pisa_token', data.token);
+    if(data.permissions) localStorage.setItem('pisa_perms', JSON.stringify(data.permissions));
+    if(data.sensitive_data) localStorage.setItem('pisa_sens', JSON.stringify(data.sensitive_data));
+    var list = tenants();
+    var exists = false;
+    list.forEach(function(t){ if(t.name === tenant.name) exists = true; });
+    if(!exists) list.push(tenant);
+    localStorage.setItem('pisa_tenants', JSON.stringify(list));
+    localStorage.setItem('pisa_currentTenant', JSON.stringify(tenant));
+  }
   window.pisaSwitchTenant = function(name, role){
     var list = tenants();
     var cur = null;
     list.forEach(function(t){ if(t.name === name) cur = t; });
     if(!cur) cur = {name:name, role:role||'操作员'};
-    localStorage.setItem('pisa_currentTenant', JSON.stringify(cur));
+    var tid = cur.tenant_id_str || cur.tenant_id || cur.id;
     var s = byId('tenantSwitch');
     if(s) s.classList.remove('open');
-    toast('已切换到「' + name + '」' + (role ? '（' + role + '）' : ''));
-    setTimeout(function(){ location.href = '/'; }, 400);
+    if(!tid){ toast('该商户无法切换'); return; }
+    authPost('/api/auth/switch-tenant', { tenant_id_str: String(tid) }).then(function(res){
+      if(!res || res.code !== 0){ toast((res && res.message) || '切换失败'); return; }
+      applyTenantSession(res.data, cur);
+      toast('已切换到「' + name + '」');
+      setTimeout(function(){ location.href = '/'; }, 400);
+    }).catch(function(){ toast('网络错误'); });
   };
+  function ensureTenantModal(){
+    if(byId('tenantModal')) return;
+    var d = document.createElement('div');
+    d.id = 'tenantModal';
+    d.className = 'pisa-modal-mask';
+    d.innerHTML = '<div class="pisa-modal">'
+      + '<div class="pisa-modal-head"><span class="pisa-modal-title">创建新商户</span>'
+      +   '<button class="pisa-modal-x" type="button" onclick="pisaHideTenantModal()">&times;</button></div>'
+      + '<div class="pisa-modal-body">'
+      +   '<div class="pisa-field"><label>商户名称 <i>*</i></label><input id="newTenantName" placeholder="如：张三五金店"></div>'
+      +   '<div class="pisa-field"><label>商户类型</label><select id="newTenantType"><option value="1">个体户</option><option value="2">有限公司</option><option value="3">合伙企业</option></select></div>'
+      +   '<div class="pisa-field"><label>联系人</label><input id="newTenantContact" placeholder="请输入联系人"></div>'
+      +   '<div class="pisa-field"><label>联系电话</label><input id="newTenantPhone" placeholder="请输入联系电话"></div>'
+      +   '<div class="pisa-modal-hint">创建后该账号将成为新商户的主账号，并自动切换到新商户。</div>'
+      + '</div>'
+      + '<div class="pisa-modal-foot">'
+      +   '<button class="pisa-btn-ghost" type="button" onclick="pisaHideTenantModal()">取消</button>'
+      +   '<button class="pisa-btn-primary" id="tenantCreateBtn" type="button" onclick="pisaCreateTenantFromModal()">创建并切换</button>'
+      + '</div></div>';
+    document.body.appendChild(d);
+    d.addEventListener('click', function(e){ if(e.target === d) window.pisaHideTenantModal(); });
+    var inp = byId('newTenantName');
+    if(inp) inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') window.pisaCreateTenantFromModal(); });
+  }
   window.pisaHideTenantModal = function(){
     var m = byId('tenantModal');
     if(m) m.classList.remove('show');
   };
-  function addTenant(name){
-    var list = tenants();
-    list.push({id:Date.now(), name:name, role:'主账号'});
-    localStorage.setItem('pisa_tenants', JSON.stringify(list));
-    window.pisaSwitchTenant(name, '主账号');
-  }
   window.pisaCreateTenant = function(){
+    ensureTenantModal();
     var m = byId('tenantModal');
-    if(m){
-      var s = byId('tenantSwitch'); if(s) s.classList.remove('open');
-      var inp = byId('newTenantName'); if(inp) inp.value = '';
-      m.classList.add('show');
-      if(inp) setTimeout(function(){ inp.focus(); }, 50);
-      return;
-    }
-    var name = (prompt('请输入商户名称') || '').trim();
-    if(name) addTenant(name);
+    if(!m) return;
+    var s = byId('tenantSwitch'); if(s) s.classList.remove('open');
+    var inp = byId('newTenantName'); if(inp) inp.value = '';
+    var c = byId('newTenantContact'); if(c) c.value = '';
+    var p = byId('newTenantPhone'); if(p) p.value = '';
+    m.classList.add('show');
+    if(inp) setTimeout(function(){ inp.focus(); }, 50);
   };
-  window.pisaCreateTenantFromModal = function(){
-    var inp = byId('newTenantName');
-    var name = ((inp && inp.value) || '').trim();
+  window.pisaCreateTenantFromModal = function(fallbackName){
+    var name = (typeof fallbackName === 'string') ? fallbackName
+      : (((byId('newTenantName') || {}).value) || '').trim();
     if(!name){ toast('请输入商户名称'); return; }
-    window.pisaHideTenantModal();
-    addTenant(name);
+    var btn = byId('tenantCreateBtn');
+    var old = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = '创建中...'; }
+    var payload = {
+      name: name,
+      contact_name: ((byId('newTenantContact') || {}).value || '').trim(),
+      contact_phone: ((byId('newTenantPhone') || {}).value || '').trim()
+    };
+    var typeSel = byId('newTenantType');
+    if(typeSel) payload.type = parseInt(typeSel.value, 10) || 1;
+    authPost('/api/auth/create-tenant', payload).then(function(res){
+      if(btn){ btn.disabled = false; btn.textContent = old; }
+      if(!res || res.code !== 0){ toast((res && res.message) || '创建失败'); return; }
+      applyTenantSession(res.data, res.data.tenant);
+      window.pisaHideTenantModal();
+      toast('已创建并切换到「' + name + '」');
+      setTimeout(function(){ location.href = '/'; }, 500);
+    }).catch(function(){
+      if(btn){ btn.disabled = false; btn.textContent = old; }
+      toast('网络错误');
+    });
   };
 
   function loadTenant(){
