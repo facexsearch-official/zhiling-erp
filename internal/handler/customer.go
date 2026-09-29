@@ -4,8 +4,10 @@ import (
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
+	"pisa_server/internal/pkg/snowflake"
 	"pisa_server/internal/repository"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,6 +28,22 @@ func fillCustomerCatStr(list []model.Customer) {
 		if list[i].CategoryID != nil {
 			list[i].CategoryIDStr = strconv.FormatInt(int64(*list[i].CategoryID), 10)
 		}
+	}
+}
+
+// saveAddresses 覆盖保存某客户的收货地址（跳过空行）
+func (h *CustomerHandler) saveAddresses(tenantID, customerID int64, list []model.CustomerAddress) {
+	h.db.Where("customer_id = ?", customerID).Delete(&model.CustomerAddress{})
+	for i := range list {
+		a := list[i]
+		if strings.TrimSpace(a.Receiver) == "" && strings.TrimSpace(a.Phone) == "" &&
+			strings.TrimSpace(a.Region) == "" && strings.TrimSpace(a.Detail) == "" {
+			continue
+		}
+		a.ID = snowflake.GenID()
+		a.TenantID = tenantID
+		a.CustomerID = customerID
+		h.db.Create(&a)
 	}
 }
 
@@ -61,6 +79,7 @@ func (h *CustomerHandler) GetByID(c *gin.Context) {
 		response.NotFound(c, "客户不存在")
 		return
 	}
+	h.db.Where("customer_id = ?", id).Order("is_default DESC, id ASC").Find(&customer.Addresses)
 	customer.IDStr = strconv.FormatInt(customer.ID, 10)
 	if customer.CategoryID != nil {
 		customer.CategoryIDStr = strconv.FormatInt(int64(*customer.CategoryID), 10)
@@ -85,6 +104,7 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 		response.ServerError(c, "创建客户失败")
 		return
 	}
+	h.saveAddresses(customer.TenantID, customer.ID, customer.Addresses)
 	customer.IDStr = strconv.FormatInt(customer.ID, 10)
 	if customer.CategoryID != nil {
 		customer.CategoryIDStr = strconv.FormatInt(int64(*customer.CategoryID), 10)
@@ -108,6 +128,7 @@ func (h *CustomerHandler) Update(c *gin.Context) {
 		response.ServerError(c, "更新客户失败")
 		return
 	}
+	h.saveAddresses(existing.TenantID, existing.ID, existing.Addresses)
 	existing.IDStr = strconv.FormatInt(existing.ID, 10)
 	if existing.CategoryID != nil {
 		existing.CategoryIDStr = strconv.FormatInt(int64(*existing.CategoryID), 10)

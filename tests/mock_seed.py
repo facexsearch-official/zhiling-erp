@@ -125,14 +125,42 @@ def seed_customer_categories(cur, tid):
 
 
 def seed_customers(cur, tid, cats, count=200):
+    banks = ["工商银行", "建设银行", "招商银行", "中国银行", "农业银行", "交通银行"]
+    regions = ["广东省 / 深圳市 / 南山区", "广东省 / 广州市 / 天河区", "浙江省 / 杭州市 / 西湖区",
+               "江苏省 / 南京市 / 玄武区", "上海市 / 上海市 / 浦东新区", "北京市 / 北京市 / 朝阳区"]
     rows = []
     for i in range(count):
-        rows.append((nid(), tid, "客户%04d" % (i + 1), "KH%05d" % (i + 1), 1,
-                     "联系人%d" % (i + 1), phone(), "广东省深圳市南山区", 1, now(), now(),
-                     random.choice(cats), "零售价", 100, random.randint(0, 500), random.randint(0, 2000)))
+        rows.append((
+            nid(), tid, "客户%04d" % (i + 1), "KH%05d" % (i + 1), 1,
+            "联系人%d" % (i + 1), phone(), regions[i % len(regions)], 1, now(), now(),
+            random.choice(cats), random.choice(["零售价", "批发价", "VIP"]), random.choice([90, 95, 98, 100]),
+            random.randint(0, 500), random.randint(0, 2000),
+            "科技园路%d号%d栋" % (i % 200 + 1, i % 50 + 1),
+            "cust%04d@example.com" % (i + 1), "TAX%08d" % (i + 1), "0755-%08d" % (i + 1),
+            random.choice(banks), "6222%012d" % (i + 1),
+            "19%02d-%02d-%02d" % (70 + i % 30, (i % 12) + 1, (i % 28) + 1),
+            "wx_cust%04d" % (i + 1), str(10000000 + i), "测试备注 %d" % (i + 1),
+        ))
     insert_many(cur, "customers",
                 ["id", "tenant_id", "name", "code", "type", "contact", "phone", "address", "status",
-                 "created_at", "updated_at", "category_id", "price_level", "discount", "points", "init_debt"], rows)
+                 "created_at", "updated_at", "category_id", "price_level", "discount", "points", "init_debt",
+                 "address_detail", "email", "tax_no", "fax", "bank_name", "bank_account", "birthday",
+                 "wechat", "qq", "remark"], rows)
+    return [r[0] for r in rows]
+
+
+def seed_customer_addresses(cur, tid, custs):
+    regions = ["广东省 / 深圳市 / 南山区", "广东省 / 广州市 / 天河区", "浙江省 / 杭州市 / 西湖区",
+               "江苏省 / 南京市 / 玄武区", "上海市 / 上海市 / 浦东新区", "北京市 / 北京市 / 朝阳区"]
+    rows = []
+    for i, cid in enumerate(custs):
+        for j in range(2 if i % 2 == 0 else 1):
+            rows.append((nid(), tid, cid, "收货人%04d-%d" % (i + 1, j + 1), phone(),
+                         regions[(i + j) % len(regions)],
+                         "科技园路%d号%d栋%d室" % (i % 200 + 1, j + 1, (i % 20) + 1),
+                         1 if j == 0 else 0))
+    insert_many(cur, "customer_addresses",
+                ["id", "tenant_id", "customer_id", "receiver", "phone", "region", "detail", "is_default"], rows)
 
 
 def seed_units(cur, tid):
@@ -221,7 +249,8 @@ def main():
     clean_business(cur, tenant_id)
 
     cust_cats = seed_customer_categories(cur, tenant_id)
-    seed_customers(cur, tenant_id, cust_cats, 200)
+    custs = seed_customers(cur, tenant_id, cust_cats, 200)
+    seed_customer_addresses(cur, tenant_id, custs)
     units = seed_units(cur, tenant_id)
     seed_specs(cur, tenant_id)
     goods_cats = seed_goods_categories(cur, tenant_id)

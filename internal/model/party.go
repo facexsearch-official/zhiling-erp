@@ -38,6 +38,7 @@ type Customer struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 	CategoryName    string    `json:"category_name" gorm:"->"`
 	SalesmanName    string    `json:"salesman_name" gorm:"->"`
+	Addresses       []CustomerAddress `json:"addresses" gorm:"-"`
 }
 
 // CustomerCategory 客户分类
