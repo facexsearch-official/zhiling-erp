@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>客户管理 - PISA 进销存</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -284,7 +281,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 </style>
 <link rel="stylesheet" href="/css/app-shell.css?v=20261054">
 <link rel="stylesheet" href="/css/tabs.css?v=20261054">
-<script src="https://cdn.jsdelivr.net/npm/pinyin-match@1.2.10/dist/main.js"></script>
+<script src="/js/vendor/pinyin-match.min.js"></script>
 </head>
 <body>
 <script>(function(){try{var p=JSON.parse(localStorage.getItem('pisa_perms')||'null');if(p===null||p===undefined)return;var k='customer.customer.view';function ok(x){if(p['*']||p[x])return true;var a=x.split('.');for(var i=a.length-1;i>=1;i--){if(p[a.slice(0,i).join('.')+'.*'])return true;}return false;}if(!ok(k))location.replace('/index.html');}catch(e){}})();</script>
@@ -934,12 +931,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   };
   window.catNodeClick = function(el, catId){
     pickCat(el, catId);
-    var hasKids;
-    if(catId === 0) hasKids = catTopLevels().length > 0;
-    else if(catId === -1) hasKids = false;
-    else hasKids = catChildren(catId).length > 0;
-    if(!hasKids) return;
-    catToggleCollapse(catId === 0 ? 'all' : catId);
   };
   window.catToggleCollapse = function(catId){
     catUI.collapsed[catId] = !catUI.collapsed[catId];
@@ -1106,7 +1097,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
         return '<div class="actions">'
           + '<button class="btn btn-ghost btn-sm" onclick="cuGoView(\'' + rid + '\')">查看</button>'
           + '<button class="btn btn-ghost btn-sm" onclick="cuGoReceipt(\'' + rid + '\')">收款</button>'
-          + '<button class="btn btn-ghost btn-sm" onclick="cuGoStatement(\'' + rid + '\')">对账</button>'
           + '<button class="btn btn-ghost btn-sm" onclick="cuMoreMenu(event,\'' + rid + '\')">更多</button>'
           + '</div>';
       } }
@@ -1493,7 +1483,11 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     return Promise.all([
       apiFetch('/api/shop/customer-category/list')
     ]).then(function(r){
-      meta.categories = (r[0] && r[0].data) || [];
+      meta.categories = ((r[0] && r[0].data) || []).map(function(c){
+        c.id = c.id_str || String(c.id);
+        c.parent_id = c.parent_id_str || String(c.parent_id || 0);
+        return c;
+      });
       meta.units = []; meta.suppliers = []; meta.brands = []; meta.attributes = [];
       meta.loaded = true;
       try{ renderCatTree(); }catch(e){ if(window.console) console.error('renderCatTree failed: ' + (e && e.message), (e && e.stack)); }

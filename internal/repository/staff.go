@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"pisa_server/internal/model"
@@ -167,6 +168,9 @@ func (r *StaffRepository) ListShops(ctx context.Context) ([]model.Shop, error) {
 	tenantID := customContext.GetTenantID(ctx)
 	var list []model.Shop
 	err := r.DB.Where("tenant_id = ?", tenantID).Order("is_main DESC, id ASC").Find(&list).Error
+	for i := range list {
+		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
+	}
 	return list, err
 }
 

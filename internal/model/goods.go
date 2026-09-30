@@ -69,8 +69,10 @@ type Goods struct {
 	Name           string    `json:"name" gorm:"size:255"`
 	Code           string    `json:"code" gorm:"size:64"`
 	Barcode        string    `json:"barcode" gorm:"size:64"`
-	CategoryID     *int64    `json:"category_id"`
-	UnitID         *int64    `json:"unit_id"`
+	CategoryID     *FlexInt64 `json:"category_id"`
+	CategoryIDStr  string    `json:"category_id_str" gorm:"->"`
+	UnitID         *FlexInt64 `json:"unit_id"`
+	UnitIDStr      string    `json:"unit_id_str" gorm:"->"`
 	SupplierID     *int64    `json:"supplier_id"`
 	Suppliers      string    `json:"suppliers" gorm:"type:text"` // JSON 数组，存储多个供应商 ID
 	ImageURL       string    `json:"image_url" gorm:"size:255"`

@@ -116,7 +116,6 @@ func main() {
 			roleHandler := handler.NewRoleHandler(database)
 			systemSettingHandler := handler.NewSystemSettingHandler(database)
 			userPreferenceHandler := handler.NewUserPreferenceHandler(database)
-			pointsSettingHandler := handler.NewPointsSettingHandler(database)
 			printSettingHandler := handler.NewPrintSettingHandler(database)
 			warehouseHandler := handler.NewWarehouseHandler(warehouseRepo)
 			goodsHandler := handler.NewGoodsHandler(goodsRepo)
@@ -171,9 +170,6 @@ func main() {
 			shopGroup.GET("/user-preference", userPreferenceHandler.Get)
 			shopGroup.PUT("/user-preference", userPreferenceHandler.Update)
 
-			shopGroup.GET("/points-setting", pointsSettingHandler.Get)
-			shopGroup.PUT("/points-setting", pointsSettingHandler.Update)
-
 			shopGroup.GET("/print-setting", printSettingHandler.Get)
 			shopGroup.PUT("/print-setting", printSettingHandler.Update)
 
@@ -185,6 +181,8 @@ func main() {
 			shopGroup.DELETE("/customer/:id", customerHandler.Delete)
 			shopGroup.GET("/customer/statement/:id", customerHandler.Statement)
 			shopGroup.GET("/customer/stats/:id", customerHandler.Stats)
+			shopGroup.POST("/customer/:id/deposit", customerHandler.Deposit)
+			shopGroup.GET("/customer/:id/deposits", customerHandler.Deposits)
 
 			shopGroup.GET("/customer-category/list", customerCategoryHandler.List)
 			shopGroup.POST("/customer-category", customerCategoryHandler.Create)

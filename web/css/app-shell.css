@@ -750,7 +750,7 @@ select.finput{-webkit-appearance:none;appearance:none;background-color:#fff;back
 /* ── 创建商户弹窗（全站统一，由 app-shell 注入） ─────────── */
 .pisa-modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:4000;padding:20px}
 .pisa-modal-mask.show{display:flex}
-.pisa-modal{width:520px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(15,23,42,.28);overflow:hidden;animation:pisaModalIn .18s ease}
+.pisa-modal{width:520px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(15,23,42,.28);overflow:visible;animation:pisaModalIn .18s ease}
 @keyframes pisaModalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 .pisa-modal-head{position:relative;display:flex;align-items:center;justify-content:center;padding:18px 20px;border-bottom:1px solid var(--gray-100)}
 .pisa-modal-title{font-size:16px;font-weight:600;color:var(--gray-800)}
@@ -762,6 +762,19 @@ select.finput{-webkit-appearance:none;appearance:none;background-color:#fff;back
 .pisa-field>label i{color:var(--danger-500);font-style:normal}
 .pisa-field>input,.pisa-field>select{flex:1;min-width:0;height:40px;border:1px solid var(--gray-200);border-radius:8px;padding:0 12px;font-size:14px;color:var(--gray-800);outline:none;background:#fff;font-family:inherit}
 .pisa-field>input:focus,.pisa-field>select:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(5,150,105,.10)}
+.pisa-sel{position:relative;flex:1;min-width:0}
+.pisa-sel-input{display:flex;align-items:center;justify-content:space-between;gap:8px;height:40px;border:1px solid var(--accent-500);border-radius:8px;padding:0 12px;font-size:14px;color:var(--gray-800);cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s}
+.pisa-sel-input:hover{border-color:var(--accent-600)}
+.pisa-sel.open .pisa-sel-input{border-color:var(--accent-500);box-shadow:0 0 0 3px rgba(16,185,129,.14)}
+.pisa-sel-caret{width:18px;height:18px;color:var(--gray-400);flex-shrink:0;transition:transform .15s}
+.pisa-sel.open .pisa-sel-caret{transform:rotate(180deg)}
+.pisa-sel-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:4100;background:#fff;border:1px solid var(--gray-200);border-radius:8px;box-shadow:0 12px 28px rgba(15,23,42,.14);padding:6px 0;max-height:260px;overflow-y:auto}
+.pisa-sel.open .pisa-sel-panel{display:block}
+.pisa-sel-opt{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;font-size:14px;color:var(--gray-700);cursor:pointer}
+.pisa-sel-opt:not(.active):hover{background:var(--gray-50)}
+.pisa-sel-opt.active{background:var(--accent-50);color:var(--accent-600);font-weight:500}
+.pisa-sel-check{width:18px;height:18px;color:var(--accent-600);visibility:hidden;flex-shrink:0}
+.pisa-sel-opt.active .pisa-sel-check{visibility:visible}
 .pisa-modal-hint{font-size:13px;color:var(--gray-400);padding-left:96px}
 .pisa-modal-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px 22px 20px}
 .pisa-btn-ghost,.pisa-btn-primary{height:40px;padding:0 20px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:1px solid transparent;font-family:inherit}

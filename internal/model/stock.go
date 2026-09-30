@@ -43,6 +43,8 @@ type Account struct {
 	Type      int8      `json:"type"` // 1=现金 2=银行 3=在线
 	BankName  string    `json:"bank_name" gorm:"size:128"`
 	CardNo    string    `json:"card_no" gorm:"size:64"`
+	ShopID    int64     `json:"shop_id" gorm:"index"`
+	ShopName  string    `json:"shop_name" gorm:"-"`
 	Balance   float64   `json:"balance"`
 	Remark    string    `json:"remark" gorm:"size:255"`
 	Sort      int       `json:"sort"`

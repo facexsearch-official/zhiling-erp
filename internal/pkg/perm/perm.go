@@ -173,9 +173,6 @@ const (
 	SystemView = "settings.system.view"
 	SystemEdit = "settings.system.edit"
 
-	PointsView = "settings.points.view"
-	PointsEdit = "settings.points.edit"
-
 	PrintView = "settings.print.view"
 	PrintEdit = "settings.print.edit"
 )

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"pisa_server/internal/model"
@@ -93,6 +94,7 @@ func (r *GoodsRepository) attachSummaries(ctx context.Context, list []model.Good
 
 	for i := range list {
 		g := &list[i]
+		fillGoodsCategoryStr(g)
 		us := unitMap[g.ID]
 		if len(us) == 0 {
 			// 无多单位：用主单位名兜底
@@ -119,6 +121,9 @@ func (r *GoodsRepository) attachSummaries(ctx context.Context, list []model.Good
 func (r *GoodsRepository) ListAll(ctx context.Context) ([]model.Goods, error) {
 	var list []model.Goods
 	err := r.Scoped(ctx).Where("status = 1").Order("created_at ASC").Find(&list).Error
+	for i := range list {
+		fillGoodsCategoryStr(&list[i])
+	}
 	return list, err
 }
 
@@ -126,7 +131,20 @@ func (r *GoodsRepository) GetByID(ctx context.Context, id int64) (*model.Goods, 
 	var goods model.Goods
 	tenantID := customContext.GetTenantID(ctx)
 	err := r.DB.Where("id = ? AND tenant_id = ?", id, tenantID).First(&goods).Error
+	if err == nil {
+		fillGoodsCategoryStr(&goods)
+	}
 	return &goods, err
+}
+
+func fillGoodsCategoryStr(g *model.Goods) {
+	g.IDStr = strconv.FormatInt(g.ID, 10)
+	if g.CategoryID != nil {
+		g.CategoryIDStr = strconv.FormatInt(int64(*g.CategoryID), 10)
+	}
+	if g.UnitID != nil {
+		g.UnitIDStr = strconv.FormatInt(int64(*g.UnitID), 10)
+	}
 }
 
 // GetByIDWithChildren 返回货品详情并带出多单位 / 价格 / 库存

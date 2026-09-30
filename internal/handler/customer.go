@@ -83,6 +83,14 @@ func (h *CustomerHandler) GetByID(c *gin.Context) {
 	customer.IDStr = strconv.FormatInt(customer.ID, 10)
 	if customer.CategoryID != nil {
 		customer.CategoryIDStr = strconv.FormatInt(int64(*customer.CategoryID), 10)
+		var catName string
+		h.db.Table("customer_categories").Where("id = ? AND tenant_id = ?", *customer.CategoryID, customer.TenantID).Select("name").Scan(&catName)
+		customer.CategoryName = catName
+	}
+	if customer.SalesmanID > 0 {
+		var smName string
+		h.db.Table("salesmen").Where("id = ? AND tenant_id = ?", customer.SalesmanID, customer.TenantID).Select("name").Scan(&smName)
+		customer.SalesmanName = smName
 	}
 	response.OK(c, customer)
 }
@@ -120,6 +128,7 @@ func (h *CustomerHandler) Update(c *gin.Context) {
 		response.NotFound(c, "客户不存在")
 		return
 	}
+	h.db.Where("customer_id = ?", id).Order("is_default DESC, id ASC").Find(&existing.Addresses)
 	if err := c.ShouldBindJSON(existing); err != nil {
 		response.BadRequest(c, "参数错误")
 		return

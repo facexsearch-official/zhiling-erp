@@ -18,7 +18,7 @@ func NewPurchaseHandler(svc *service.PurchaseService) *PurchaseHandler {
 }
 
 type purchaseCreateReq struct {
-	ShopID        int64             `json:"shop_id"`
+	ShopID        model.FlexInt64   `json:"shop_id"`
 	WarehouseID   int64             `json:"warehouse_id"`
 	SupplierID    int64             `json:"supplier_id"`
 	SalesmanID    int64             `json:"salesman_id"`
@@ -36,7 +36,7 @@ type purchaseCreateReq struct {
 }
 
 type purchaseItemReq struct {
-	GoodsID   int64   `json:"goods_id"`
+	GoodsID   model.FlexInt64 `json:"goods_id"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 	Remark    string  `json:"remark"`
@@ -88,7 +88,7 @@ func (h *PurchaseHandler) Create(c *gin.Context) {
 	}
 
 	purchase := &model.Purchase{
-		ShopID:        req.ShopID,
+		ShopID:        int64(req.ShopID),
 		WarehouseID:   req.WarehouseID,
 		SupplierID:    req.SupplierID,
 		SalesmanID:    req.SalesmanID,
@@ -107,7 +107,7 @@ func (h *PurchaseHandler) Create(c *gin.Context) {
 	var items []model.PurchaseItem
 	for _, item := range req.Items {
 		items = append(items, model.PurchaseItem{
-			GoodsID:   item.GoodsID,
+			GoodsID:   int64(item.GoodsID),
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Remark:    item.Remark,
@@ -150,7 +150,7 @@ func (h *PurchaseHandler) Update(c *gin.Context) {
 
 	// 创建新的
 	purchase := &model.Purchase{
-		ShopID:        req.ShopID,
+		ShopID:        int64(req.ShopID),
 		WarehouseID:   req.WarehouseID,
 		SupplierID:    req.SupplierID,
 		SalesmanID:    req.SalesmanID,
@@ -168,7 +168,7 @@ func (h *PurchaseHandler) Update(c *gin.Context) {
 	var items []model.PurchaseItem
 	for _, item := range req.Items {
 		items = append(items, model.PurchaseItem{
-			GoodsID:   item.GoodsID,
+			GoodsID:   int64(item.GoodsID),
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Remark:    item.Remark,

@@ -3,6 +3,7 @@ package handler
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
@@ -93,6 +94,97 @@ func (h *CustomerCategoryHandler) Delete(c *gin.Context) {
 }
 
 /* ═══════════ 客户详情统计 ═══════════ */
+
+/* ═══════════ 客户预存款 ═══════════ */
+
+type depositReq struct {
+	Amount    float64 `json:"amount"`
+	AccountID int64   `json:"account_id"`
+	BillDate  string  `json:"bill_date"`
+	Remark    string  `json:"remark"`
+}
+
+func (h *CustomerHandler) Deposit(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	userID := context.GetUserID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	var req depositReq
+	if err := c.ShouldBindJSON(&req); err != nil || req.Amount <= 0 {
+		response.BadRequest(c, "请输入有效存款金额")
+		return
+	}
+	if req.AccountID == 0 {
+		response.BadRequest(c, "请选择收款账户")
+		return
+	}
+	if req.BillDate == "" {
+		req.BillDate = time.Now().Format("2006-01-02")
+	}
+	var cu model.Customer
+	if err := h.db.Where("id = ? AND tenant_id = ?", id, tenantID).First(&cu).Error; err != nil {
+		response.NotFound(c, "客户不存在")
+		return
+	}
+	r := model.Receipt{
+		ID: snowflake.GenID(), TenantID: tenantID,
+		OrderNo: nextNo(h.db, tenantID, "receipts", "SKD"), Type: "预存款",
+		CustomerID: id, BillDate: req.BillDate,
+		Amount: req.Amount, AccountID: req.AccountID,
+		Status: 1, Remark: req.Remark, CreatedBy: userID,
+	}
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Table("receipts").Create(&r).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.Account{}).Where("id = ? AND tenant_id = ?", req.AccountID, tenantID).
+			UpdateColumn("balance", gorm.Expr("balance + ?", req.Amount)).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.Customer{}).Where("id = ? AND tenant_id = ?", id, tenantID).
+			UpdateColumn("balance", gorm.Expr("balance + ?", req.Amount)).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		response.ServerError(c, err.Error())
+		return
+	}
+	r.IDStr = strconv.FormatInt(r.ID, 10)
+	response.OK(c, r)
+}
+
+type depositRow struct {
+	ID          int64   `json:"-"`
+	IDStr       string  `json:"id_str"`
+	BillDate    string  `json:"bill_date"`
+	OrderNo     string  `json:"order_no"`
+	Amount      float64 `json:"amount"`
+	AccountName string  `json:"account_name"`
+	Remark      string  `json:"remark"`
+	CreatedAt   string  `json:"created_at"`
+}
+
+func (h *CustomerHandler) Deposits(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	var total int64
+	var rows []depositRow
+	q := h.db.Table("receipts AS r").
+		Joins("LEFT JOIN accounts a ON a.id = r.account_id").
+		Where("r.tenant_id = ? AND r.customer_id = ? AND r.type = '预存款' AND r.status = 1", tenantID, id)
+	q.Session(&gorm.Session{}).Count(&total)
+	q.Select("r.id, r.bill_date, r.order_no, r.amount, a.name AS account_name, r.remark, r.created_at").
+		Offset((page - 1) * pageSize).Limit(pageSize).Order("r.created_at DESC").Scan(&rows)
+	for i := range rows {
+		rows[i].IDStr = strconv.FormatInt(rows[i].ID, 10)
+	}
+	response.OKPage(c, rows, total, page, pageSize)
+}
 
 func (h *CustomerHandler) Stats(c *gin.Context) {
 	ctx := c.Request.Context()

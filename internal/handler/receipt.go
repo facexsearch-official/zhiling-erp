@@ -16,6 +16,22 @@ type ReceiptHandler struct{ db *gorm.DB }
 
 func NewReceiptHandler(db *gorm.DB) *ReceiptHandler { return &ReceiptHandler{db: db} }
 
+// recalcReceivable 重算客户应收欠款 = 销售总额(未作废) - 已收总额(未作废)
+func (h *ReceiptHandler) recalcReceivable(tx *gorm.DB, tenantID, customerID int64) {
+	if customerID == 0 {
+		return
+	}
+	var saleTotal, receiptTotal float64
+	tx.Raw("SELECT COALESCE(SUM(total_amount),0) FROM sales WHERE tenant_id=? AND customer_id=? AND status<>9", tenantID, customerID).Scan(&saleTotal)
+	tx.Raw("SELECT COALESCE(SUM(amount),0) FROM receipts WHERE tenant_id=? AND customer_id=? AND status=1", tenantID, customerID).Scan(&receiptTotal)
+	recv := saleTotal - receiptTotal
+	if recv < 0 {
+		recv = 0
+	}
+	tx.Model(&model.Customer{}).Where("id = ? AND tenant_id = ?", customerID, tenantID).
+		UpdateColumn("total_receivable", recv)
+}
+
 type receiptCreateReq struct {
 	ShopID         int64   `json:"shop_id"`
 	RelatedNo      string  `json:"related_no"`
@@ -141,6 +157,7 @@ func (h *ReceiptHandler) Create(c *gin.Context) {
 				return err
 			}
 		}
+		h.recalcReceivable(tx, tenantID, int64(req.CustomerID))
 		return nil
 	})
 	if err != nil {
@@ -189,6 +206,8 @@ func (h *ReceiptHandler) Update(c *gin.Context) {
 				return err
 			}
 		}
+		h.recalcReceivable(tx, tenantID, r.CustomerID)
+		h.recalcReceivable(tx, tenantID, int64(req.CustomerID))
 		return nil
 	})
 	if err != nil {
@@ -221,6 +240,7 @@ func (h *ReceiptHandler) Void(c *gin.Context) {
 				return err
 			}
 		}
+		h.recalcReceivable(tx, tenantID, r.CustomerID)
 		return nil
 	})
 	if err != nil {

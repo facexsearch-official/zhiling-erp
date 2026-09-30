@@ -15,7 +15,6 @@ type Customer struct {
 	PriceLevel      string    `json:"price_level" gorm:"size:32"`
 	SalesmanID      int64     `json:"salesman_id" gorm:"index"`
 	Discount        float64   `json:"discount" gorm:"default:100"`
-	Points          int       `json:"points"`
 	InitDebt        float64   `json:"init_debt"`
 	Contact         string    `json:"contact" gorm:"size:64"`
 	Phone           string    `json:"phone" gorm:"size:20"`
@@ -78,7 +77,8 @@ type Supplier struct {
 	TenantID     int64     `json:"tenant_id" gorm:"index"`
 	Name         string    `json:"name" gorm:"size:220"`
 	Code         string    `json:"code" gorm:"size:64"`
-	CategoryID   *int64    `json:"category_id" gorm:"index"`
+	CategoryID   *FlexInt64 `json:"category_id" gorm:"index"`
+	CategoryIDStr string   `json:"category_id_str" gorm:"->"`
 	Contact      string    `json:"contact" gorm:"size:64"`
 	Phone        string    `json:"phone" gorm:"size:20"`
 	Address      string    `json:"address" gorm:"size:255"`

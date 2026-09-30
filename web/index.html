@@ -4,12 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PISA 进销存</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* 布局与主题见 /css/app-shell.css，此处仅保留页面组件样式 */
+html{color-scheme:light}
+select option{background:#fff;color:var(--gray-700)}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .page-title{font-size:19px;font-weight:600;color:var(--gray-800)}
+.gd-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.gd-tb-left,.gd-tb-right{display:flex;align-items:center;gap:10px}
+.search-box{position:relative;width:300px;flex:none}
+.search-box input{width:100%;height:36px;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:0 12px 0 36px;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+.search-box input:focus{border-color:var(--primary-400);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2;pointer-events:none}
+.th-tools{width:48px;padding:6px 8px}
+.th-gear{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--gray-500);transition:background .15s,color .15s}
+.th-gear:hover{background:var(--gray-200);color:var(--primary-600)}
+.th-gear svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.c-idx{width:48px;text-align:center;color:var(--gray-400);font-family:'Inter',monospace}
+.th-actions{width:150px;position:sticky;right:0;z-index:2;background:#fff}
+.th-tools::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+.th-actions::before{content:'';position:absolute;top:0;bottom:0;right:100%;width:4px;background:linear-gradient(to left,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--gray-200);margin-bottom:16px}
 .tab{padding:10px 16px;font-size:14px;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
 .tab:hover{color:var(--gray-700)}
@@ -114,11 +128,42 @@
 .overview-val{font-size:13px;color:var(--gray-500);width:64px;text-align:right;font-variant-numeric:tabular-nums}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
+.confirm-body{display:flex;gap:16px;align-items:flex-start}
+.confirm-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.confirm-icon svg{width:24px;height:24px}
+.confirm-icon.warn{background:#fef3cd;color:#f59e0b}
+.confirm-icon.danger{background:#fee2e2;color:#ef4444}
+.confirm-icon.info{background:#dbeafe;color:#3b82f6}
+.confirm-text h3{font-size:16px;font-weight:600;margin:0 0 4px;color:var(--gray-800)}
+.confirm-text p{font-size:14px;color:var(--gray-500);margin:0}
+.confirm-text .detail{margin-top:8px;font-size:13px;color:var(--gray-400);background:var(--gray-50);padding:8px 12px;border-radius:6px}
 .modal{background:#fff;border-radius:10px;width:640px;max-width:92vw;max-height:88vh;overflow:auto}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-200)}
 .modal-title{font-size:17px;font-weight:600}
 .modal-close{border:none;background:none;cursor:pointer;color:var(--gray-400);font-size:23px;line-height:1}
 .modal-body{padding:20px}
+.dep-modal{width:520px}
+.dep-modal-head{justify-content:center;position:relative;padding:18px 20px}
+.dep-modal-title{font-size:18px;font-weight:500;color:var(--gray-800)}
+.dep-modal-head .modal-close{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:0}
+.dep-modal-head .modal-close svg{width:18px;height:18px}
+.dep-modal-head .modal-close:hover{background:var(--gray-100);color:var(--gray-600)}
+.dep-modal-body{padding:28px 34px 8px}
+.dep-row{display:flex;align-items:center;margin-bottom:24px}
+.dep-label{width:92px;flex-shrink:0;font-size:15px;color:var(--gray-700)}
+.dep-input{height:40px;border:1px solid #DCDFE6;border-radius:6px;padding:0 12px;font-size:15px;color:var(--gray-700);outline:none;background:#fff;transition:border-color .15s,box-shadow .15s}
+.dep-input::placeholder{color:var(--gray-400)}
+.dep-input:focus{border-color:#00B8D4;box-shadow:0 0 0 3px rgba(0,184,212,.12)}
+.dep-input.dep-amount{width:400px}
+select.dep-input{width:240px;color:var(--gray-700)}
+select.dep-input:invalid,select.dep-input.empty{color:var(--gray-400)}
+.dep-remark{width:400px}
+#cuDepositModal .dep-modal-foot{display:flex;justify-content:flex-end;gap:12px;padding:6px 34px 28px;border-top:none}
+.dep-btn-cancel{height:40px;padding:0 26px;border:1px solid #DCDFE6;background:#fff;color:var(--gray-700);border-radius:6px;font-size:15px;cursor:pointer}
+.dep-btn-cancel:hover{background:var(--gray-50)}
+.dep-btn-ok{height:40px;padding:0 26px;border:none;background:#00B8D4;color:#fff;border-radius:6px;font-size:15px;cursor:pointer}
+.dep-btn-ok:hover{background:#00A5C0}
+#cuDepositModal .fa-sel-opt.active{color:var(--accent-700)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
 .form-label{display:block;font-size:14px;color:var(--gray-600);margin-bottom:6px}
 .form-input{width:100%;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:14px;outline:none;color:var(--gray-700)}
@@ -132,7 +177,9 @@
 .stsel.open .stsel-caret{transform:rotate(180deg)}
 .stsel-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:210;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 10px 24px rgba(15,23,42,.12);padding:4px 0;max-height:240px;overflow-y:auto}
 .stsel.open .stsel-panel{display:block}
-.stsel-opt{position:relative;padding:9px 14px;font-size:14px;color:var(--gray-700);cursor:pointer}
+.stsel-opt{position:relative;padding:9px 14px;font-size:14px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
+.stsel-label{white-space:nowrap}
+.pc-field>.stsel{min-width:150px}
 .stsel-opt:hover{background:var(--gray-50)}
 .stsel-opt.active{color:var(--gray-900);font-weight:500;padding-left:32px}
 .stsel-opt.active::before{content:'';position:absolute;left:13px;top:50%;width:6px;height:11px;border-right:2px solid var(--accent-600);border-bottom:2px solid var(--accent-600);transform:translateY(-60%) rotate(45deg)}
@@ -150,8 +197,8 @@
 .plist-wrap tr:last-child td{border-bottom:none}
 .plist-wrap tr:hover td{background:var(--gray-50)}
 .plist-wrap .num{text-align:right;font-variant-numeric:tabular-nums}
-.plist-tools{width:64px;padding:6px 8px;text-align:center;position:sticky;left:0;z-index:3;background:var(--gray-50)}
-.plist-idx{width:64px;text-align:center;color:var(--gray-400);position:sticky;left:0;z-index:2;background:#fff;font-variant-numeric:tabular-nums}
+.plist-tools{width:44px;padding:6px 8px;text-align:center;position:sticky;left:0;z-index:3;background:var(--gray-50)}
+.plist-idx{width:44px;text-align:center;color:var(--gray-400);position:sticky;left:0;z-index:2;background:#fff;font-variant-numeric:tabular-nums}
 .plist-wrap tr:hover .plist-idx{background:var(--gray-50)}
 .plist-tools::after,.plist-idx::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
 .plist-actions{width:150px;position:sticky;right:0;z-index:2;background:#fff}
@@ -174,8 +221,8 @@
 .plist-gear-btn:hover{background:var(--gray-200);color:var(--accent-600)}
 .plist-gear-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
 /* 套餐列表 */
-.th-check{width:40px;padding:10px 8px 10px 14px!important;text-align:center}
-.th-check input{width:15px;height:15px;accent-color:var(--accent-500);cursor:pointer}
+.th-check,.c-check{width:44px;min-width:44px;max-width:44px;padding:10px 6px;text-align:center}
+.th-check input,.c-check input{width:16px;height:16px;accent-color:var(--primary-500);cursor:pointer;vertical-align:middle}
 .list-thumb{width:42px;height:42px;border-radius:var(--radius-md);object-fit:cover;background:var(--gray-100);display:block}
 .list-thumb-ph{width:42px;height:42px;border-radius:var(--radius-md);background:var(--gray-100);display:flex;align-items:center;justify-content:center}
 .list-thumb-ph svg{width:20px;height:20px;stroke:var(--gray-300);fill:none;stroke-width:1.6}
@@ -245,6 +292,19 @@ textarea.fa-input{height:auto;min-height:96px;padding:10px 12px;resize:vertical;
 select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
 .fa-input:focus{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(5,150,105,.10)}
 .fa-input::placeholder{color:var(--gray-400)}
+/* 所属门店自定义下拉 */
+.fa-sel{position:relative;flex:1;min-width:0}
+.fa-sel-input{display:flex;align-items:center;justify-content:space-between;gap:8px;height:40px;border:1px solid var(--accent-500);border-radius:var(--radius-md);padding:0 12px;font-size:14px;color:var(--gray-800);cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s}
+.fa-sel-input.placeholder{color:var(--gray-400)}
+.fa-sel-input:hover{border-color:var(--accent-600)}
+.fa-sel.open .fa-sel-input{border-color:var(--accent-500);box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+.fa-sel-caret{width:18px;height:18px;color:var(--gray-400);flex-shrink:0;transition:transform .15s}
+.fa-sel.open .fa-sel-caret{transform:rotate(180deg)}
+.fa-sel-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:210;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 12px 28px rgba(15,23,42,.14);padding:6px 0;max-height:260px;overflow-y:auto}
+.fa-sel.open .fa-sel-panel{display:block}
+.fa-sel-opt{padding:11px 16px;font-size:15px;color:var(--gray-700);cursor:pointer}
+.fa-sel-opt:hover{background:var(--gray-50)}
+.fa-sel-opt.active{background:var(--accent-50);color:var(--gray-900);font-weight:500}
 .simple-tbl-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow-x:auto}
 .simple-tbl{width:100%;border-collapse:collapse}
 .simple-tbl th{background:var(--gray-50);font-size:13px;color:var(--gray-500);padding:10px 14px;text-align:left;font-weight:500;border-bottom:1px solid var(--gray-200);white-space:nowrap}
@@ -314,12 +374,6 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .pref-select{width:100%;height:42px;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:0 12px;font-size:15px;color:var(--gray-700);background:#fff;outline:none;cursor:pointer}
 .pref-sub{margin-top:16px;padding-left:34px}
 .pref-sub .pref-label{width:116px}
-/* 积分设置 */
-.pts-wrap{padding:6px 4px}
-.pts-check{font-size:16px}
-.pts-row{display:flex;align-items:center;gap:10px;margin:22px 0 0 34px;font-size:15px;color:var(--gray-700)}
-.pts-input{width:130px;height:42px;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:0 12px;font-size:15px;color:var(--gray-700);outline:none;background:#fff}
-.pts-input:focus{border-color:var(--accent-600)}
 /* 打印设置 */
 .print-layout{display:flex;border:1px solid var(--gray-200);border-radius:var(--radius-lg);background:#fff}
 .print-nav{width:150px;flex:none;background:var(--gray-50);border-right:1px solid var(--gray-200);border-radius:var(--radius-lg) 0 0 var(--radius-lg)}
@@ -401,6 +455,22 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .pc-sup-opt{padding:8px 12px;font-size:14px;color:var(--gray-700);cursor:pointer}
 .pc-sup-opt:hover{background:var(--gray-50)}
 .pc-sup-empty{padding:12px;color:var(--gray-400);font-size:14px}
+.pc-sup-box{position:relative}
+.pc-sup-input{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:220px;height:36px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:0 10px;font-size:14px;color:var(--gray-700);cursor:pointer;background:#fff}
+.pc-sup-box.open .pc-sup-input{border-color:var(--accent-400);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.pc-sup-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:220;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 10px 24px rgba(15,23,42,.14);min-width:680px;max-width:90vw}
+.pc-sup-box.open .pc-sup-panel{display:block}
+.pc-sup-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.pc-sup-tbl th{padding:12px 16px;text-align:left;font-weight:600;color:var(--gray-800);border-bottom:1px solid var(--gray-200)}
+.pc-sup-tbl td{padding:12px 16px;text-align:left;color:var(--gray-700);border-bottom:1px solid var(--gray-100)}
+.pc-sup-tbl tbody tr{cursor:pointer}
+.pc-sup-tbl tbody tr:hover{background:var(--gray-50)}
+.pc-sup-tbl tbody tr.active{background:#E6F7FA}
+.pc-sup-tbl td:first-child{display:flex;align-items:center;gap:8px}
+.pc-sup-icon{width:22px;height:22px;border-radius:50%;border:1px solid var(--accent-400);color:var(--accent-600);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.pc-sup-icon svg{width:13px;height:13px}
+.pc-sup-add{padding:12px 16px;color:var(--accent-600);font-size:14px;cursor:pointer}
+.pc-sup-add:hover{background:var(--accent-50)}
 .pc-field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--gray-600)}
 .pc-tbl-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow-x:auto;margin-bottom:16px}
 .pc-tbl{width:100%;min-width:1050px;border-collapse:collapse;table-layout:fixed}
@@ -441,7 +511,11 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .pcgm-cat{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:14px;color:var(--gray-600);cursor:pointer;white-space:nowrap}
 .pcgm-cat:hover{background:var(--gray-50);color:var(--gray-800)}
 .pcgm-cat.active{background:var(--accent-50);color:var(--accent-700);font-weight:500}
-.pcgm-caret{font-size:12px;color:var(--gray-400)}
+.pcgm-caret{display:inline-block;width:12px;text-align:center;font-size:12px;color:var(--gray-400)}
+.pcgm-gear{display:inline-flex;align-items:center;justify-content:center;color:var(--gray-400)}
+.pcgm-gear svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.pcgm-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pcgm-pager{border-top:1px solid var(--gray-100);background:#fff}
 .pcgm-main{flex:1;display:flex;flex-direction:column;min-width:0}
 .pcgm-toolbar{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--gray-100)}
 .pcgm-list{flex:1;overflow:auto;padding:0 18px 10px}
@@ -525,6 +599,9 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .cu-section{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:14px}
 .cu-section-title{font-size:16px;font-weight:600;color:var(--gray-800);margin-bottom:14px}
 .cu-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 20px;font-size:14px}
+.cu-view-wrap{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
+.cu-view-wrap>.cu-section:last-of-type,.cu-view-wrap>div:last-child{margin-bottom:0}
+.cu-view-foot{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 24px;border-top:1px solid var(--gray-200);background:#fff}
 .cu-opening td{background:#FFF8E1}
 .qt-menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 10px 24px rgba(15,23,42,.14);min-width:170px;padding:6px 0;z-index:80}
 .qt-menu .cu-more-item{padding:10px 18px;font-size:15px;color:var(--gray-700);cursor:pointer}
@@ -536,6 +613,7 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .ti-logo-ph{width:80px;height:80px;border-radius:8px;background:linear-gradient(135deg,#DBEAFE,#BFDBFE);display:inline-block}
 .ti-erow{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
 .ti-elabel{width:120px;text-align:right;color:var(--gray-600);font-size:15px;flex-shrink:0;padding-top:10px}
+#shForm .ti-elabel{text-align:left}
 /* 地区选择 */
 .region-ctrl{position:relative}
 .region-input-wrap{position:relative}
@@ -561,13 +639,61 @@ select.fa-input{appearance:none;background-image:url("data:image/svg+xml;charset
 .sh-radio input[type=radio]{-webkit-appearance:none;appearance:none;width:20px;height:20px;border:2px solid var(--gray-300);border-radius:50%;outline:none;cursor:pointer;position:relative;flex-shrink:0;transition:border-color .15s,background .15s;margin:0}
 .sh-radio input[type=radio]:checked{border-color:var(--accent-500);background:var(--accent-500)}
 .sh-radio input[type=radio]:checked::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:#fff}
-/* 客户列表固定列 */
-.cu-tbl .th-check{position:sticky;left:0;z-index:4;background:var(--gray-50)}
-.cu-tbl tbody .th-check{background:#fff}
-.cu-tbl tr:hover .th-check{background:var(--gray-50)}
-.cu-tbl .plist-tools{left:40px}
-.cu-tbl .plist-tools::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
-.cu-tbl .plist-actions{z-index:3}
+/* 客户列表（参考商品列表样式） */
+.table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-200);overflow:hidden}
+.table-scroll{overflow-x:auto}
+.table-wrap table{min-width:920px}
+.table-wrap td,.table-wrap th{white-space:nowrap}
+.cu-tbl{width:100%;border-collapse:collapse}
+.cu-tbl thead{background:var(--gray-50)}
+.cu-tbl th{padding:10px 14px;text-align:left;font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gray-200);white-space:nowrap;vertical-align:middle;position:relative}
+.cu-tbl td{padding:16px 14px;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-700);vertical-align:middle}
+.cu-tbl tr:last-child td{border-bottom:none}
+.cu-tbl tr:hover td{background:var(--gray-50)}
+.cu-tbl th.text-right,.cu-tbl td.text-right{text-align:right;font-family:'Inter',monospace}
+.cu-tbl th.th-tools{width:48px;padding:6px 8px}
+.cu-tbl .th-gear{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--gray-500);transition:background .15s,color .15s;border:none;background:none;cursor:pointer}
+.cu-tbl .th-gear:hover{background:var(--gray-200);color:var(--primary-600)}
+.cu-tbl .th-gear svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.cu-tbl .c-idx{width:48px;text-align:center;color:var(--gray-400);font-family:'Inter',monospace}
+.cu-tbl th.th-check,.cu-tbl td.c-check{width:44px;min-width:44px;max-width:44px;padding:10px 6px;text-align:center}
+.cu-tbl th.th-check input,.cu-tbl td.c-check input{width:16px;height:16px;accent-color:var(--primary-500);cursor:pointer;vertical-align:middle}
+.cu-tbl th.th-actions,.cu-tbl td.c-actions{width:200px}
+/* 固定列：左侧勾选/齿轮/序号，右侧操作 */
+.cu-tbl th.th-check,.cu-tbl td.c-check{position:sticky;left:0;z-index:3;background:#fff}
+.cu-tbl thead th.th-check{background:var(--gray-50);z-index:4}
+.cu-tbl th.th-tools,.cu-tbl td.c-idx{position:sticky;left:44px;z-index:2;background:#fff}
+.cu-tbl thead th.th-tools{background:var(--gray-50);z-index:3}
+.cu-tbl th.th-actions,.cu-tbl td.c-actions{position:sticky;right:0;z-index:2;background:#fff}
+.cu-tbl thead th.th-actions{background:var(--gray-50);z-index:3}
+.cu-tbl th.th-check::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+.cu-tbl th.th-tools::after,.cu-tbl td.c-idx::after{content:'';position:absolute;top:0;bottom:0;left:100%;width:4px;background:linear-gradient(to right,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+.cu-tbl th.th-actions::before,.cu-tbl td.c-actions::before{content:'';position:absolute;top:0;bottom:0;right:100%;width:4px;background:linear-gradient(to left,rgba(0,0,0,.08),rgba(0,0,0,0));pointer-events:none}
+.cu-tbl tr:hover td.c-check,.cu-tbl tr:hover td.c-idx,.cu-tbl tr:hover td.c-actions{background:var(--gray-50)}
+.empty{padding:60px 0;text-align:center;color:var(--gray-400)}
+.empty svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.2;margin-bottom:12px}
+.empty p{font-size:15px}
+/* 行内“更多”下拉菜单 */
+.row-more-menu{position:fixed;z-index:3000;min-width:110px;background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:0 8px 24px rgba(15,23,42,.14);padding:4px}
+.row-more-item{padding:9px 14px;font-size:14px;color:var(--gray-700);cursor:pointer;border-radius:var(--radius-sm);white-space:nowrap}
+.row-more-item:hover{background:var(--gray-50)}
+.row-more-item.danger{color:var(--danger-500)}
+.row-more-item.danger:hover{background:var(--danger-50)}
+.cu-row-actions{display:flex;align-items:center;gap:16px}
+/* 客户列表分页（参考商品列表） */
+.cu-pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--gray-100)}
+.cu-pagination .info{font-size:14px;color:var(--gray-500)}
+.cu-pagination .pages{display:flex;align-items:center;gap:4px}
+.cu-page-btn{min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);font-size:14px;color:var(--gray-600);transition:all .15s;border:1px solid var(--gray-200);background:#fff;cursor:pointer}
+.cu-page-btn:hover:not(.disabled):not(.active){background:var(--gray-50);border-color:var(--gray-300)}
+.cu-page-btn.active{background:var(--accent-600);color:#fff;border-color:var(--accent-600)}
+.cu-page-btn.disabled{opacity:.4;cursor:not-allowed}
+.cu-page-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.cu-page-size-sel{width:112px;margin-left:8px;vertical-align:middle;display:inline-block}
+.cu-page-size-sel .stsel-input{height:32px;padding:0 10px}
+.cu-page-size-sel .stsel-panel{top:auto;bottom:calc(100% + 4px);max-height:200px}
+.cu-page-size-sel .stsel-opt.active{padding-left:14px;color:var(--accent-600);font-weight:500}
+.cu-page-size-sel .stsel-opt.active::before{display:none}
 /* 表头左右拖拽调整列宽 */
 thead th{position:relative}
 .col-resizer{position:absolute;top:0;right:-4px;width:8px;height:100%;cursor:col-resize;z-index:6}
@@ -634,6 +760,7 @@ thead th{position:relative}
 .cu-form-body{flex:1;min-height:0;overflow-y:auto;padding:20px 24px 20px}
 .cu-form-foot{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 24px;border-top:1px solid var(--gray-200);background:#fff}
 .content.form-open{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.content.form-open #cuView{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .pc-textarea{width:420px;max-width:100%;min-height:76px;border:1px solid var(--gray-300);border-radius:var(--radius-md);padding:8px 10px;font-size:14px;outline:none;resize:vertical}
 .pc-upload{width:78px;height:78px;border:1px dashed var(--gray-300);border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--gray-400);font-size:13px;cursor:pointer;background:#fff}
 .pc-upload:hover{border-color:var(--accent-400);color:var(--accent-600)}
@@ -665,7 +792,7 @@ thead th{position:relative}
 .content::-webkit-scrollbar{width:6px}
 .content::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
 </style>
-<link rel="stylesheet" href="/css/app-shell.css?v=20261054">
+<link rel="stylesheet" href="/css/app-shell.css?v=20261105">
 <link rel="stylesheet" href="/css/tabs.css?v=20261054">
 </head>
 <body>
@@ -708,10 +835,71 @@ thead th{position:relative}
   </div>
 </div>
 
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <span class="modal-title" id="confirmTitle">确认操作</span>
+      <button class="modal-close" onclick="closeConfirm()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon warn" id="confirmIcon">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="confirm-text">
+          <h3 id="confirmMsg">确定要执行此操作吗？</h3>
+          <p id="confirmDesc"></p>
+          <div class="detail" id="confirmDetail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirmOkBtn" onclick="doConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cuDepositModal">
+  <div class="modal dep-modal">
+    <div class="modal-header dep-modal-head">
+      <span class="modal-title dep-modal-title">去存款</span>
+      <button class="modal-close" onclick="closeCuDeposit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body dep-modal-body">
+      <div class="dep-row"><label class="dep-label">存款金额</label>
+        <input class="dep-input dep-amount" id="cuDepAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      <div class="dep-row"><label class="dep-label">结算账户</label>
+        <div class="fa-sel" id="cuDepAccountSel" style="flex:none;width:240px" data-value="">
+          <div class="fa-sel-input placeholder" onclick="cuToggleDepAccount(event)"><span class="fa-sel-label">请选择</span><svg class="fa-sel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+          <div class="fa-sel-panel" id="cuDepAccountPanel"></div>
+        </div></div>
+      <div class="dep-row"><label class="dep-label">备注</label>
+        <input class="dep-input dep-remark" id="cuDepRemark" placeholder="请输入备注"></div>
+    </div>
+    <div class="modal-footer dep-modal-foot">
+      <button class="dep-btn-cancel" onclick="closeCuDeposit()">取消</button>
+      <button class="dep-btn-ok" onclick="cuDepositSubmit()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cuDepListModal">
+  <div class="modal" style="width:680px">
+    <div class="modal-header">
+      <span class="modal-title">存款记录</span>
+      <button class="modal-close" onclick="closeCuDepList()">&times;</button>
+    </div>
+    <div class="modal-body" id="cuDepListBody" style="max-height:420px;overflow-y:auto">
+      <div style="padding:30px;text-align:center;color:var(--gray-400)">加载中...</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/js/tabs.js?v=20261054"></script>
-<script src="/js/app-shell.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261106"></script>
 <script>
 /* ═══════════ State ═══════════ */
 const State = {
@@ -960,7 +1148,7 @@ function findNavLabel(key){
   return null;
 }
 const EXTRA_LABELS={'purchase:create':'新增进货单','purchase:view':'查看进货单','purchase-order:create':'新增进货预订','purchase-order:view':'查看进货预订','purchase-return:create':'新增进货退货单','purchase-return:view':'查看进货退货单','goods:combo:create':'新增套餐','stock:take:create':'新增盘点单','stock:take:view':'盘点单详情','stock:assembly:create':'新增组装单','stock:assembly:view':'组装单详情','stock:recipe:create':'新增配方','stock:split:create':'新增拆分单','stock:split:view':'拆分单详情','stock:flow':'库存流水','stock:cost':'成本明细','stock:alert':'库存预警','stock:batch':'批次查询','stock:expiry':'保质期查询','funds:account':'账户概览','funds:transfer':'转账','funds:receipt':'收款单列表','funds:receipt:create':'新增收款单','funds:receipt:view':'收款单详情','funds:payment':'付款单列表','funds:payment:create':'新增付款单','funds:payment:view':'付款单详情','funds:income':'其他收入列表','funds:income:create':'新增其他收入','funds:income:view':'其他收入详情','funds:income-type':'收支类型','funds:expense':'其他支出列表','funds:expense:create':'新增其他支出','funds:expense:view':'其他支出详情','funds:recon-customer':'客户对账','funds:recon-supplier':'供应商对账','funds:cashflow':'资金流水','analysis:sales':'销售统计','analysis:hot':'热销分析','analysis:staff':'员工业绩统计','analysis:purchase':'进货统计','analysis:stock':'库存统计','analysis:profit':'经营利润','analysis:surplus':'盘盈明细','analysis:loss':'盘亏明细','customer:list':'客户列表','customer:create':'新增客户','customer:view':'客户详情','customer:statement':'客户对账单','customer:level':'价格等级','customer:quote':'报价管理','quote:by-customer':'根据客户报价','quote:by-goods':'根据商品报价','settings:shop':'商户信息','settings:shops':'门店管理','settings:shops:edit':'编辑门店','settings:role':'角色权限','settings:role:edit':'新增角色'};
-const TAB_LABELS={'purchase:new':'进货单列表','purchases':'进货单列表','purchase:order':'进货预订列表','purchase-order':'进货预订列表','purchase:return':'进货退货列表','purchase-return':'进货退货列表','sales:new':'销售单列表','sales:order':'销售预订列表','sales:return':'销售退货单列表','sales:quote':'报价','goods:combo':'套餐列表','stock:take':'盘点单列表','stock:assembly':'组装单列表','stock:recipe':'配方列表','stock:split':'拆分单列表','stock:query':'库存查询'};
+const TAB_LABELS={'customer:list':'客户列表','purchase:new':'进货单列表','purchases':'进货单列表','purchase:order':'进货预订列表','purchase-order':'进货预订列表','purchase:return':'进货退货列表','purchase-return':'进货退货列表','sales:new':'销售单列表','sales:order':'销售预订列表','sales:return':'销售退货单列表','sales:quote':'报价','goods:combo':'套餐列表','stock:take':'盘点单列表','stock:assembly':'组装单列表','stock:recipe':'配方列表','stock:split':'拆分单列表','stock:query':'库存查询'};
 window.TAB_LABELS=TAB_LABELS; window.EXTRA_LABELS=EXTRA_LABELS;
 (function normalizeTabs(){
   try{
@@ -1000,7 +1188,7 @@ var PAGE_PERM={
   'analysis:profit':'analysis.profit.view','analysis:surplus':'analysis.profit.view','analysis:loss':'analysis.profit.view',
   'settings:shop':'settings.tenant.view','settings:shops':'settings.shop.view','settings:shops:edit':'settings.shop.edit',
   'settings:staff':'settings.staff.view','settings:role':'settings.role.view','settings:role:edit':'settings.role.edit',
-  'settings:system':'settings.system.view','settings:points':'settings.points.view',
+  'settings:system':'settings.system.view',
   'settings:print':'settings.print.view'
 };
 function noPermHTML(){
@@ -1025,7 +1213,8 @@ function showPage(key, arg){
   if(window.PisaTabs) PisaTabs.touch(key, label, PisaTabs.hrefFor(key));
   if(location.hash.slice(1)!==key){try{history.replaceState(null,'','#'+key);}catch(e){}}
   const c=document.getElementById('content');
-  c.classList.toggle('form-open', key==='customer:create');
+  var formOpenKeys=['customer:create','customer:view','purchase:create','purchase-order:create','purchase-return:create','sale:create','sale-order:create','sale-return:create','quote:create','stock:take:create'];
+  c.classList.toggle('form-open', formOpenKeys.indexOf(key)>=0);
   if(key==='home'){c.innerHTML=homeHTML();return;}
   var vk=PAGE_PERM[key];
   if(vk && !can(vk)){ c.innerHTML=noPermHTML(); return; }
@@ -1139,7 +1328,6 @@ function dynamicPageHTML(key){
   if(key==='settings:role:edit') return roleFormHTML();
   if(key==='settings:system') return systemSettingHTML();
   if(key==='settings:pref') return userPrefHTML();
-  if(key==='settings:points') return pointsSettingHTML();
   if(key==='settings:print') return printSettingHTML();
   if(key==='purchases') return purchasesListHTML('purchase');
   if(key==='purchase-order') return purchasesListHTML('order');
@@ -1714,6 +1902,34 @@ function showToast(msg){
   clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show');},2200);
 }
 
+var _confirmResolve=null;
+function showConfirm(opts){
+  return new Promise(function(resolve){
+    _confirmResolve=resolve;
+    document.getElementById('confirmTitle').textContent=opts.title||'确认操作';
+    document.getElementById('confirmMsg').textContent=opts.message||'确定要执行此操作吗？';
+    document.getElementById('confirmDesc').textContent=opts.desc||'';
+    var d=document.getElementById('confirmDetail');
+    if(opts.detail){d.textContent=opts.detail;d.style.display='block';}else{d.style.display='none';}
+    var icon=document.getElementById('confirmIcon');
+    icon.className='confirm-icon '+(opts.iconType||'warn');
+    var okBtn=document.getElementById('confirmOkBtn');
+    okBtn.textContent=opts.okText||'确定';
+    okBtn.className='btn '+(opts.okClass||'btn-primary');
+    document.getElementById('confirmModal').classList.add('show');
+  });
+}
+function closeConfirm(){
+  document.getElementById('confirmModal').classList.remove('show');
+  if(_confirmResolve){var r=_confirmResolve;_confirmResolve=null;r(false);}
+}
+function doConfirm(){
+  var r=_confirmResolve;_confirmResolve=null;
+  document.getElementById('confirmModal').classList.remove('show');
+  if(r)r(true);
+}
+(function(){var ov=document.getElementById('confirmModal');if(ov)ov.addEventListener('click',function(e){if(e.target===ov)closeConfirm();});})();
+
 /* ═══════════ 员工管理 ═══════════ */
 const StaffState = { tab:'users', users:[], salesmen:[], shops:[], roles:[], maxStaff:0, used:0, remaining:0 };
 let StaffModal = { mode:'', id:null };
@@ -2169,7 +2385,7 @@ function purchasesListHTML(kind){
     +'<div class="stsel" id="pcDatePreset" data-value="自定义" style="width:110px">'
       +'<div class="stsel-input" onclick="toggleStSel(\'pcDatePreset\',event)"><span class="stsel-label">自定义</span><svg class="stsel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>'
       +'<div class="stsel-panel">'
-      +['今日','昨日','本周','本月','自定义'].map(function(t){return '<div class="stsel-opt'+(t==='自定义'?' active':'')+'" data-value="'+t+'" onclick="pickStSel(\'pcDatePreset\',\''+t+'\',this,event);purchaseDatePreset(\''+t+'\')">'+t+'</div>';}).join('')
+      +['今日','本周','上月','本月','去年','本年','最近一年','自定义'].map(function(t){return '<div class="stsel-opt'+(t==='自定义'?' active':'')+'" data-value="'+t+'" onclick="pickStSel(\'pcDatePreset\',\''+t+'\',this,event);purchaseDatePreset(\''+t+'\')">'+t+'</div>';}).join('')
       +'</div>'
     +'</div>'
     +'<input type="date" class="mini-input" id="pcDateFrom" onchange="loadPurchases(1)">'
@@ -2178,7 +2394,6 @@ function purchasesListHTML(kind){
     +'<div style="flex:1"></div>'
     +'<div class="search-wrapper" style="width:320px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
     +'<input class="search-input" id="pcSearch" placeholder="单据编号/供应商/商品名称/货号/备注" onkeyup="pcSearchDebounce()"></div>'
-    +'<span class="link" onclick="showToast(\'高级查询开发中\')">高级查询 ▾</span>'
     +'</div>';
   h+='<div class="plist-toolbar">'
     +'<button class="btn btn-primary"'+pattr(PC_KINDS[pcListKind].perm+'.add')+' onclick="openPurchaseCreate(\''+pcListKind+'\')">+ '+PC_KINDS[pcListKind].createLabel+'</button>'
@@ -2190,10 +2405,13 @@ function purchasesListHTML(kind){
 function purchaseDatePreset(t){
   function fmt(d){ return d.toISOString().slice(0,10); }
   var now=new Date(), from='', to=fmt(now);
-  if(t==='今日'){ from=fmt(now); }
-  else if(t==='昨日'){ var y=new Date(now.getTime()-86400000); from=fmt(y); to=fmt(y); }
-  else if(t==='本周'){ var w=new Date(now.getTime()-((now.getDay()||7)-1)*86400000); from=fmt(w); }
-  else if(t==='本月'){ from=fmt(new Date(now.getFullYear(),now.getMonth(),1)); }
+  if(t==='今日'){ from=fmt(now); to=fmt(now); }
+  else if(t==='本周'){ var w=new Date(now.getTime()-((now.getDay()||7)-1)*86400000); from=fmt(w); to=fmt(now); }
+  else if(t==='上月'){ from=fmt(new Date(now.getFullYear(),now.getMonth()-1,1)); to=fmt(new Date(now.getFullYear(),now.getMonth(),0)); }
+  else if(t==='本月'){ from=fmt(new Date(now.getFullYear(),now.getMonth(),1)); to=fmt(now); }
+  else if(t==='去年'){ from=fmt(new Date(now.getFullYear()-1,0,1)); to=fmt(new Date(now.getFullYear()-1,11,31)); }
+  else if(t==='本年'){ from=fmt(new Date(now.getFullYear(),0,1)); to=fmt(now); }
+  else if(t==='最近一年'){ from=fmt(new Date(now.getFullYear()-1,now.getMonth(),now.getDate())); to=fmt(now); }
   else { from=''; to=''; }
   var f=document.getElementById('pcDateFrom'), tt=document.getElementById('pcDateTo');
   if(f) f.value=from; if(tt) tt.value=to;
@@ -2528,7 +2746,7 @@ function renderPurchaseView(){
 }
 
 /* ─── 新增进货单 ─── */
-const PC = { supplierId:0, salesmanId:0, billDate:'', accountId:0, discount:100, freight:0, deposit:0, paid:0, remark:'', items:[], suppliers:[], salesmen:[], accounts:[], goods:[] };
+const PC = { supplierId:0, salesmanId:0, billDate:'', accountId:0, shopId:0, discount:100, freight:0, deposit:0, paid:0, remark:'', items:[], suppliers:[], salesmen:[], accounts:[], shops:[], goods:[] };
 
 function openPurchaseCreate(kind){
   pcCurKind = kind || pcListKind;
@@ -2538,32 +2756,107 @@ function openPurchaseCreate(kind){
 function purchaseCreateHTML(kind){
   if(kind) pcCurKind = kind;
   setTimeout(function(){ pcInit(pcCurKind); },0);
-  return '<div id="pcPage"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
+  return '<div id="pcPage" class="cu-form-wrap"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
 }
 async function pcInit(kind){
   pcCurKind = kind || pcCurKind;
-  var r=await Promise.all([apiGet('/shop/supplier/all'),apiGet('/shop/salesmen'),apiGet('/shop/account/all'),apiGet('/shop/goods/all')]);
+  var r=await Promise.all([apiGet('/shop/supplier/all'),apiGet('/shop/salesmen'),apiGet('/shop/account/all'),apiGet('/shop/goods/all'),apiGet('/shop/shops')]);
   PC.suppliers=(r[0]&&r[0].code===0)?r[0].data||[]:[];
   PC.salesmen=(r[1]&&r[1].code===0)?r[1].data||[]:[];
   PC.accounts=(r[2]&&r[2].code===0)?r[2].data||[]:[];
   PC.goods=(r[3]&&r[3].code===0)?r[3].data||[]:[];
+  PC.shops=(r[4]&&r[4].code===0)?r[4].data||[]:[];
   PC.supplierId=PC.suppliers[0]?PC.suppliers[0].id:0;
   PC.accountId=PC.accounts[0]?PC.accounts[0].id:0;
+  PC.shopId=PC.shops[0]?(PC.shops[0].id_str||String(PC.shops[0].id)):'';
   if(pcRestoreDraft()){ pcRender(); } else { pcReset(true); }
 }
 function pcSpecNames(g){
   try{ var gs=JSON.parse(g.spec_groups||'[]'); return gs.map(function(x){return x.name;}).filter(Boolean).join('/'); }catch(e){ return ''; }
 }
 function pcSupplierName(){ var s=PC.suppliers.filter(function(x){ return String(x.id)===String(PC.supplierId); })[0]; return s?s.name:''; }
-function pcSupplierSearch(v){
-  var drop=document.getElementById('pcSupDrop'); if(!drop) return;
-  v=(v||'').toLowerCase();
-  var list=PC.suppliers.filter(function(s){ return !v || (s.name||'').toLowerCase().indexOf(v)>=0; }).slice(0,50);
-  drop.style.display='block';
-  drop.innerHTML=list.length? list.map(function(s){ return '<div class="pc-sup-opt" onclick="pcPickSupplier('+s.id+')">'+stEsc(s.name)+'</div>'; }).join('') : '<div class="pc-sup-empty">无匹配供应商</div>';
+function pcSupplierKw(el){ return ((el||document.getElementById('pcSupplierInput')||{}).value||'').trim(); }
+function pcMatchName(name, kw){
+  name=String(name||''); kw=String(kw||'');
+  if(!kw) return true;
+  if(name.toLowerCase().indexOf(kw.toLowerCase())>=0) return true;
+  try{ return !!(window.PinyinMatch && PinyinMatch.match(name, kw)); }catch(e){ return false; }
 }
-function pcPickSupplier(id){ PC.supplierId=id; var inp=document.getElementById('pcSupplierSearch'); if(inp) inp.value=pcSupplierName(); var drop=document.getElementById('pcSupDrop'); if(drop) drop.style.display='none'; }
-document.addEventListener('click',function(e){ var drop=document.getElementById('pcSupDrop'); if(drop && !e.target.closest('#pcSupDrop') && e.target.id!=='pcSupplierSearch') drop.style.display='none'; });
+function pcRenderSupplierList(showAll){
+  var c=document.getElementById('pcSupplierList'); if(!c) return;
+  var kw = showAll ? '' : pcSupplierKw();
+  var list=(PC.suppliers||[]).filter(function(s){ return pcMatchName(s.name, kw); });
+  var h=list.map(function(s){
+    var sel = String(s.id)===String(PC.supplierId);
+    return '<div class="picker-opt'+(sel?' selected':'')+'" onclick="pcPickSupplierById(\''+String(s.id)+'\')">'+stEsc(s.name||'')
+      +'<span class="opt-check">'+(sel?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</span></div>';
+  }).join('');
+  if(!list.length){
+    h='<div class="picker-empty">'
+      +'<svg class="picker-empty-icon" viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></svg>'
+      +'<div class="picker-empty-text">暂无数据</div>'
+      +'<button type="button" class="picker-empty-add" onclick="pcAddSupplierInline()">(Enter) 按回车新增</button>'
+      +'</div>';
+  }
+  c.innerHTML=h;
+  var add=document.getElementById('pcSupplierAdd'); if(add) add.style.display=list.length?'':'none';
+}
+window.pcOpenSupplierDrop=function(){
+  pcRenderSupplierList(true);
+  var d=document.getElementById('pcSupplierDrop'), w=document.getElementById('pcSupplierWrap');
+  if(d) d.classList.add('open'); if(w) w.classList.add('open');
+};
+window.pcCloseSupplierDrop=function(){
+  var d=document.getElementById('pcSupplierDrop'), w=document.getElementById('pcSupplierWrap');
+  if(d) d.classList.remove('open'); if(w) w.classList.remove('open');
+  var i=document.getElementById('pcSupplierInput'); if(i) i.value=PC.supplierId?pcSupplierName():'';
+};
+window.pcFocusSupplier=function(){ var i=document.getElementById('pcSupplierInput'); if(i) i.focus(); window.pcOpenSupplierDrop(); };
+window.pcSupplierInput=function(v){
+  pcRenderSupplierList(false);
+  var d=document.getElementById('pcSupplierDrop'), w=document.getElementById('pcSupplierWrap');
+  if(d) d.classList.add('open'); if(w) w.classList.add('open');
+};
+window.pcSupplierKeydown=function(e){
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  var typed=pcSupplierKw();
+  if(!typed) return;
+  var exact=(PC.suppliers||[]).filter(function(s){ return (s.name||'')===typed; })[0];
+  if(exact){ window.pcPickSupplierById(String(exact.id)); return; }
+  window.pcAddSupplierInline();
+};
+window.pcPickSupplierById=function(id){
+  PC.supplierId=Number(id)||0;
+  var i=document.getElementById('pcSupplierInput'); if(i) i.value=pcSupplierName();
+  window.pcCloseSupplierDrop();
+};
+window.pcClearSupplier=function(){ PC.supplierId=0; var i=document.getElementById('pcSupplierInput'); if(i) i.value=''; pcRenderSupplierList(true); };
+window.pcGoNewSupplier=function(){
+  try{ pcSaveDraft(); }catch(e){}
+  if(window.PisaTabs) PisaTabs.touch('supplier:add','新增供应商','/supplier.html#supplier:add');
+  location.href='/supplier.html#supplier:add';
+};
+window.pcAddSupplierInline=function(){
+  var typed=pcSupplierKw();
+  if(!typed){ showToast('请输入供应商名称','warn'); return; }
+  apiPost('/shop/supplier',{ name:typed }).then(function(res){
+    if(!res||res.code!==0){ showToast((res&&res.message)||'新增失败','error'); return; }
+    return apiGet('/shop/supplier/all').then(function(g){
+      PC.suppliers=(g&&g.code===0)?g.data||[]:[];
+      var nid=res.data&&res.data.id;
+      if(nid) PC.supplierId=Number(nid);
+      var i=document.getElementById('pcSupplierInput'); if(i) i.value=pcSupplierName();
+      window.pcCloseSupplierDrop();
+      showToast('供应商已新增');
+    });
+  });
+};
+document.addEventListener('click',function(e){
+  if(e.target.closest && e.target.closest('#pcSupplierPicker')) return;
+  var w=document.getElementById('pcSupplierWrap'); if(!w) return;
+  window.pcCloseSupplierDrop();
+});
 function pcFindGoods(val){
   val=(val||'').trim(); if(!val) return null;
   return PC.goods.filter(function(g){ return g.name===val || g.code===val || g.barcode===val; })[0] || null;
@@ -2601,28 +2894,25 @@ function pcReset(keepMeta){
 }
 function pcRender(){
   var page=document.getElementById('pcPage'); if(!page) return;
-  var supOpts=PC.suppliers.map(function(s){return {v:String(s.id),t:s.name};});
   var smOpts=[{v:'0',t:'无'}].concat(PC.salesmen.map(function(s){return {v:String(s.id),t:s.name};}));
   var accOpts=PC.accounts.map(function(a){return {v:String(a.id),t:a.name};});
-  var h='<div class="pc-head" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:12px">'
-    +'<div></div>'
-    +'<div class="pc-title">'+PC_KINDS[pcCurKind].createLabel+'</div>'
-    +'<div style="text-align:right"><span class="link" style="color:var(--accent-600);font-size:14px" onclick="showToast(\'历史单据开发中\')">查看历史单据</span></div>'
-    +'</div>';
-  h+='<div class="pc-divider"></div>';
+  var shopOpts=PC.shops.map(function(s){return {v:String(s.id_str||s.id),t:s.name};});
+  var h='';
   h+='<div class="pc-head" style="justify-content:flex-start">';
-  if(pcCurKind==='order'){
-    h+='<div class="pc-field" style="position:relative">供应商 '
-      +'<input class="mini-input" id="pcSupplierSearch" placeholder="请输入供应商搜索" style="width:220px" value="'+stEsc(pcSupplierName())+'" oninput="pcSupplierSearch(this.value)" onfocus="pcSupplierSearch(this.value)">'
-      +'<div class="pc-sup-drop" id="pcSupDrop"></div></div>';
-  }else{
-    h+='<div class="pc-field">供应商 '+stSelHTML('pcSupplierSel', PC.supplierId||(supOpts[0]&&supOpts[0].v)||'0', supOpts, false)+'</div>';
-  }
+  h+='<div class="pc-field">门店 '+stSelHTML('pcShopSel', String(PC.shopId||(shopOpts[0]&&shopOpts[0].v)||'0'), shopOpts, false)+'</div>';
+  h+='<div class="pc-field">供应商 '
+    +'<div class="picker" id="pcSupplierPicker" style="width:240px">'
+    +'<div class="picker-input'+(PC.supplierId?' filled':'')+'" id="pcSupplierWrap" onclick="pcFocusSupplier()">'
+    +'<input class="picker-field" id="pcSupplierInput" autocomplete="off" placeholder="请选择供应商" value="'+stEsc(pcSupplierName())+'" oninput="pcSupplierInput(this.value)" onkeydown="pcSupplierKeydown(event)" onfocus="pcOpenSupplierDrop()">'
+    +'<span class="picker-clear" onclick="event.stopPropagation();pcClearSupplier()">×</span>'
+    +'<svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+    +'</div>'
+    +'<div class="picker-drop" id="pcSupplierDrop"><div class="picker-list" id="pcSupplierList"></div><div class="picker-opt add" id="pcSupplierAdd" onclick="pcGoNewSupplier()">+ 新增供应商</div></div>'
+    +'</div></div>';
   h+='<div style="flex:1"></div>'
     +'<div class="pc-field">业务员 '+stSelHTML('pcSalesmanSel', String(PC.salesmanId), smOpts, false)+'</div>'
-    +'<div class="pc-field">单据日期 <input type="date" class="mini-input" id="pcBillDate" value="'+stEsc(PC.billDate)+'" onchange="PC.billDate=this.value"></div>'
+    +'<div class="pc-field">单据日期 '+dateFieldHTML('pcBillDate', PC.billDate, "PC.billDate=this.value")+'</div>'
     +'</div>';
-  h+='<div style="margin-bottom:10px"><button class="btn btn-secondary" onclick="showToast(\'导入商品开发中\')">导入商品</button></div>';
   h+='<div class="pc-tbl-wrap"><table class="pc-tbl"><thead><tr>'
     +'<th class="pc-gear"><span style="color:var(--gray-400);display:inline-flex"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span></th><th style="width:200px">商品名称　扫码</th><th style="width:120px">规格</th><th style="width:140px">编号/货号</th><th style="width:150px">条形码</th><th style="width:80px">单位</th><th style="width:90px">数量</th><th style="width:110px">单价</th><th style="width:110px" class="pc-amt">金额</th><th>备注</th>'
     +'</tr></thead><tbody>';
@@ -2659,6 +2949,12 @@ function pcRender(){
     +'<td id="pcSumQty">'+PC.items.reduce(function(a,b){return a+Number(b.qty||0);},0)+'</td>'
     +'<td></td><td class="pc-amt" id="pcSumAmt">'+Number(pcSubtotal()).toFixed(2)+'</td><td></td></tr></tfoot></table></div>';
   // footer
+  var footBtns='<div class="cu-form-foot">'
+    +'<label class="plist-check"><input type="checkbox" id="pcSaveContinue"> 保存后继续开单</label>'
+    +'<div class="grow"></div>'
+    +'<button class="btn btn-secondary" onclick="pcReset()">清空</button>'
+    +'<button class="btn btn-primary"'+pattr(PC_KINDS[pcCurKind].perm+'.add')+' onclick="pcSave(false)">保存(Alt+S)</button>'
+    +'</div>';
   if(pcCurKind==='order'){
     h+='<div class="pc-foot"><div>'
       +'<div class="pc-row"><span class="link">折扣</span><input class="mini-input" type="number" id="pcDiscount" value="'+PC.discount+'" oninput="pcSetDiscount(this.value)"> %'
@@ -2684,14 +2980,7 @@ function pcRender(){
       +'</div>'
       +'</div>';
   }
-  h+='<div class="pc-footer">'
-    +'<label class="plist-check"><input type="checkbox" id="pcSaveContinue"> 保存后继续开单</label>'
-    +'<div class="grow"></div>'
-    +'<button class="btn btn-secondary" onclick="pcReset()">清空</button>'
-    +'<button class="btn btn-secondary"'+pattr(PC_KINDS[pcCurKind].perm+'.add')+' onclick="pcSave(true)">保存并打印(Alt+D)</button>'
-    +'<button class="btn btn-primary"'+pattr(PC_KINDS[pcCurKind].perm+'.add')+' onclick="pcSave(false)">保存(Alt+S)</button>'
-    +'</div>';
-  page.innerHTML=h;
+  page.innerHTML='<div class="cu-form-body">'+h+'</div>'+footBtns;
   enableColResize(document.querySelector('.pc-tbl'), ['pc-gear']);
 }
 /* 表头左右拖拽调整列宽 */
@@ -2738,8 +3027,9 @@ function pcSetFreight(v){ PC.freight=Number(v)||0; pcUpdateTotals(); }
 function pcSetQty(i,v){ if(!PC.items[i])return; PC.items[i].qty=Number(v)||0; PC.items[i].amount=PC.items[i].qty*PC.items[i].price; var a=document.getElementById('pcAmt'+i); if(a)a.textContent=Number(PC.items[i].amount).toFixed(2); pcUpdateTotals(); }
 function pcSetPrice(i,v){ if(!PC.items[i])return; PC.items[i].price=Number(v)||0; PC.items[i].amount=PC.items[i].qty*PC.items[i].price; var a=document.getElementById('pcAmt'+i); if(a)a.textContent=Number(PC.items[i].amount).toFixed(2); pcUpdateTotals(); }
 function pcSetRemark(i,v){ if(PC.items[i]) PC.items[i].remark=v; }
-function pcItemFromGoods(g){ return {goods_id:g.id,name:g.name,spec:pcSpecNames(g),code:g.code||'',barcode:g.barcode||'',unit:g.main_unit||'',qty:1,price:Number(g.purchase_price||0),amount:Number(g.purchase_price||0),remark:''}; }
-function pcFillItem(it,g){ it.goods_id=g.id; it.name=g.name; it.spec=pcSpecNames(g); it.code=g.code||''; it.barcode=g.barcode||''; it.unit=g.main_unit||''; it.price=Number(g.purchase_price||0); it.amount=(it.qty||1)*it.price; }
+function pcGid(g){ return g.id_str || String(g.id); }
+function pcItemFromGoods(g){ return {goods_id:pcGid(g),name:g.name,spec:pcSpecNames(g),code:g.code||'',barcode:g.barcode||'',unit:g.main_unit||'',qty:1,price:Number(g.purchase_price||0),amount:Number(g.purchase_price||0),remark:''}; }
+function pcFillItem(it,g){ it.goods_id=pcGid(g); it.name=g.name; it.spec=pcSpecNames(g); it.code=g.code||''; it.barcode=g.barcode||''; it.unit=g.main_unit||''; it.price=Number(g.purchase_price||0); it.amount=(it.qty||1)*it.price; }
 function pcNameChange(i,val){
   var g=pcFindGoods(val);
   if(!g){ if(i<PC.items.length) PC.items[i].name=val; return; }
@@ -2837,10 +3127,10 @@ document.addEventListener('mousedown', function(e){
 });
 window.addEventListener('scroll', pcCloseNameDrop, true);
 /* ─── 选择商品对话框 ─── */
-const PCGM = { rowIndex:0, catId:0, keyword:'', hideSoldOut:false, sel:{}, rows:{}, cats:[] };
+const PCGM = { rowIndex:0, catId:0, keyword:'', sel:{}, rows:{}, cats:[], page:1, pageSize:10 };
 function pcOpenGoodsDialog(rowIndex, target){
   PCGM.target=target||'pc';
-  PCGM.rowIndex=rowIndex||0; PCGM.catId=0; PCGM.keyword=''; PCGM.hideSoldOut=false; PCGM.sel={}; PCGM.rows={};
+  PCGM.rowIndex=rowIndex||0; PCGM.catId=0; PCGM.keyword=''; PCGM.sel={}; PCGM.rows={}; PCGM.page=1;
   var old=document.getElementById('pcGoodsModal'); if(old) old.remove();
   var m=document.createElement('div'); m.className='modal-overlay show'; m.id='pcGoodsModal';
   m.innerHTML='<div class="modal" style="width:1180px;max-width:96vw;height:84vh;display:flex;flex-direction:column">'
@@ -2851,7 +3141,6 @@ function pcOpenGoodsDialog(rowIndex, target){
     +'<div class="pcgm-main">'
     +'<div class="pcgm-toolbar">'
     +'<button class="btn btn-primary" onclick="pcSaveDraft();location.href=\'/goods.html#goods:add\'">新增商品</button>'
-    +'<label class="plist-check"><input type="checkbox" onchange="PCGM.hideSoldOut=this.checked;pcgmRenderGoods()"> 隐藏售罄商品</label>'
     +'<div style="flex:1"></div>'
     +'<div class="search-wrapper" style="width:280px"><input class="search-input" id="pcgmSearch" placeholder="输入商品名称/条形码/货号" onkeyup="if(event.key===\'Enter\')pcgmSearch()"></div>'
     +'<button class="btn btn-primary" onclick="pcgmSearch()">查询</button>'
@@ -2873,30 +3162,69 @@ function pcCloseGoodsDialog(){ var m=document.getElementById('pcGoodsModal'); if
 function pcgmRenderCats(){
   var el=document.getElementById('pcgmCats'); if(!el) return;
   var cats=PCGM.cats||[];
-  function children(pid){ return cats.filter(function(c){ return String(c.parent_id||0)===String(pid); }); }
+  var childrenMap={};
+  cats.forEach(function(c){
+    var id=String(c.id_str||c.id);
+    var pid=(c.parent_id_str!=null && c.parent_id_str!=='')?String(c.parent_id_str):String(c.parent_id||0);
+    (childrenMap[pid]=childrenMap[pid]||[]).push({id:id, name:c.name});
+  });
   var h='<div class="pcgm-cat-title">商品分类</div>';
   h+='<div class="pcgm-cat'+(PCGM.catId===0?' active':'')+'" onclick="pcgmPickCat(0)"><span class="pcgm-caret">▾</span>全部</div>';
-  (function walk(pid,level){
-    children(pid).forEach(function(c){
-      h+='<div class="pcgm-cat'+(String(PCGM.catId)===String(c.id)?' active':'')+'" style="padding-left:'+(16+level*14)+'px" onclick="pcgmPickCat('+c.id+')">'+stEsc(c.name)+'</div>';
+  var seen={};
+  (function walk(pid, level){
+    if(level>8) return;
+    (childrenMap[pid]||[]).forEach(function(c){
+      if(seen[c.id]) return; seen[c.id]=1;
+      var hasKids=(childrenMap[c.id]||[]).length>0;
+      h+='<div class="pcgm-cat'+(String(PCGM.catId)===c.id?' active':'')+'" style="padding-left:'+(16+level*14)+'px" onclick="pcgmPickCat(\''+c.id+'\')">'
+        +(hasKids?'<span class="pcgm-caret">▾</span>':'<span class="pcgm-caret"></span>')+stEsc(c.name)+'</div>';
       walk(c.id, level+1);
     });
   })(0,1);
   h+='<div class="pcgm-cat'+(PCGM.catId===-1?' active':'')+'" onclick="pcgmPickCat(-1)">未分类</div>';
   el.innerHTML=h;
 }
-function pcgmPickCat(id){ PCGM.catId=id; pcgmRenderCats(); pcgmRenderGoods(); }
-function pcgmSearch(){ var s=document.getElementById('pcgmSearch'); PCGM.keyword=s?s.value.trim():''; pcgmRenderGoods(); }
-function pcgmToggle(gid, checked){ if(checked) PCGM.sel[gid]=true; else delete PCGM.sel[gid]; pcgmUpdateCount(); }
+function pcgmPickCat(id){ PCGM.catId=id; PCGM.page=1; pcgmRenderCats(); pcgmRenderGoods(); }
+function pcgmSearch(){ var s=document.getElementById('pcgmSearch'); PCGM.keyword=s?s.value.trim():''; PCGM.page=1; pcgmRenderGoods(); }
+function pcgmToggle(gid, checked){
+  gid=String(gid);
+  if(checked){
+    PCGM.sel[gid]=true;
+    if(!PCGM.rows[gid]) PCGM.rows[gid]={price:0, unit:''};
+    if(!(Number(PCGM.rows[gid].qty)>0)) PCGM.rows[gid].qty=1;
+  }else{
+    delete PCGM.sel[gid];
+    if(PCGM.rows[gid]) PCGM.rows[gid].qty=0;
+  }
+  var tr=document.querySelector('#pcgmList tr[data-gid="'+gid+'"]');
+  if(tr){ var qi=tr.querySelector('input[type=number]'); if(qi) qi.value=PCGM.rows[gid].qty; }
+  pcgmUpdateCount();
+}
+function pcgmSetQty(gid, el){
+  gid=String(gid);
+  var v=Number(el.value)||0;
+  if(!PCGM.rows[gid]) PCGM.rows[gid]={price:0, unit:''};
+  PCGM.rows[gid].qty=v;
+  if(v>0) PCGM.sel[gid]=true; else delete PCGM.sel[gid];
+  var tr=el.closest('tr'); if(tr){ var cb=tr.querySelector('input[type=checkbox]'); if(cb) cb.checked=!!PCGM.sel[gid]; }
+  pcgmUpdateCount();
+}
 function pcgmToggleAll(checked){
   var el=document.getElementById('pcgmList'); if(!el) return;
   el.querySelectorAll('tbody tr[data-gid]').forEach(function(tr){
-    var gid=tr.getAttribute('data-gid'); var cb=tr.querySelector('input[type=checkbox]');
-    if(cb) cb.checked=checked;
-    if(checked) PCGM.sel[gid]=true; else delete PCGM.sel[gid];
+    var gid=tr.getAttribute('data-gid');
+    if(checked){
+      PCGM.sel[gid]=true;
+      if(!PCGM.rows[gid]) PCGM.rows[gid]={price:0, unit:''};
+      if(!(Number(PCGM.rows[gid].qty)>0)) PCGM.rows[gid].qty=1;
+    }else{
+      delete PCGM.sel[gid];
+      if(PCGM.rows[gid]) PCGM.rows[gid].qty=0;
+    }
   });
-  pcgmUpdateCount();
+  pcgmRenderGoods();
 }
+function pcgmGoPage(p){ if(p<1) p=1; PCGM.page=p; pcgmRenderGoods(); }
 function pcgmUpdateCount(){
   var n=Object.keys(PCGM.sel).length;
   var c=document.getElementById('pcgmCount'); if(c) c.textContent='已选 '+n+' 项';
@@ -2906,44 +3234,59 @@ function pcgmRenderGoods(){
   var el=document.getElementById('pcgmList'); if(!el) return;
   var kw=(PCGM.keyword||'').toLowerCase();
   var list=(PC.goods||[]).filter(function(g){
-    if(PCGM.catId===-1){ if(g.category_id) return false; }
-    else if(PCGM.catId>0){ if(String(g.category_id)!==String(PCGM.catId)) return false; }
-    if(PCGM.hideSoldOut && Number(g.total_stock||0)<=0) return false;
+    var gcat=String(g.category_id_str||g.category_id||0);
+    if(PCGM.catId===-1){ if(gcat!=='0') return false; }
+    else if(PCGM.catId!==0 && String(PCGM.catId)!=='0'){ if(gcat!==String(PCGM.catId)) return false; }
     if(kw){ var hay=((g.name||'')+' '+(g.code||'')+' '+(g.barcode||'')).toLowerCase(); if(hay.indexOf(kw)<0) return false; }
     return true;
   });
+  var total=list.length, ps=PCGM.pageSize||10;
+  var pages=Math.max(1, Math.ceil(total/ps));
+  if(PCGM.page>pages) PCGM.page=pages;
+  var start=(PCGM.page-1)*ps;
+  var pageList=list.slice(start, start+ps);
+  var allChecked=pageList.length>0 && pageList.every(function(g){ return PCGM.sel[pcGid(g)]; });
   var h='<table class="pcgm-tbl"><thead><tr>'
-    +'<th class="no-resize" style="width:40px"><input type="checkbox" onchange="pcgmToggleAll(this.checked)"></th>'
-    +'<th class="no-resize" style="width:44px"><span style="color:var(--gray-400)">⚙</span></th>'
-    +'<th style="width:90px">数量</th><th>商品</th><th>规格</th><th>编号/货号</th><th style="width:120px">单位</th><th style="width:90px">库存</th><th style="width:110px">单价</th>'
+    +'<th class="no-resize" style="width:40px"><input type="checkbox" '+(allChecked?'checked':'')+' onchange="pcgmToggleAll(this.checked)"></th>'
+    +'<th class="no-resize" style="width:44px"><span class="pcgm-gear">'+PC_GEAR_SVG+'</span></th>'
+    +'<th style="width:90px">数量</th><th>商品</th><th>规格</th><th>编号/货号</th><th style="width:120px">单位</th><th style="width:90px">库存</th><th style="width:110px" class="num">单价</th>'
     +'</tr></thead><tbody>';
-  if(!list.length){ h+='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray-400)">暂无商品</td></tr>'; }
-  list.forEach(function(g,i){
+  if(!pageList.length){ h+='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--gray-400)">暂无商品</td></tr>'; }
+  pageList.forEach(function(g,i){
+    var gid=pcGid(g);
     var units=(g.units_summary&&g.units_summary.length)?g.units_summary:[{unit_name:g.main_unit||'-',factor:1}];
-    var r=PCGM.rows[g.id]||(PCGM.rows[g.id]={qty:0, price:Number(g.purchase_price||0), unit:units[0].unit_name});
+    var r=PCGM.rows[gid]||(PCGM.rows[gid]={qty:0, price:Number(g.purchase_price||0), unit:units[0].unit_name});
+    if(!r.unit) r.unit=units[0].unit_name;
+    if(Number(r.qty)>0) PCGM.sel[gid]=true;
     var img=g.image_url?'<img class="pcgm-thumb" src="'+stEsc(g.image_url)+'">':'<span class="pcgm-thumb ph"></span>';
-    h+='<tr data-gid="'+g.id+'">'
-      +'<td><input type="checkbox" '+(PCGM.sel[g.id]?'checked':'')+' onchange="pcgmToggle('+g.id+',this.checked)"></td>'
-      +'<td>'+(i+1)+'</td>'
-      +'<td><input class="pcgm-input" type="number" min="0" value="'+r.qty+'" oninput="PCGM.rows['+g.id+'].qty=Number(this.value)||0"></td>'
+    h+='<tr data-gid="'+gid+'">'
+      +'<td><input type="checkbox" '+(PCGM.sel[gid]?'checked':'')+' onchange="pcgmToggle(\''+gid+'\',this.checked)"></td>'
+      +'<td>'+(start+i+1)+'</td>'
+      +'<td><input class="pcgm-input" type="number" min="0" value="'+r.qty+'" oninput="pcgmSetQty(\''+gid+'\',this)"></td>'
       +'<td><div class="pcgm-goods">'+img+'<span>'+stEsc(g.name)+'</span></div></td>'
       +'<td>'+stEsc(pcSpecNames(g)||'--')+'</td>'
       +'<td>'+stEsc(g.code||'--')+'</td>'
-      +'<td><select class="pcgm-input" onchange="PCGM.rows['+g.id+'].unit=this.value">'+units.map(function(u){return '<option'+(u.unit_name===r.unit?' selected':'')+'>'+stEsc(u.unit_name)+'</option>';}).join('')+'</select></td>'
+      +'<td>'+stEsc(r.unit||units[0].unit_name)+'</td>'
       +'<td>'+Number(g.total_stock||0)+stEsc(g.main_unit||'')+'</td>'
-      +'<td><input class="pcgm-input" type="number" step="0.01" value="'+r.price+'" oninput="PCGM.rows['+g.id+'].price=Number(this.value)||0"></td>'
+      +'<td class="num">'+Number(r.price||0).toFixed(2)+'</td>'
       +'</tr>';
   });
   h+='</tbody></table>';
+  h+='<div class="pagination pcgm-pager"><span>共 '+total+' 条</span><div class="pagination-btns">';
+  h+='<button class="page-btn"'+(PCGM.page<=1?' disabled':'')+' onclick="pcgmGoPage('+(PCGM.page-1)+')">上一页</button>';
+  var s=Math.max(1,PCGM.page-2), e=Math.min(pages,s+4); s=Math.max(1,e-4);
+  for(var p=s;p<=e;p++) h+='<button class="page-btn'+(p===PCGM.page?' active':'')+'" onclick="pcgmGoPage('+p+')">'+p+'</button>';
+  h+='<button class="page-btn"'+(PCGM.page>=pages?' disabled':'')+' onclick="pcgmGoPage('+(PCGM.page+1)+')">下一页</button>';
+  h+='</div></div>';
   el.innerHTML=h;
-  enableColResize(el.querySelector('table'), ['no-resize']);
   pcgmUpdateCount();
 }
 function pcgmConfirm(){
   var added=0;
   (PC.goods||[]).forEach(function(g){
-    if(!PCGM.sel[g.id]) return;
-    var r=PCGM.rows[g.id]||{qty:0, price:g.purchase_price, unit:g.main_unit};
+    var gid=pcGid(g);
+    if(!PCGM.sel[gid]) return;
+    var r=PCGM.rows[gid]||{qty:0, price:g.purchase_price, unit:g.main_unit};
     var qty=Number(r.qty)>0?Number(r.qty):1;
     var price=Number(r.price)||Number(g.purchase_price||0);
     if(PCGM.target==='cb'){
@@ -2953,7 +3296,7 @@ function pcgmConfirm(){
     }else if(PCGM.target==='qbc'){
       QBC.rows.push(qbcNewItem(g));
     }else{
-      PC.items.push({goods_id:g.id,name:g.name,spec:pcSpecNames(g),code:g.code||'',barcode:g.barcode||'',unit:r.unit||g.main_unit||'',qty:qty,price:price,amount:qty*price,remark:''});
+      PC.items.push({goods_id:gid,name:g.name,spec:pcSpecNames(g),code:g.code||'',barcode:g.barcode||'',unit:r.unit||g.main_unit||'',qty:qty,price:price,amount:qty*price,remark:''});
     }
     added++;
   });
@@ -2972,12 +3315,11 @@ function pcUpdateTotals(){
   e=document.getElementById('pcPayable'); if(e)e.textContent=Number(pcPayable()).toFixed(2);
 }
 async function pcSave(andPrint){
-  if(!PC.supplierId){ var s=document.getElementById('pcSupplierSel'); if(s) PC.supplierId=parseInt(s.getAttribute('data-value'),10)||0; }
   if(!PC.supplierId){ showToast('请选择供应商','error'); return; }
   var items=PC.items.filter(function(it){ return it.goods_id && Number(it.qty)>0; });
   if(!items.length){ showToast('请添加商品明细','error'); return; }
   var body={
-    supplier_id:PC.supplierId, salesman_id:PC.salesmanId, account_id:PC.accountId,
+    supplier_id:PC.supplierId, shop_id:PC.shopId||0, salesman_id:PC.salesmanId, account_id:PC.accountId,
     bill_date:PC.billDate, order_date:PC.billDate, discount:Number(PC.discount)||100, freight:Number(PC.freight)||0,
     deposit_offset:Number(PC.deposit)||0, paid_amount:Number(PC.paid)||0, remark:PC.remark,
     items: items.map(function(it){ return {goods_id:it.goods_id, quantity:Number(it.qty), unit_price:Number(it.price), remark:it.remark||''}; })
@@ -2993,9 +3335,11 @@ async function pcSave(andPrint){
 }
 function onStSelChange(id,val){
   if(id==='pcSupplierSel') PC.supplierId=parseInt(val,10)||0;
+  else if(id==='pcShopSel') PC.shopId=String(val||'');
   else if(id==='pcSalesmanSel') PC.salesmanId=parseInt(val,10)||0;
   else if(id==='pcAccountSel') PC.accountId=parseInt(val,10)||0;
   else if(id==='cmPresetSel') cmPreset(val);
+  else if(id==='cuPageSizeSel') cuPageSizeChange(val);
 }
 
 /* ═══════════ 业绩提成 ═══════════ */
@@ -3492,7 +3836,7 @@ function openStockTakeView(id){
 /* ─── 新增盘点单 ─── */
 function stockTakeCreateHTML(){
   setTimeout(stInit,0);
-  return '<div id="stForm"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
+  return '<div id="stForm" class="cu-form-wrap"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
 }
 async function stInit(){
   var r=await Promise.all([apiGet('/shop/goods/all'),apiGet('/shop/salesmen'),apiGet('/shop/shops')]);
@@ -3533,8 +3877,8 @@ function stRender(){
   stCapture();
   var page=document.getElementById('stForm'); if(!page) return;
   var smOpts=stSalesmanOpts();
-  var h='<div class="pc-head" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:12px">'
-    +'<div></div><div class="pc-title">新增盘点单</div>'
+  var h='';
+  h+='<div class="pc-head" style="display:flex;justify-content:flex-end;margin-bottom:12px">'
     +'<div style="text-align:right"><span class="link" style="color:var(--accent-600);font-size:14px" onclick="showToast(\'查看历史单据开发中\')">查看历史单据</span></div></div>';
   h+='<div class="pc-divider"></div>';
   h+='<div class="pc-head" style="justify-content:flex-start">'
@@ -3580,10 +3924,10 @@ function stRender(){
     +'<div class="pc-row" style="align-items:center"><div class="pc-upload" onclick="showToast(\'上传附件开发中\')"><span style="font-size:21px">+</span>上传附件</div>'
     +'<div style="font-size:13px;color:var(--gray-400)">最多上传5个附件，每个附件最大10MB<br>支持"拖拽上传"和"复制粘贴上传"</div></div>'
     +'</div></div>';
-  h+='<div class="pc-footer" style="margin-top:16px"><div class="grow"></div>'
+  var footBtns='<div class="cu-form-foot">'
     +'<button class="btn btn-secondary" onclick="stClear()">清空</button>'
     +'<button class="btn btn-primary"'+pattr('stock.count.add')+' onclick="stSave()">保存(Alt+S)</button></div>';
-  page.innerHTML=h;
+  page.innerHTML='<div class="cu-form-body">'+h+'</div>'+footBtns;
 }
 function stDiffText(d){ return (d>0?'+':'')+d; }
 function stSumBook(){ return ST.items.reduce(function(a,b){ return a+Number(b.book||0); },0); }
@@ -4561,24 +4905,34 @@ function renderFundsAccounts(){
   var sum=FA.list.reduce(function(a,b){return a+Number(b.balance||0);},0);
   var t=document.getElementById('faTotal'); if(t) t.textContent=Number(sum).toFixed(2);
   var h='<div class="plist-scroll"><table><thead><tr>'
-    +'<th>账户名称</th><th>银行名称</th><th>银行卡号</th><th class="num" style="width:140px">余额</th><th>备注</th><th class="plist-actions" style="width:230px">操作</th>'
+    +'<th>账户名称</th><th>银行名称</th><th>银行卡号</th><th>所属门店</th><th class="num" style="width:140px">余额</th><th>备注</th><th class="plist-actions" style="width:230px">操作</th>'
     +'</tr></thead><tbody>';
-  if(!FA.list.length) h+='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--gray-400)">暂无数据</td></tr>';
+  if(!FA.list.length) h+='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--gray-400)">暂无数据</td></tr>';
   FA.list.forEach(function(r){
     h+='<tr>'
       +'<td>'+stEsc(r.name||'')+'</td>'
       +'<td>'+stEsc(r.bank_name||'--')+'</td>'
       +'<td>'+stEsc(r.card_no||'--')+'</td>'
+      +'<td>'+stEsc(r.shop_name||'--')+'</td>'
       +'<td class="num">'+Number(r.balance||0).toFixed(2)+'</td>'
       +'<td>'+stEsc(r.remark||'')+'</td>'
-      +'<td class="plist-actions"><span class="link"'+pattr('funds.account.normal.edit')+' style="color:var(--accent-600)" onclick="faOpenModal('+r.id+')">修改</span> <span class="link" style="color:var(--accent-600)" onclick="showToast(\'核对余额开发中\')">核对余额</span> <span class="link"'+pattr('funds.account.normal.del')+' style="color:var(--danger-500)" onclick="faDelete('+r.id+')">删除</span></td>'
+      +'<td class="plist-actions"><span class="link"'+pattr('funds.account.normal.edit')+' style="color:var(--accent-600);margin-right:14px" onclick="faOpenModal('+r.id+')">修改</span><span class="link"'+pattr('funds.account.normal.del')+' style="color:var(--danger-500)" onclick="faDelete('+r.id+')">删除</span></td>'
       +'</tr>';
   });
-  h+='</tbody><tfoot><tr class="plist-sum"><td style="text-align:left;padding-left:14px">合计</td><td></td><td></td><td class="num">'+Number(sum).toFixed(2)+'</td><td></td><td class="plist-actions"></td></tr></tfoot></table></div>';
+  h+='</tbody><tfoot><tr class="plist-sum"><td style="text-align:left;padding-left:14px">合计</td><td></td><td></td><td></td><td class="num">'+Number(sum).toFixed(2)+'</td><td></td><td class="plist-actions"></td></tr></tfoot></table></div>';
   wrap.innerHTML=h;
 }
-function faOpenModal(id){
+async function faOpenModal(id){
   var acc=id?(FA.list.filter(function(a){return String(a.id)===String(id);})[0]||null):null;
+  var sr=await apiGet('/shop/shops');
+  var shops=(sr&&sr.code===0)?(sr.data||[]):[];
+  var curShopId=(acc&&acc.shop_id)?String(acc.shop_id):'';
+  var curShopName='';
+  var shopOpts=shops.map(function(sp){
+    var sid=String(sp.id);
+    if(sid===curShopId) curShopName=sp.name||'';
+    return '<div class="fa-sel-opt'+(sid===curShopId?' active':'')+'" data-value="'+sid+'" onclick="faPickShop(this)">'+stEsc(sp.name||'')+'</div>';
+  }).join('') || '<div class="fa-sel-opt" style="color:var(--gray-400);cursor:default">暂无门店</div>';
   var old=document.getElementById('faModal'); if(old) old.remove();
   var m=document.createElement('div'); m.className='modal-overlay show'; m.id='faModal';
   m.innerHTML='<div class="modal" style="width:560px;max-width:96vw">'
@@ -4587,6 +4941,11 @@ function faOpenModal(id){
     + faField('账户名称','faName',acc?acc.name:'','请输入账户名称',true)
     + faField('银行卡号','faCardNo',acc?acc.card_no:'','请输入银行卡号')
     + faField('银行名称','faBankName',acc?acc.bank_name:'','请输入银行名称')
+    + '<div class="fa-frow"><label class="fa-flabel">所属门店<span class="req">*</span></label>'
+    +   '<div class="fa-sel" id="faShopSel" data-value="'+curShopId+'">'
+    +     '<div class="fa-sel-input'+(curShopId?'':' placeholder')+'" onclick="faToggleShop(event)"><span class="fa-sel-label">'+(curShopId?stEsc(curShopName):'请选择所属门店')+'</span><svg class="fa-sel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>'
+    +     '<div class="fa-sel-panel">'+shopOpts+'</div>'
+    +   '</div></div>'
     + faField('当前余额','faBalance',acc?acc.balance:'','请输入当前余额',false,'number')
     + '<div class="fa-frow"><label class="fa-flabel">备注</label><textarea class="fa-input" id="faRemark" placeholder="请输入备注">'+stEsc(acc?acc.remark||'':'')+'</textarea></div>'
     +'</div>'
@@ -4594,16 +4953,34 @@ function faOpenModal(id){
     +'</div>';
   document.body.appendChild(m);
 }
+function faToggleShop(e){ if(e) e.stopPropagation(); var s=document.getElementById('faShopSel'); if(s) s.classList.toggle('open'); }
+function faPickShop(el){
+  var s=document.getElementById('faShopSel'); if(!s||!el) return;
+  var val=el.getAttribute('data-value')||'';
+  s.setAttribute('data-value',val);
+  var lb=s.querySelector('.fa-sel-label'); if(lb) lb.textContent=el.textContent;
+  var inp=s.querySelector('.fa-sel-input'); if(inp) inp.classList.toggle('placeholder',!val);
+  s.querySelectorAll('.fa-sel-opt').forEach(function(o){ o.classList.toggle('active',o===el); });
+  s.classList.remove('open');
+}
+document.addEventListener('click', function(e){
+  var s=document.getElementById('faShopSel');
+  if(s && !s.contains(e.target)) s.classList.remove('open');
+});
 async function faSubmit(id){
   var name=gv('faName').trim();
   if(!name){ showToast('请输入账户名称','error'); return; }
-  var body={ name:name, card_no:gv('faCardNo'), bank_name:gv('faBankName'), balance:Number(gv('faBalance'))||0, remark:gv('faRemark'), type:2 };
+  var shopSel=document.getElementById('faShopSel');
+  var shopId=shopSel?shopSel.getAttribute('data-value'):'';
+  if(!shopId){ showToast('请选择所属门店','error'); return; }
+  var body={ name:name, card_no:gv('faCardNo'), bank_name:gv('faBankName'), shop_id:Number(shopId)||0, balance:Number(gv('faBalance'))||0, remark:gv('faRemark'), type:2 };
   var res = id ? await apiPut('/shop/account/'+id, body) : await apiPost('/shop/account', body);
   if(res&&res.code===0){ showToast('保存成功'); var m=document.getElementById('faModal'); if(m)m.remove(); loadFundsAccounts(); }
   else showToast((res&&res.message)||'保存失败','error');
 }
 async function faDelete(id){
-  if(!confirm('确定删除该账户？')) return;
+  var ok=await showConfirm({title:'删除账户', message:'确定删除该账户？', desc:'删除后不可恢复', iconType:'danger', okText:'删除', okClass:'btn-danger'});
+  if(!ok) return;
   var res=await apiDelete('/shop/account/'+id);
   if(res&&res.code===0){ showToast('删除成功'); loadFundsAccounts(); } else showToast((res&&res.message)||'删除失败','error');
 }
@@ -6121,7 +6498,112 @@ async function ddLoad(){
 }
 
 /* ═══════════ 客户 ═══════════ */
-const CU = { list:[], total:0, page:1, categories:[], priceLevels:[], form:{}, editId:null, viewId:null, view:null, addresses:[], catId:0 };
+const CU = { list:[], total:0, page:1, pageSize:10, categories:[], priceLevels:[], form:{}, editId:null, viewId:null, view:null, addresses:[], catId:0 };
+/* 客户列表自定义表头 */
+const CU_COL_DEFS = [
+  {key:'name', l:'客户名称', fixed:true, minWidth:200, render:function(r){ return stEsc(r.name||''); }},
+  {key:'category', l:'分类', width:120, render:function(r){ return stEsc(r.category_name||'未分类'); }},
+  {key:'price_level', l:'价格等级', width:110, render:function(r){ return stEsc(r.price_level||'零售价'); }},
+  {key:'contact', l:'联系人', width:110, render:function(r){ return stEsc(r.contact||''); }},
+  {key:'phone', l:'联系电话', width:130, render:function(r){ return stEsc(r.phone||''); }},
+  {key:'email', l:'邮箱', width:160, render:function(r){ return stEsc(r.email||''); }},
+  {key:'total_receivable', l:'客户欠款', width:120, num:true, render:function(r){ return Number(r.total_receivable||0).toFixed(2); }},
+  {key:'balance', l:'客户预存款', width:120, num:true, render:function(r){ return Number(r.balance||0).toFixed(2); }},
+  {key:'remark', l:'备注', render:function(r){ return stEsc(r.remark||''); }},
+  {key:'status', l:'状态', width:90, render:function(r){ return Number(r.status)===1?'<span style="color:var(--success-600)">启用中</span>':'<span style="color:var(--gray-400)">已停用</span>'; }},
+  {key:'actions', l:'操作', fixed:true, width:200, render:function(r){
+    var rid=r.id_str||String(r.id);
+    return '<div class="cu-row-actions">'
+      +'<span class="link" style="color:var(--accent-600)" onclick="openCustomerView(\''+rid+'\')">查看</span>'
+      +'<span class="link" style="color:var(--accent-600)" onclick="openReceiptForCustomer(\''+rid+'\')">收款</span>'
+      +'<span class="link" style="color:var(--gray-500)" onclick="cuMoreMenu(event,\''+rid+'\','+(Number(r.status)===1?1:0)+')">更多</span>'
+      +'</div>';
+  }}
+];
+const CU_COL_STORE = 'pisa_customer_cols';
+function cuColDef(key){ for(var i=0;i<CU_COL_DEFS.length;i++){ if(CU_COL_DEFS[i].key===key) return CU_COL_DEFS[i]; } return null; }
+function cuDefaultCols(){ return CU_COL_DEFS.map(function(c){ return c.key; }); }
+function cuNormalizeCols(cols){
+  var valid=CU_COL_DEFS.map(function(c){ return c.key; });
+  var out=(cols||[]).filter(function(k){ return valid.indexOf(k)>=0 && k!=='actions'; });
+  if(out.indexOf('name')<0) out.unshift('name');
+  out.push('actions');
+  return out;
+}
+function cuLoadCols(){
+  try{
+    var r=JSON.parse(localStorage.getItem(CU_COL_STORE)||'null');
+    if(Array.isArray(r)) return cuNormalizeCols(r);
+  }catch(e){}
+  return cuDefaultCols();
+}
+function cuSaveCols(){ try{ localStorage.setItem(CU_COL_STORE, JSON.stringify(CU.columns)); }catch(e){} }
+CU.columns = cuLoadCols();
+let cuDraftCols=null;
+function openCuColsDrawer(){
+  cuDraftCols=CU.columns.slice();
+  var old=document.getElementById('cuColsDrawer'); if(old) old.remove();
+  var oldMask=document.getElementById('cuColsMask'); if(oldMask) oldMask.remove();
+  var mask=document.createElement('div'); mask.className='col-mask'; mask.id='cuColsMask'; mask.onclick=closeCuColsDrawer;
+  var dr=document.createElement('aside'); dr.className='col-drawer'; dr.id='cuColsDrawer';
+  dr.innerHTML='<div class="col-drawer-head">'
+    +'<button class="col-drawer-close" onclick="closeCuColsDrawer()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+    +'<div class="col-drawer-title">自定义表头</div></div>'
+    +'<div class="col-drawer-body">'
+    +'<div class="col-sec-title">已显示表头<span>拖拽可调整表头顺序</span></div>'
+    +'<div class="col-grid" id="cuShownGrid"></div>'
+    +'<div class="col-sec-title">可选表头</div>'
+    +'<div class="col-grid" id="cuAvailGrid"></div></div>'
+    +'<div class="col-drawer-foot"><button class="btn btn-secondary" onclick="cuRestoreDefaultCols()">恢复默认</button>'
+    +'<div class="col-foot-right"><button class="btn btn-secondary" onclick="closeCuColsDrawer()">取消</button>'
+    +'<button class="btn btn-primary" onclick="cuConfirmCols()">确定</button></div></div>';
+  document.body.appendChild(mask); document.body.appendChild(dr);
+  renderCuColsDrawer();
+  initCuColsDnD();
+  setTimeout(function(){ mask.classList.add('show'); dr.classList.add('show'); },0);
+}
+function closeCuColsDrawer(){
+  var m=document.getElementById('cuColsMask'), dr=document.getElementById('cuColsDrawer');
+  if(m) m.classList.remove('show'); if(dr) dr.classList.remove('show');
+  cuDraftCols=null;
+  setTimeout(function(){ if(m) m.remove(); if(dr) dr.remove(); },250);
+}
+function renderCuColsDrawer(){
+  var shown=document.getElementById('cuShownGrid'), avail=document.getElementById('cuAvailGrid');
+  if(!shown||!avail||!cuDraftCols) return;
+  var dots='<span class="col-drag"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>';
+  shown.innerHTML=cuDraftCols.filter(function(k){ return k!=='actions'; }).map(function(k){
+    var c=cuColDef(k); if(!c) return '';
+    return '<div class="col-chip shown'+(c.fixed?' fixed':'')+'" draggable="true" data-key="'+k+'">'+dots
+      +'<span class="col-label">'+stEsc(c.l)+'</span>'
+      +(c.fixed?'':'<button type="button" class="col-del" title="移除" onclick="cuRemoveCol(\''+k+'\',event)">−</button>')+'</div>';
+  }).join('');
+  avail.innerHTML=CU_COL_DEFS.filter(function(c){ return !c.fixed && cuDraftCols.indexOf(c.key)<0; }).map(function(c){
+    return '<div class="col-chip avail" data-key="'+c.key+'"><span class="col-label">'+stEsc(c.l)+'</span>'
+      +'<button type="button" class="col-add" title="添加" onclick="cuAddCol(\''+c.key+'\',event)">+</button></div>';
+  }).join('');
+}
+function cuAddCol(k,ev){ if(ev) ev.stopPropagation(); if(!cuDraftCols||cuDraftCols.indexOf(k)>=0) return; var arr=cuDraftCols.filter(function(x){ return x!=='actions'; }); arr.push(k); arr.push('actions'); cuDraftCols=arr; renderCuColsDrawer(); }
+function cuRemoveCol(k,ev){ if(ev) ev.stopPropagation(); var c=cuColDef(k); if(!cuDraftCols||!c||c.fixed) return; cuDraftCols=cuDraftCols.filter(function(x){ return x!==k; }); renderCuColsDrawer(); }
+function cuRestoreDefaultCols(){ cuDraftCols=cuDefaultCols().slice(); renderCuColsDrawer(); }
+function cuConfirmCols(){ if(cuDraftCols){ CU.columns=cuNormalizeCols(cuDraftCols); cuSaveCols(); } closeCuColsDrawer(); cuRenderHead(); cuRenderBody(); }
+function cuReorderCol(from,to,after){
+  if(!cuDraftCols) return;
+  var arr=cuDraftCols.filter(function(k){ return k!==from; });
+  var ti=arr.indexOf(to);
+  if(ti<0) ti=arr.length; else if(after) ti+=1;
+  arr.splice(ti,0,from); cuDraftCols=arr; renderCuColsDrawer();
+}
+function initCuColsDnD(){
+  var grid=document.getElementById('cuShownGrid'); if(!grid||grid.getAttribute('data-dnd')==='1') return;
+  grid.setAttribute('data-dnd','1');
+  var dragKey=null;
+  grid.addEventListener('dragstart',function(e){ var chip=e.target.closest('.col-chip'); if(!chip) return; dragKey=chip.getAttribute('data-key'); chip.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain',dragKey); }catch(err){} });
+  grid.addEventListener('dragend',function(e){ var chip=e.target.closest('.col-chip'); if(chip) chip.classList.remove('dragging'); grid.querySelectorAll('.drag-over').forEach(function(x){ x.classList.remove('drag-over'); }); dragKey=null; });
+  grid.addEventListener('dragover',function(e){ if(!dragKey) return; e.preventDefault(); e.dataTransfer.dropEffect='move'; var chip=e.target.closest('.col-chip'); grid.querySelectorAll('.drag-over').forEach(function(x){ if(x!==chip) x.classList.remove('drag-over'); }); if(chip&&chip.getAttribute('data-key')!==dragKey) chip.classList.add('drag-over'); });
+  grid.addEventListener('drop',function(e){ if(!dragKey) return; e.preventDefault(); var chip=e.target.closest('.col-chip'); if(!chip) return; var tk=chip.getAttribute('data-key'); if(tk===dragKey) return; var rect=chip.getBoundingClientRect(); var after=(e.clientX-rect.left)>rect.width/2; cuReorderCol(dragKey,tk,after); });
+}
+
 function openCustomerCreate(){ CU.editId=null; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
 function openCustomerEdit(id){ CU.editId=id; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
 function openCustomerView(id){ CU.viewId=id; if(window.PisaTabs) PisaTabs.touch('customer:view','客户详情','/#customer:view'); showPage('customer:view'); }
@@ -6149,7 +6631,7 @@ const CUCAT = { collapsed:{}, searchMode:false, searchKw:'', editMode:false };
 async function cuInit(){
   var r=await apiGet('/shop/customer-category/list');
   CU.categories=(r&&r.code===0)?r.data||[]:[];
-  CU.catId=0;
+  CU.catId=0; CU.page=1;
   cuRenderCatTree();
   cuMainRender(); cuLoad();
 }
@@ -6169,15 +6651,15 @@ function cuRenderCatTree(){
     var kids=cuCatChildren(cat.id), matchT=matchKw(cat.name), hasKids=kids.length>0;
     var expanded=kw?true:!CUCAT.collapsed[cat.id];
     var dc=level===1?' child':level===2?' child2':level===3?' child3':' child4';
-    h+='<div class="cat-node'+dc+(String(CU.catId)===String(cat.id)?' active':'')+'" onclick="cuPickCat(this,'+cat.id+')">';
-    if(hasKids) h+='<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate('+(expanded?'90':'0')+'deg)" onclick="event.stopPropagation();cuCatToggleCollapse('+cat.id+')"><polyline points="9 18 15 12 9 6"/></svg>';
+    h+='<div class="cat-node'+dc+(String(CU.catId)===String(cat.id)?' active':'')+'" onclick="cuPickCat(this,\''+cat.id+'\')">';
+    if(hasKids) h+='<svg class="cat-caret" viewBox="0 0 24 24" style="transform:rotate('+(expanded?'90':'0')+'deg)" onclick="event.stopPropagation();cuCatToggleCollapse(\''+cat.id+'\')"><polyline points="9 18 15 12 9 6"/></svg>';
     else h+='<span class="cat-caret"></span>';
     h+='<span>'+stEsc(cat.name)+'</span>';
     if(CUCAT.editMode){
       h+='<div class="cat-actions-row">';
-      if(level<5) h+='<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();cuCatAddChild('+cat.id+')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
-      h+='<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();cuCatEdit('+cat.id+')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-        +'<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();cuCatDelete('+cat.id+')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>';
+      if(level<5) h+='<button class="cat-node-actions" title="新增子分类" onclick="event.stopPropagation();cuCatAddChild(\''+cat.id+'\')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>';
+      h+='<button class="cat-node-actions" title="修改" onclick="event.stopPropagation();cuCatEdit(\''+cat.id+'\')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+        +'<button class="cat-node-actions danger" title="删除" onclick="event.stopPropagation();cuCatDelete(\''+cat.id+'\')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>';
     }
     h+='</div>';
     if(expanded&&hasKids&&level<5){
@@ -6188,7 +6670,7 @@ function cuRenderCatTree(){
   if(!kw||matchKw('未分类')) h+='<div class="cat-node'+(CU.catId===-1?' active':'')+'" onclick="cuPickCat(this,-1)"><span class="cat-caret"></span><span>未分类</span></div>';
   c.innerHTML=h;
 }
-function cuPickCat(el,id){ document.querySelectorAll('#cuCatTree .cat-node').forEach(function(n){ n.classList.remove('active'); }); if(el) el.classList.add('active'); CU.catId=id; cuLoad(); }
+function cuPickCat(el,id){ document.querySelectorAll('#cuCatTree .cat-node').forEach(function(n){ n.classList.remove('active'); }); if(el) el.classList.add('active'); CU.catId=id; CU.page=1; cuLoad(); }
 function cuCatToggleCollapse(id){ CUCAT.collapsed[id]=!CUCAT.collapsed[id]; cuRenderCatTree(); }
 function cuToggleSearch(){ CUCAT.searchMode=!CUCAT.searchMode; var w=document.getElementById('cuCatSearchWrap'); if(w) w.style.display=CUCAT.searchMode?'':'none'; var a=document.getElementById('cuCatDefaultActions'); if(a) a.style.display=CUCAT.searchMode?'none':''; var b=document.getElementById('cuCatEditActions'); if(b) b.style.display=(CUCAT.searchMode||!CUCAT.editMode)?'none':''; if(CUCAT.searchMode){ setTimeout(function(){ var i=document.getElementById('cuCatSearchInput'); if(i) i.focus(); },0); } else { CUCAT.searchKw=''; cuRenderCatTree(); } }
 function cuOnSearch(v){ CUCAT.searchKw=v||''; cuRenderCatTree(); }
@@ -6199,25 +6681,19 @@ function cuCatEdit(id){ cuCatModal(id,0); }
 async function cuCatDelete(id){ if(!confirm('确定删除该分类？')) return; var res=await apiDelete('/shop/customer-category/'+id); if(res&&res.code===0){ showToast('删除成功'); cuInit(); } else showToast('删除失败','error'); }
 function cuMainRender(){
   var main=document.getElementById('cuMain'); if(!main) return;
-  var h='<div class="page-head"><div class="page-title">客户管理</div><div>'
-    +'<button class="btn btn-secondary" onclick="exportTable(\'customer\')">导出</button> '
-    +'<button class="btn btn-primary" onclick="openCustomerCreate()">+ 新增</button></div></div>';
-  h+='<div class="filter-bar">'
-    +'<div class="search-wrapper" style="width:300px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search-input" id="cuSearch" placeholder="输入名称或编码查询" onkeyup="cuSearchDebounce()"></div>'
-    +'<label class="plist-check"><input type="checkbox" id="cuHideDisabled" onchange="cuLoad()"> 隐藏停用客户</label>'
-    +'<label class="plist-check"><input type="checkbox" id="cuHideZero" onchange="cuLoad()"> 隐藏零欠款客户</label>'
-    +'<div style="flex:1"></div><span class="link" onclick="showToast(\'高级查询开发中\')">高级查询 ▾</span></div>';
-  h+='<div class="plist-wrap" id="cuListBody"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
+  var h='<div class="gd-toolbar"><div class="gd-tb-left">'
+    +'<button class="btn btn-primary" onclick="openCustomerCreate()">+ 新增客户</button></div>'
+    +'<div class="gd-tb-right"><div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+    +'<input class="search-input" id="cuSearch" placeholder="输入名称或编码查询" onkeyup="cuSearchDebounce()"></div></div></div>';
+  h+='<div id="cuListBody"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>';
   main.innerHTML=h;
 }
-function cuSearchDebounce(){ clearTimeout(window._cuST); window._cuST=setTimeout(function(){ cuLoad(); },300); }
+function cuSearchDebounce(){ clearTimeout(window._cuST); window._cuST=setTimeout(function(){ CU.page=1; cuLoad(); },300); }
 async function cuLoad(){
   var wrap=document.getElementById('cuListBody'); if(!wrap) return;
-  var path='/shop/customer/list?page=1&page_size=200';
+  var path='/shop/customer/list?page='+CU.page+'&page_size='+CU.pageSize;
   var kw=gv('cuSearch'); if(kw) path+='&keyword='+encodeURIComponent(kw);
   if(CU.catId) path+='&category_id='+CU.catId;
-  var hd=document.getElementById('cuHideDisabled'); if(hd&&hd.checked) path+='&hide_disabled=1';
-  var hz=document.getElementById('cuHideZero'); if(hz&&hz.checked) path+='&hide_zero=1';
   var res=await apiGet(path);
   if(!res||res.code!==0){ wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--gray-400)">加载失败</div>'; return; }
   CU.list=res.data.list||[]; CU.total=res.data.total||0;
@@ -6225,22 +6701,135 @@ async function cuLoad(){
 }
 function cuRender(){
   var wrap=document.getElementById('cuListBody'); if(!wrap) return;
-  var h='<div class="plist-scroll"><table class="cu-tbl"><thead><tr>'
-    +'<th class="th-check"><input type="checkbox"></th>'
-    +'<th class="plist-tools"><button class="plist-gear-btn" onclick="showToast(\'自定义表头开发中\')">'+PC_GEAR_SVG+'</button></th>'
-    +'<th style="width:56px">序号</th><th>客户名称</th><th style="width:120px">分类</th><th style="width:110px">价格等级</th><th style="width:110px">联系人</th><th style="width:130px">联系电话</th><th style="width:160px">邮箱</th><th class="num" style="width:120px">客户欠款</th><th class="num" style="width:120px">客户预存款</th><th>备注</th><th style="width:90px">状态</th>'
-    +'<th class="plist-actions" style="width:210px">操作</th></tr></thead><tbody>';
-  if(!CU.list.length) h+='<tr><td colspan="14"><div class="sa-empty"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3z"/><path d="M3 7l2-4h14l2 4"/><path d="M9 12h6"/></svg><span>暂无数据</span></div></td></tr>';
-  CU.list.forEach(function(r,i){
-    h+='<tr><td class="th-check"><input type="checkbox"></td><td class="plist-idx">'+(i+1)+'</td>'
-      +'<td>'+stEsc(r.name||'')+'</td><td>'+stEsc(r.category_name||'未分类')+'</td><td>'+stEsc(r.price_level||'零售价')+'</td>'
-      +'<td>'+stEsc(r.contact||'')+'</td><td>'+stEsc(r.phone||'')+'</td><td>'+stEsc(r.email||'')+'</td>'
-      +'<td class="num">'+Number(r.total_receivable||0).toFixed(2)+'</td><td class="num">0.00</td><td>'+stEsc(r.remark||'')+'</td>'
-      +'<td>'+(Number(r.status)===1?'<span style="color:var(--success-600)">启用中</span>':'<span style="color:var(--gray-400)">已停用</span>')+'</td>'
-      +'<td class="plist-actions"><span class="link" style="color:var(--accent-600)" onclick="openCustomerView(\''+r.id_str+'\')">查看</span> <span class="link" style="color:var(--accent-600)" onclick="openReceiptForCustomer(\''+r.id_str+'\',\''+stEsc(r.name).replace(/'/g,"\\'")+'\')">收款</span> <span class="link" style="color:var(--accent-600)" onclick="openCustomerStatement(\''+r.id_str+'\')">对账</span> <span class="link" style="color:var(--gray-500)" onclick="showToast(\'更多开发中\')">更多</span></td></tr>';
-  });
-  h+='</tbody></table></div>';
+  var h='<div class="table-wrap"><div class="table-scroll"><table class="cu-tbl"><thead id="cuTableHead"></thead><tbody id="cuTableBody"></tbody></table></div>'
+    +'<div class="cu-pagination" id="cuPagination" style="display:none"><div class="info" id="cuPageInfo"></div><div class="pages" id="cuPageButtons"></div></div>'
+    +'</div>';
   wrap.innerHTML=h;
+  cuRenderHead();
+  cuRenderBody();
+  cuRenderPagination();
+}
+function cuRenderPagination(){
+  var pag=document.getElementById('cuPagination'); if(!pag) return;
+  var totalPages=Math.ceil(CU.total/CU.pageSize);
+  if(CU.total<=0){ pag.style.display='none'; return; }
+  pag.style.display='flex';
+  var start=(CU.page-1)*CU.pageSize+1;
+  var end=Math.min(CU.page*CU.pageSize, CU.total);
+  var sizeSel='<div class="stsel cu-page-size-sel" id="cuPageSizeSel" data-value="'+CU.pageSize+'">'
+    +'<div class="stsel-input" onclick="toggleStSel(\'cuPageSizeSel\',event)"><span class="stsel-label">'+CU.pageSize+' 条/页</span>'
+    +'<svg class="stsel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>'
+    +'<div class="stsel-panel">'
+    +[10,20,50,100].map(function(n){ return '<div class="stsel-opt'+(n===CU.pageSize?' active':'')+'" data-value="'+n+'" onclick="pickStSel(\'cuPageSizeSel\',\''+n+'\',this,event)">'+n+' 条/页</div>'; }).join('')
+    +'</div></div>';
+  document.getElementById('cuPageInfo').innerHTML='共 '+CU.total+' 条，第 '+start+'-'+end+' 条 '+sizeSel;
+  var pagesEl=document.getElementById('cuPageButtons');
+  if(totalPages<=1){ pagesEl.innerHTML=''; return; }
+  var btns='';
+  btns+='<button class="cu-page-btn'+(CU.page<=1?' disabled':'')+'" onclick="cuGoPage('+(CU.page-1)+')"'+(CU.page<=1?' disabled':'')+'><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  var maxShow=5;
+  var startPage=Math.max(1,CU.page-Math.floor(maxShow/2));
+  var endPage=Math.min(totalPages,startPage+maxShow-1);
+  if(endPage-startPage<maxShow-1) startPage=Math.max(1,endPage-maxShow+1);
+  if(startPage>1) btns+='<button class="cu-page-btn" onclick="cuGoPage(1)">1</button>';
+  if(startPage>2) btns+='<span style="padding:0 4px;color:var(--gray-400)">...</span>';
+  for(var i=startPage;i<=endPage;i++){
+    btns+='<button class="cu-page-btn'+(i===CU.page?' active':'')+'" onclick="cuGoPage('+i+')">'+i+'</button>';
+  }
+  if(endPage<totalPages-1) btns+='<span style="padding:0 4px;color:var(--gray-400)">...</span>';
+  if(endPage<totalPages) btns+='<button class="cu-page-btn" onclick="cuGoPage('+totalPages+')">'+totalPages+'</button>';
+  btns+='<button class="cu-page-btn'+(CU.page>=totalPages?' disabled':'')+'" onclick="cuGoPage('+(CU.page+1)+')"'+(CU.page>=totalPages?' disabled':'')+'><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  pagesEl.innerHTML=btns;
+}
+function cuGoPage(p){ if(p<1) p=1; var tp=Math.ceil(CU.total/CU.pageSize); if(p>tp) p=tp; CU.page=p; cuLoad(); }
+function cuPageSizeChange(v){ CU.pageSize=parseInt(v,10)||10; CU.page=1; cuLoad(); }
+function cuRenderHead(){
+  var head=document.getElementById('cuTableHead'); if(!head) return;
+  var tbl=head.closest('table');
+  if(tbl){ tbl.dataset.frozen='0'; tbl.style.tableLayout=''; tbl.style.width=''; }
+  var h='<tr><th class="th-check"><input type="checkbox" onchange="toggleAllCustomers(this.checked)"></th>';
+  h+='<th class="th-tools"><button type="button" class="th-gear" title="自定义表头" onclick="openCuColsDrawer()">'
+    +'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+    +'</button></th>';
+  CU.columns.forEach(function(k){
+    var def=cuColDef(k); if(!def) return;
+    var style='', cls='';
+    if(k==='actions'){ cls=' class="th-actions"'; style=' style="width:'+(def.width||200)+'px"'; }
+    else if(def.minWidth) style=' style="min-width:'+def.minWidth+'px"';
+    else if(def.width) style=' style="width:'+def.width+'px"';
+    if(def.num) cls=' class="text-right"';
+    h+='<th'+cls+style+'>'+stEsc(def.l)+'</th>';
+  });
+  h+='</tr>';
+  head.innerHTML=h;
+}
+function cuRenderBody(){
+  var tbody=document.getElementById('cuTableBody'); if(!tbody) return;
+  if(!CU.list.length){
+    tbody.innerHTML='<tr><td colspan="'+(CU.columns.length+2)+'"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>暂无客户数据</p></div></td></tr>';
+    return;
+  }
+  var html='';
+  CU.list.forEach(function(r,i){
+    var rid=r.id_str||String(r.id);
+    html+='<tr data-row-id="'+rid+'">'
+      +'<td class="c-check"><input type="checkbox" class="row-check" data-rid="'+rid+'" onchange="toggleCustomerRow(this)"></td>'
+      +'<td class="c-idx">'+(i+1)+'</td>';
+    CU.columns.forEach(function(k){
+      var def=cuColDef(k); if(!def) return;
+      var cls=k==='actions'?' class="c-actions"':(def.num?' class="text-right"':'');
+      html+='<td'+cls+'>'+def.render(r)+'</td>';
+    });
+    html+='</tr>';
+  });
+  tbody.innerHTML=html;
+}
+function cuMoreMenu(ev, id, status){
+  if(ev) ev.stopPropagation();
+  closeCuMoreMenu();
+  var menu=document.createElement('div');
+  menu.className='row-more-menu'; menu.id='cuMoreMenu';
+  var toggleLabel=Number(status)===1?'停用':'启用';
+  menu.innerHTML='<div class="row-more-item" onclick="closeCuMoreMenu();openCustomerEdit(\''+id+'\')">修改</div>'
+    +'<div class="row-more-item" onclick="closeCuMoreMenu();cuToggleStatus(\''+id+'\','+Number(status)+')">'+toggleLabel+'</div>'
+    +'<div class="row-more-item danger" onclick="closeCuMoreMenu();cuDeleteCustomer(\''+id+'\')">删除</div>';
+  document.body.appendChild(menu);
+  var r=ev.currentTarget.getBoundingClientRect();
+  var mw=menu.offsetWidth, mh=menu.offsetHeight;
+  var left=r.right-mw; if(left<8) left=8;
+  var top=r.bottom+4; if(top+mh>window.innerHeight-8) top=r.top-4-mh;
+  menu.style.left=left+'px'; menu.style.top=top+'px';
+  setTimeout(function(){ document.addEventListener('click', cuMoreMenuDocHandler); },0);
+}
+function closeCuMoreMenu(){
+  var m=document.getElementById('cuMoreMenu'); if(m) m.remove();
+  document.removeEventListener('click', cuMoreMenuDocHandler);
+}
+function cuMoreMenuDocHandler(e){ if(!e.target.closest || !e.target.closest('#cuMoreMenu')) closeCuMoreMenu(); }
+async function cuToggleStatus(id, status){
+  var newStatus=Number(status)===1?0:1;
+  var label=newStatus===1?'启用':'停用';
+  var ok=await showConfirm({title:label+'客户', message:'确定要'+label+'该客户吗？', iconType:newStatus===0?'warn':'info', okText:'确定'});
+  if(!ok) return;
+  var res=await apiPut('/shop/customer/'+id, {status:newStatus});
+  if(res&&res.code===0){ showToast(label+'成功'); cuLoad(); }
+  else showToast((res&&res.message)||'操作失败','error');
+}
+async function cuDeleteCustomer(id){
+  var ok=await showConfirm({title:'删除客户', message:'确定要删除该客户吗？', desc:'删除后不可恢复', iconType:'danger', okText:'删除', okClass:'btn-danger'});
+  if(!ok) return;
+  var res=await apiDelete('/shop/customer/'+id);
+  if(res&&res.code===0){ showToast('删除成功'); cuLoad(); }
+  else showToast((res&&res.message)||'删除失败','error');
+}
+function toggleAllCustomers(checked){
+  document.querySelectorAll('#cuTableBody .row-check').forEach(function(cb){ cb.checked=checked; });
+}
+function toggleCustomerRow(cb){
+  var all=document.querySelectorAll('#cuTableBody .row-check');
+  var allChecked=all.length>0; all.forEach(function(c){ if(!c.checked) allChecked=false; });
+  var hdr=document.querySelector('#cuTableHead .th-check input[type=checkbox]');
+  if(hdr) hdr.checked=allChecked;
 }
 /* 分类弹窗 */
 var cuCatParentUI={hoverPath:[],sel:''};
@@ -6337,7 +6926,7 @@ async function cuFormInit(){
   var pr=await apiGet('/shop/price-level/list');
   CU.priceLevels=(pr&&pr.code===0)?pr.data||[]:[];
   if(CU.editId){ var g=await apiGet('/shop/customer/'+CU.editId); if(g&&g.code===0){ CU.form=g.data||{}; } else CU.editId=null; }
-  if(!CU.editId){ CU.form={ name:'', category_id:'', price_level:'零售价', discount:100, points:0, init_debt:0, contact:'', phone:'', address:'', address_detail:'', email:'', tax_no:'', fax:'', bank_name:'', bank_account:'', birthday:'', wechat:'', qq:'', remark:'' }; }
+  if(!CU.editId){ CU.form={ name:'', category_id:'', price_level:'零售价', discount:100, init_debt:0, contact:'', phone:'', address:'', address_detail:'', email:'', tax_no:'', fax:'', bank_name:'', bank_account:'', birthday:'', wechat:'', qq:'', remark:'' }; }
   CU.form.category_id=CU.form.category_id_str||(CU.form.category_id!=null?String(CU.form.category_id):'');
   if(CU.form.addresses && CU.form.addresses.length){
     CU.addresses=CU.form.addresses.map(function(a){ return {receiver:a.receiver||'',phone:a.phone||'',region:a.region||'',detail:a.detail||'',is_default:Number(a.is_default)||0}; });
@@ -6357,7 +6946,6 @@ function cuFormRender(){
     +'<div class="cu-frow"><label class="cu-flabel">客户分类<span class="req">*</span></label><div class="cat-field" style="flex:1"><div class="cat-picker"><div class="picker-input" id="cuCatWrap" onclick="cuOpenCatDrop()"><input class="picker-field" id="cuCatInput" placeholder="未分类" readonly><span class="picker-clear" onclick="event.stopPropagation();cuClearCat()">×</span></div><div class="cat-drop" id="cuCatDrop" onmouseleave="cuCancelHoverCat()"></div></div><span class="link" style="color:var(--accent-600)" onclick="cuCatModal()">新增客户分类</span></div></div>'
     +'<div class="cu-frow"><label class="cu-flabel">价格等级</label><div class="picker" id="cuPlPicker" style="flex:1;min-width:0"><div class="picker-input" id="cuPlWrap" onclick="cuPlOpenDrop()"><input class="picker-field" id="cuPriceLevelInput" placeholder="零售价" readonly><svg class="picker-arrow-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="picker-drop" id="cuPlDrop"><div class="picker-list" id="cuPlList"></div></div></div></div>'
     + cuFieldUnit('专属折扣','cuDiscount',f.discount,'100','%','number')
-    + cuField('初始积分','cuPoints',f.points,'0',false,'number')
     + cuField('初始欠款','cuInitDebt',f.init_debt,'0',false,'number')
     + cuField('联系人','cuContact',f.contact,'请输入')
     + cuField('联系电话','cuPhone',f.phone,'请输入')
@@ -6446,8 +7034,9 @@ function cuBuildCascade(hoverPath, selectedId){
     return '<div class="cat-opt'+(active?' active':'')+(sel?' selected':'')+'" onmouseover="cuHoverCat(\''+id+'\','+depth+')" onclick="cuSelectCategory(\''+id+'\')">'+stEsc(label)
       +(hasChild?'<svg class="cat-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>':'<span class="opt-check">'+CU_CAT_CHECK+'</span>')+'</div>';
   }
-  var cols=[], col0=opt('0',0,'未分类');
+  var cols=[], col0='';
   cuCatChildren(0).forEach(function(c){ col0+=opt(c.id,0,c.name); });
+  col0+=opt('0',0,'未分类');
   cols.push(col0);
   for(var depth=1;depth<=5;depth++){
     var pid=hoverPath[depth-1]; if(!pid) break;
@@ -6497,6 +7086,12 @@ window.cuSelectCategory=function(id){
   cuRenderCategoryPicker(); cuCloseCatDrop();
 };
 window.cuClearCat=function(){ CU.form.category_id=''; cuRenderCategoryPicker(); };
+document.addEventListener('click', function(e){
+  var w=document.getElementById('cuCatWrap'); if(!w) return;
+  if(w.contains(e.target)) return;
+  if(e.target.closest && e.target.closest('#cuCatDrop')) return;
+  cuCloseCatDrop();
+});
 function cuAddrRender(){
   var w=document.getElementById('cuAddrWrap'); if(!w) return;
   w.innerHTML=(CU.addresses||[]).map(function(a,i){
@@ -6535,7 +7130,7 @@ async function cuSave(andNew){
   var name=gv('cuName').trim(); if(!name){ showToast('请输入客户名称','error'); return; }
   var body={
     name:name, category_id:CU.form.category_id||null, price_level:CU.form.price_level||'零售价', discount:Number(gv('cuDiscount'))||100,
-    points:Number(gv('cuPoints'))||0, init_debt:Number(gv('cuInitDebt'))||0, contact:gv('cuContact'), phone:gv('cuPhone'),
+    init_debt:Number(gv('cuInitDebt'))||0, contact:gv('cuContact'), phone:gv('cuPhone'),
     address:gv('cuAddress'), address_detail:gv('cuAddressDetail'), email:gv('cuEmail'), tax_no:gv('cuTaxNo'), fax:gv('cuFax'),
     bank_name:gv('cuBankName'), bank_account:gv('cuBankAccount'), birthday:gv('cuBirthday'), wechat:gv('cuWechat'), qq:gv('cuQQ'), remark:gv('cuRemark'),
     addresses:CU.addresses
@@ -6558,12 +7153,13 @@ function cuViewRow(k,v){ return '<div><span style="color:var(--gray-500)">'+k+'�
 function cuViewRender(){
   var page=document.getElementById('cuView'); if(!page) return;
   var c=CU.view||{}, st=CU.stats||{};
-  var h='<div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:22px 26px;margin-bottom:14px">'
+  var h='<div class="cu-view-wrap">';
+  h+='<div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:22px 26px;margin-bottom:14px">'
     +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><span style="font-size:23px;font-weight:700;color:var(--gray-900)">'+stEsc(c.name||'')+'</span><span style="background:var(--accent-50);color:var(--accent-700);font-size:13px;padding:2px 10px;border-radius:12px">'+stEsc(c.price_level||'零售价')+'</span></div>'
     +'<div style="display:flex;gap:40px;font-size:14px;color:var(--gray-600)"><span>联系人：'+stEsc(c.contact||'--')+'</span><span>联系电话：'+stEsc(c.phone||'--')+'</span><span>联系地址：'+stEsc((c.address||'')+(c.address_detail?(' '+c.address_detail):'')||'--')+'</span></div>'
     +'<div style="display:flex;gap:14px;margin-top:16px">'
-    +'<div class="cu-card"><div style="font-size:14px;color:var(--gray-500)">客户预存款</div><div style="font-size:25px;font-weight:700">0.00</div><div style="margin-top:8px"><span class="link" style="color:var(--accent-600)">存款记录</span> <span class="link" style="color:var(--accent-600)">去存款&gt;</span></div></div>'
-    +'<div class="cu-card"><div style="font-size:14px;color:var(--gray-500)">应收欠款</div><div style="font-size:25px;font-weight:700">'+Number(c.total_receivable||0).toFixed(2)+'</div><div style="margin-top:8px"><span class="link" style="color:var(--accent-600)">去调整&gt;</span></div></div>'
+    +'<div class="cu-card"><div style="font-size:14px;color:var(--gray-500)">客户预存款</div><div style="font-size:25px;font-weight:700">'+Number(c.balance||0).toFixed(2)+'</div><div style="margin-top:8px"><span class="link" style="color:var(--accent-600)" onclick="cuDepositList()">存款记录</span> <span class="link" style="color:var(--accent-600)" onclick="cuDeposit()">去存款&gt;</span></div></div>'
+    +'<div class="cu-card"><div style="font-size:14px;color:var(--gray-500)">应收欠款</div><div style="font-size:25px;font-weight:700">'+Number(c.total_receivable||0).toFixed(2)+'</div><div style="margin-top:8px"><span class="link" style="color:var(--accent-600)" onclick="openReceiptForCustomer('+CU.viewId+',\''+stEsc(c.name||'').replace(/'/g,"\\'")+'\')">去调整&gt;</span></div></div>'
     +'</div></div>';
   h+='<div class="cu-section"><div class="cu-section-title">交易情况</div><div class="cu-grid4">'
     +'<div><div style="color:var(--gray-500);font-size:14px">总销售额</div><div style="font-size:18px;font-weight:600">¥'+Number(st.total_amount||0).toFixed(2)+'</div></div>'
@@ -6572,7 +7168,7 @@ function cuViewRender(){
     +'<div><div style="color:var(--gray-500);font-size:14px">上次收款日期</div><div style="font-size:18px;font-weight:600">'+(st.last_receipt_date||'--')+'</div></div>'
     +'</div></div>';
   h+='<div class="cu-section"><div class="cu-section-title">基础信息</div><div class="cu-grid4">'
-    + cuViewRow('客户分类',c.category_name||'未分类')+cuViewRow('专属折扣',(c.discount||100)+'%')+cuViewRow('初始欠款',Number(c.init_debt||0).toFixed(2))+cuViewRow('初始积分',c.points||0)
+    + cuViewRow('客户分类',c.category_name||'未分类')+cuViewRow('专属折扣',(c.discount||100)+'%')+cuViewRow('初始欠款',Number(c.init_debt||0).toFixed(2))
     + cuViewRow('关联业务员','--')+cuViewRow('备注',c.remark)
     +'</div></div>';
   h+='<div class="cu-section"><div class="cu-section-title">辅助信息</div><div class="cu-grid4">'
@@ -6580,11 +7176,87 @@ function cuViewRender(){
     + cuViewRow('微信号',c.wechat)+cuViewRow('生日',c.birthday)+cuViewRow('开户银行',c.bank_name)+cuViewRow('银行账号',c.bank_account)
     + cuViewRow('客户创建时间',stFmtTime(c.created_at).slice(0,10))
     +'</div></div>';
-  h+='<div class="pc-footer" style="margin-top:16px"><div class="grow"></div>'
-    +'<button class="btn btn-secondary" onclick="location.href=\'/customer.html\'">返回列表</button>'
-    +'<button class="btn btn-primary" onclick="openCustomerEdit('+c.id+')">编辑</button></div>';
+  h+='</div>';
+  h+='<div class="cu-view-foot"><button class="btn btn-secondary" onclick="openNav(\'customer:list\')">返回列表</button>'
+    +'<button class="btn btn-primary" onclick="openCustomerEdit(\''+c.id_str+'\')">编辑</button></div>';
   page.innerHTML=h;
 }
+/* 客户预存款 */
+async function cuDeposit(){
+  var c=CU.view||{}; if(!c.id_str) return;
+  document.getElementById('cuDepAmount').value='';
+  document.getElementById('cuDepRemark').value='';
+  document.getElementById('cuDepositModal').classList.add('show');
+  var sel=document.getElementById('cuDepAccountSel');
+  var panel=document.getElementById('cuDepAccountPanel');
+  sel.setAttribute('data-value','');
+  sel.querySelector('.fa-sel-label').textContent='请选择';
+  sel.querySelector('.fa-sel-input').classList.add('placeholder');
+  panel.innerHTML='<div class="fa-sel-opt" style="color:var(--gray-400);cursor:default">加载中...</div>';
+  var res=await apiGet('/shop/account/list');
+  var list=(res&&res.code===0)?(res.data&&res.data.list?res.data.list:(res.data||[])):[];
+  panel.innerHTML=list.length?list.map(function(a){
+    return '<div class="fa-sel-opt" data-value="'+a.id+'" onclick="cuPickDepAccount(this)">'+stEsc(a.name||'')+'</div>';
+  }).join(''):'<div class="fa-sel-opt" style="color:var(--gray-400);cursor:default">暂无账户</div>';
+}
+function cuToggleDepAccount(e){ if(e) e.stopPropagation(); var s=document.getElementById('cuDepAccountSel'); if(s) s.classList.toggle('open'); }
+function cuPickDepAccount(el){
+  var s=document.getElementById('cuDepAccountSel'); if(!s||!el) return;
+  var val=el.getAttribute('data-value')||'';
+  s.setAttribute('data-value',val);
+  var lb=s.querySelector('.fa-sel-label'); if(lb) lb.textContent=el.textContent;
+  var inp=s.querySelector('.fa-sel-input'); if(inp) inp.classList.toggle('placeholder',!val);
+  s.querySelectorAll('.fa-sel-opt').forEach(function(o){ o.classList.toggle('active',o===el); });
+  s.classList.remove('open');
+}
+document.addEventListener('click', function(e){
+  var s=document.getElementById('cuDepAccountSel');
+  if(s && !s.contains(e.target)) s.classList.remove('open');
+});
+function closeCuDeposit(){ document.getElementById('cuDepositModal').classList.remove('show'); }
+async function cuDepositSubmit(){
+  var c=CU.view||{};
+  var amount=parseFloat(document.getElementById('cuDepAmount').value);
+  var depSel=document.getElementById('cuDepAccountSel');
+  var accountId=depSel?depSel.getAttribute('data-value'):'';
+  var billDate=new Date().toISOString().slice(0,10);
+  var remark=document.getElementById('cuDepRemark').value;
+  if(!amount||amount<=0){ showToast('请输入有效存款金额','warn'); return; }
+  if(!accountId){ showToast('请选择结算账户','warn'); return; }
+  var res=await apiPost('/shop/customer/'+c.id_str+'/deposit',{amount:amount,account_id:parseInt(accountId),bill_date:billDate,remark:remark});
+  if(res&&res.code===0){
+    showToast('存款成功');
+    closeCuDeposit();
+    var g=await apiGet('/shop/customer/'+c.id_str);
+    if(g&&g.code===0){ CU.view=g.data; cuViewRender(); }
+  } else { showToast(res&&res.message||'存款失败','warn'); }
+}
+async function cuDepositList(){
+  var c=CU.view||{}; if(!c.id_str) return;
+  var body=document.getElementById('cuDepListBody');
+  body.innerHTML='<div style="padding:30px;text-align:center;color:var(--gray-400)">加载中...</div>';
+  document.getElementById('cuDepListModal').classList.add('show');
+  var res=await apiGet('/shop/customer/'+c.id_str+'/deposits?page=1&page_size=50');
+  if(!res||res.code!==0){ body.innerHTML='<div style="padding:30px;text-align:center;color:var(--gray-400)">加载失败</div>'; return; }
+  var rows=(res.data&&res.data.list)?res.data.list:[];
+  if(!rows.length){ body.innerHTML='<div style="padding:30px;text-align:center;color:var(--gray-400)">暂无存款记录</div>'; return; }
+  var h='<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr>'
+    +'<th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--gray-200);color:var(--gray-500);font-weight:500">日期</th>'
+    +'<th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--gray-200);color:var(--gray-500);font-weight:500">单号</th>'
+    +'<th style="text-align:right;padding:8px 10px;border-bottom:1px solid var(--gray-200);color:var(--gray-500);font-weight:500">金额</th>'
+    +'<th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--gray-200);color:var(--gray-500);font-weight:500">收款账户</th>'
+    +'<th style="text-align:left;padding:8px 10px;border-bottom:1px solid var(--gray-200);color:var(--gray-500);font-weight:500">备注</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td style="padding:8px 10px;border-bottom:1px solid var(--gray-100)">'+stEsc(r.bill_date||'')+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid var(--gray-100)">'+stEsc(r.order_no||'')+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid var(--gray-100);text-align:right;color:var(--accent-600);font-weight:600">'+Number(r.amount||0).toFixed(2)+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid var(--gray-100)">'+stEsc(r.account_name||'')+'</td>'
+      +'<td style="padding:8px 10px;border-bottom:1px solid var(--gray-100)">'+stEsc(r.remark||'')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  body.innerHTML=h;
+}
+function closeCuDepList(){ document.getElementById('cuDepListModal').classList.remove('show'); }
 /* 客户对账单 */
 function customerStatementHTML(){ setTimeout(cuStmtLoad,0); return '<div id="cuStmt"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>'; }
 async function cuStmtLoad(){
@@ -6641,7 +7313,7 @@ const PL = { list:[] };
 function priceLevelHTML(){ setTimeout(plLoad,0); return '<div id="plPage"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>'; }
 async function plLoad(){
   var res=await apiGet('/shop/price-level/list');
-  PL.list=(res&&res.code===0)?res.data||[]:[];
+  PL.list=(res&&res.code===0)?(res.data||[]).map(function(x){ x.id=String(x.id_str||x.id); return x; }):[];
   plRender();
 }
 function plRender(){
@@ -6652,7 +7324,7 @@ function plRender(){
   PL.list.forEach(function(r,i){
     var enabled=Number(r.status)===1;
     h+='<tr><td>'+(i+1)+'</td><td>'+stEsc(r.name||'')+'</td><td>'+(enabled?'启用中':'已停用')+'</td>'
-      +'<td><span class="link" style="color:var(--accent-600)" onclick="plOpenModal('+r.id+')">修改</span> <span class="link" style="color:'+(enabled?'var(--gray-400)':'var(--accent-600)')+'" onclick="plToggle('+r.id+')">'+(enabled?'停用':'启用')+'</span> <span class="link" style="color:'+(enabled?'var(--gray-400)':'var(--danger-500)')+'" onclick="plDelete('+r.id+','+enabled+')">删除</span></td></tr>';
+      +'<td><span class="link" style="color:var(--accent-600)" onclick="plOpenModal(\''+r.id+'\')">修改</span> <span class="link" style="color:var(--accent-600)" onclick="plToggle(\''+r.id+'\')">'+(enabled?'停用':'启用')+'</span> <span class="link" style="color:var(--danger-500)" onclick="plDelete(\''+r.id+'\','+enabled+')">删除</span></td></tr>';
   });
   h+='</tbody></table></div>';
   page.innerHTML=h;
@@ -6687,7 +7359,8 @@ async function plToggle(id){
 }
 async function plDelete(id, enabled){
   if(!enabled){ showToast('请先停用后再删除','error'); return; }
-  if(!confirm('确定删除该价格等级？')) return;
+  var ok = await showConfirm({ title:'删除价格等级', message:'确定删除该价格等级？', desc:'删除后已填的价格将一并删除', iconType:'danger', okText:'删除', okClass:'btn-danger' });
+  if(!ok) return;
   var res=await apiDelete('/shop/price-level/'+id);
   if(res&&res.code===0){ showToast('删除成功'); plLoad(); } else showToast('删除失败','error');
 }
@@ -6978,8 +7651,7 @@ async function shopListLoad(){
 }
 function shopListRender(){
   var page=document.getElementById('shPage'); if(!page) return;
-  var remain=Math.max(0, SH.max-SH.list.length);
-  var h='<div class="plist-toolbar" style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:16px"><button class="btn btn-primary"'+pattr('settings.shop.add')+' onclick="openShopForm(0)">+ 新增门店</button><span style="font-size:14px;color:var(--gray-600)">可用 '+SH.max+' 个门店，剩余'+remain+'个 <span class="link" style="color:var(--accent-600)" onclick="showToast(\'增购开发中\')">立即增购</span></span></div></div>';
+  var h='<div class="plist-toolbar" style="margin-bottom:14px"><button class="btn btn-primary"'+pattr('settings.shop.add')+' onclick="openShopForm(0)">+ 新增门店</button></div>';
   h+='<div class="simple-tbl-wrap"><table class="simple-tbl"><thead><tr><th>门店名称</th><th>门店地址</th><th style="width:160px">操作</th></tr></thead><tbody>';
   if(!SH.list.length) h+='<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--gray-400)">暂无数据</td></tr>';
   SH.list.forEach(function(s){
@@ -7006,11 +7678,8 @@ function shopFormRender(){
   var h='<div class="pc-head" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:12px"><div></div><div class="pc-title">'+(SH.editId?'编辑门店':'新增门店')+'</div><div></div></div>';
   h+='<div class="pc-divider"></div>';
   h+='<div class="ti-erow"><label class="ti-elabel">门店名称<span class="req">*</span></label><input class="fa-input" id="shName" value="'+stEsc(f.name||'')+'" style="max-width:460px"></div>';
-  h+='<div class="ti-erow"><label class="ti-elabel">门店地址<span class="req">*</span></label><div style="flex:1;max-width:460px"><div class="region-ctrl" id="shRegionCtrl" style="margin-bottom:10px"><div class="region-input-wrap"><input class="region-input" id="shAddress" placeholder="请输入或选择地区" value="'+stEsc(f.address||'')+'" oninput="onRegionInput(this)" onfocus="openRegionDrop(this)"><svg class="region-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="region-drop"></div></div><input class="fa-input" id="shAddressDetail" value="'+stEsc(f.address_detail||'')+'" placeholder="请输入详细地址"></div></div>';
-  h+='<div class="ti-erow"><label class="ti-elabel">门店电话<span class="req">*</span></label><input class="fa-input" id="shPhone" value="'+stEsc(f.phone||'')+'" placeholder="请输入手机号码或固定电话" style="max-width:460px"></div>';
-  h+='<div class="ti-erow"><label class="ti-elabel">门店类型<span class="req">*</span></label><div style="flex:1;display:flex;gap:28px;padding-top:8px">'
-    +'<label class="sh-radio"><input type="radio" name="shType" value="1"'+(Number(f.type)!==2?' checked':'')+'> 直营</label>'
-    +'<label class="sh-radio"><input type="radio" name="shType" value="2"'+(Number(f.type)===2?' checked':'')+'> 加盟</label></div></div>';
+  h+='<div class="ti-erow"><label class="ti-elabel">门店地址</label><div style="flex:1;max-width:460px"><div class="region-ctrl" id="shRegionCtrl" style="margin-bottom:10px"><div class="region-input-wrap"><input class="region-input" id="shAddress" placeholder="请输入或选择地区" value="'+stEsc(f.address||'')+'" oninput="onRegionInput(this)" onfocus="openRegionDrop(this)"><svg class="region-search-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="region-drop"></div></div><input class="fa-input" id="shAddressDetail" value="'+stEsc(f.address_detail||'')+'" placeholder="请输入详细地址"></div></div>';
+  h+='<div class="ti-erow"><label class="ti-elabel">门店电话</label><input class="fa-input" id="shPhone" value="'+stEsc(f.phone||'')+'" placeholder="请输入手机号码或固定电话" style="max-width:460px"></div>';
   h+='<div class="ti-erow"><label class="ti-elabel">备注</label><textarea class="fa-input" id="shRemark" placeholder="请输入备注" style="max-width:460px">'+stEsc(f.remark||'')+'</textarea></div>';
   h+='<div class="pc-footer" style="margin-top:16px"><div class="grow"></div><button class="btn btn-secondary" onclick="showPage(\'settings:shops\')">取消</button><button class="btn btn-primary" onclick="shopSave()">保存</button></div>';
   page.innerHTML=h;
@@ -7019,8 +7688,7 @@ function shopFormRender(){
 function parseRegionText(t){ var p=(t||'').split('/').map(function(x){return x.trim();}).filter(Boolean); return { province:p[0]||'', city:p[1]||'', district:p[2]||'' }; }
 async function shopSave(){
   var name=gv('shName').trim(); if(!name){ showToast('请输入门店名称','error'); return; }
-  var type=1; document.querySelectorAll('input[name=shType]').forEach(function(r){ if(r.checked) type=Number(r.value); });
-  var body={ name:name, address:gv('shAddress'), address_detail:gv('shAddressDetail'), phone:gv('shPhone'), type:type, remark:gv('shRemark') };
+  var body={ name:name, address:gv('shAddress'), address_detail:gv('shAddressDetail'), phone:gv('shPhone'), type:(SH.form&&SH.form.type)||1, remark:gv('shRemark') };
   var res = SH.editId ? await apiPut('/shop/shops/'+SH.editId, body) : await apiPost('/shop/shops', body);
   if(res&&res.code===0){ showToast('保存成功'); SH.editId=null; showPage('settings:shops'); } else showToast((res&&res.message)||'保存失败','error');
 }
@@ -7100,7 +7768,6 @@ var PERM_TREE=[
    {id:'role',name:'角色权限',acts:[['view','查看'],['add','新增'],['edit','修改'],['del','删除']]},
    {id:'system',name:'系统设置',acts:[['view','查看'],['edit','修改']]},
    {id:'print',name:'打印模板',acts:[['view','查看'],['edit','修改']]},
-   {id:'points',name:'积分设置',acts:[['view','查看'],['edit','修改']]},
    {id:'pos',name:'POS设备',acts:[['view','查看'],['add','新增'],['bind','绑定']]}
  ]}
 ];
@@ -7505,37 +8172,6 @@ function prefRender(){
   h+=prefCheckRow('use_default_warehouse','销售/进货开单，支持设置默认仓库','warehouse_id','默认仓库', prefWarehouseOpts());
   h+=prefCheckRow('use_default_account','销售/收款时，支持设置默认收款账户','account_id','默认账户', prefAccountOpts());
   h+=prefCheckRow('use_default_print','销售时，支持设置默认打印模板','print_template','默认打印模板', [{v:'one',t:'一等分'},{v:'two',t:'二等分'},{v:'three',t:'三等分'}]);
-  page.innerHTML=h;
-}
-
-/* ═══════════ 积分设置 ═══════════ */
-var PTS={ data:null, _saveT:null };
-var PTS_DEFAULTS={ points_enabled:0, points_per:'', points_reward:'' };
-function pointsSettingHTML(){ setTimeout(ptsLoad,0); return '<div id="ptsPage"><div style="padding:40px;text-align:center;color:var(--gray-400)">加载中...</div></div>'; }
-async function ptsLoad(){
-  var r=await apiGet('/shop/points-setting');
-  PTS.data=Object.assign({}, PTS_DEFAULTS, (r&&r.code===0&&r.data)?r.data:{});
-  ptsRender();
-}
-function ptsBool(k){ return Number(PTS.data[k])?1:0; }
-function ptsSetNum(k,v){ PTS.data[k]=(v===''?'':Number(v)); ptsSave(); }
-function ptsToggle(checked){ PTS.data.points_enabled=checked?1:0; ptsSave(); ptsRender(); }
-function ptsSave(){
-  clearTimeout(PTS._saveT);
-  PTS._saveT=setTimeout(async function(){
-    var res=await apiPut('/shop/points-setting', PTS.data);
-    if(res&&res.code===0) showToast('已保存');
-    else showToast((res&&res.message)||'保存失败','error');
-  },300);
-}
-function ptsRender(){
-  var page=document.getElementById('ptsPage'); if(!page) return;
-  var h='<div class="pts-wrap">';
-  h+='<label class="sys-check pts-check"><input type="checkbox"'+(ptsBool('points_enabled')?' checked':'')+' onchange="ptsToggle(this.checked)">'+sysBoxSVG()+'<span>消费送积分（按实收金额计算）</span></label>';
-  if(ptsBool('points_enabled')){
-    h+='<div class="pts-row">单据每满 <input class="pts-input" type="number" min="0" step="1" id="ptsPer" value="'+stEsc(PTS.data.points_per==null?'':PTS.data.points_per)+'" oninput="ptsSetNum(\'points_per\',this.value)"> 送 <input class="pts-input" type="number" min="0" step="1" id="ptsReward" value="'+stEsc(PTS.data.points_reward==null?'':PTS.data.points_reward)+'" oninput="ptsSetNum(\'points_reward\',this.value)"> 积分</div>';
-  }
-  h+='</div>';
   page.innerHTML=h;
 }
 

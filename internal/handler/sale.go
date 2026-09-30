@@ -23,7 +23,7 @@ func NewSalesHandler(dbConn *gorm.DB) *SalesHandler {
 }
 
 type saleItemReq struct {
-	GoodsID   int64   `json:"goods_id"`
+	GoodsID   model.FlexInt64 `json:"goods_id"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 	Remark    string  `json:"remark"`
@@ -108,7 +108,7 @@ func calcItems(req []saleItemReq) ([]model.SaleItem, float64) {
 	for _, it := range req {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SaleItem{ID: snowflake.GenID(), GoodsID: it.GoodsID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SaleItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	return items, round2o(total)
 }
@@ -326,7 +326,7 @@ func (h *SalesHandler) CreateSaleOrder(c *gin.Context) {
 	for _, it := range req.Items {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SaleOrderItem{ID: snowflake.GenID(), GoodsID: it.GoodsID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SaleOrderItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	total = round2o(total)
 	date := req.OrderDate
@@ -450,7 +450,7 @@ func (h *SalesHandler) CreateSalesReturn(c *gin.Context) {
 	for _, it := range req.Items {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SalesReturnItem{ID: snowflake.GenID(), GoodsID: it.GoodsID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SalesReturnItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	total = round2o(total)
 	s := model.SalesReturn{
@@ -577,7 +577,7 @@ func (h *SalesHandler) CreateQuote(c *gin.Context) {
 	}
 	qitems := make([]model.QuoteItem, 0, len(items))
 	for _, it := range items {
-		qitems = append(qitems, model.QuoteItem{ID: snowflake.GenID(), TenantID: tenantID, QuoteID: q.ID, GoodsID: it.GoodsID, Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: it.Amount, Remark: it.Remark})
+		qitems = append(qitems, model.QuoteItem{ID: snowflake.GenID(), TenantID: tenantID, QuoteID: q.ID, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: it.Amount, Remark: it.Remark})
 	}
 	if len(qitems) > 0 {
 		h.db.Table("quote_items").Create(&qitems)

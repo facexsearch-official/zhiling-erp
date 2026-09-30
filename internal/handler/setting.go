@@ -110,66 +110,6 @@ func (h *UserPreferenceHandler) Update(c *gin.Context) {
 	response.OKMsg(c, "保存成功")
 }
 
-// PointsSettingHandler 积分设置（存储于 tenant_settings，按 key 合并）
-type PointsSettingHandler struct{ db *gorm.DB }
-
-func NewPointsSettingHandler(db *gorm.DB) *PointsSettingHandler {
-	return &PointsSettingHandler{db: db}
-}
-
-var pointsKeys = map[string]bool{"points_enabled": true, "points_per": true, "points_reward": true}
-
-func (h *PointsSettingHandler) Get(c *gin.Context) {
-	ctx := c.Request.Context()
-	tenantID := context.GetTenantID(ctx)
-	var s model.TenantSetting
-	if err := h.db.Where("tenant_id = ?", tenantID).First(&s).Error; err != nil {
-		response.OK(c, gin.H{})
-		return
-	}
-	var data map[string]interface{}
-	json.Unmarshal([]byte(s.Data), &data)
-	out := gin.H{}
-	for k := range pointsKeys {
-		if v, ok := data[k]; ok {
-			out[k] = v
-		}
-	}
-	response.OK(c, out)
-}
-
-func (h *PointsSettingHandler) Update(c *gin.Context) {
-	ctx := c.Request.Context()
-	tenantID := context.GetTenantID(ctx)
-	body, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		response.BadRequest(c, "参数错误")
-		return
-	}
-	var obj map[string]interface{}
-	if err := json.Unmarshal(body, &obj); err != nil {
-		response.BadRequest(c, "参数错误")
-		return
-	}
-	var s model.TenantSetting
-	existing := map[string]interface{}{}
-	if err := h.db.Where("tenant_id = ?", tenantID).First(&s).Error; err == nil {
-		json.Unmarshal([]byte(s.Data), &existing)
-	}
-	for k, v := range obj {
-		existing[k] = v
-	}
-	merged, _ := json.Marshal(existing)
-	if s.ID == 0 {
-		s = model.TenantSetting{ID: snowflake.GenID(), TenantID: tenantID, Data: string(merged), UpdatedAt: time.Now()}
-		h.db.Table("tenant_settings").Create(&s)
-	} else {
-		h.db.Table("tenant_settings").Where("tenant_id = ?", tenantID).
-			Updates(map[string]interface{}{"data": string(merged), "updated_at": time.Now()})
-	}
-	response.OKMsg(c, "保存成功")
-}
-
 // PrintSettingHandler 打印设置（存储于 tenant_settings 的 print 键）
 type PrintSettingHandler struct{ db *gorm.DB }
 

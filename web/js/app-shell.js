@@ -42,15 +42,15 @@
 
     {key:'customer', label:'客户', icon:IC.customer, cols:[
       {title:'客户', items:[
-        {key:'customer:list',  label:'客户',     tabLabel:'客户列表', href:'/customer.html'},
+        {key:'customer:list',  label:'客户列表', tabLabel:'客户列表', href:'/#customer:list'},
         {key:'customer:level', label:'价格等级', tabLabel:'价格等级', href:'/#customer:level'}
       ]}
     ]},
 
     {key:'purchase', label:'进货', icon:IC.purchase, cols:[
       {title:'进货', items:[
-        {key:'purchase:supplier', label:'供应商',   href:'/supplier.html'},
-        {key:'purchase:new',      label:'进货',     tabLabel:'进货单列表', href:'/#purchase:new'},
+        {key:'purchase:supplier', label:'供应商列表', href:'/supplier.html'},
+        {key:'purchase:new',      label:'进货单列表', tabLabel:'进货单列表', href:'/#purchase:new'},
         {key:'purchase:return',   label:'进货退货', tabLabel:'进货退货列表', href:'/#purchase:return'}
       ]}
     ]},
@@ -98,6 +98,8 @@
   /* ── helpers ───────────────────────────────────────────── */
   // 顶栏「设置」下拉项（设置不再作为侧边栏模块）
   var TOPBAR_SETTINGS = [
+    {key:'settings:shop',  label:'商户信息'},
+    {key:'settings:shops', label:'门店管理'},
     {key:'settings:staff', label:'员工管理'},
     {key:'settings:role',  label:'角色权限'}
   ];
@@ -120,7 +122,7 @@
     'analysis:purchase':'analysis.purchase.view','analysis:stock':'analysis.stock.view','analysis:profit':'analysis.profit.view',
     'settings:shop':'settings.tenant.view','settings:shops':'settings.shop.view',
     'settings:staff':'settings.staff.view','settings:role':'settings.role.view',
-    'settings:system':'settings.system.view','settings:points':'settings.points.view',
+    'settings:system':'settings.system.view',
     'settings:print':'settings.print.view'
   };
   function navAllowed(key){
@@ -170,7 +172,7 @@
     '/account.html':'funds:account'
   };
   // 无对应导航项的独立页面标签
-  var PAGE_LABEL = { 'stock:warehouse':'仓库管理' };
+  var PAGE_LABEL = { 'stock:warehouse':'仓库管理', 'supplier:add':'新增供应商' };
   function currentKey(){
     var h = location.hash.slice(1);
     if(h){
@@ -445,7 +447,7 @@
   function navGo(key){
     var f = findItem(key);
     var href = f && f.item ? f.item.href : null;
-    var label = f && f.item ? f.item.label : key;
+    var label = f && f.item ? (f.item.tabLabel || f.item.label) : key;
 
     /* SPA (index.html) 内导航：不走整页刷新 */
     if(window.showPage){
@@ -531,7 +533,24 @@
   document.addEventListener('click', function(){
     var s = byId('tenantSwitch');
     if(s) s.classList.remove('open');
+    var t = byId('newTenantTypeSel');
+    if(t) t.classList.remove('open');
   });
+  window.pisaToggleTenantType = function(e){
+    if(e) e.stopPropagation();
+    var s = byId('newTenantTypeSel');
+    if(s) s.classList.toggle('open');
+  };
+  window.pisaPickTenantType = function(el){
+    var s = byId('newTenantTypeSel'); if(!s || !el) return;
+    var val = el.getAttribute('data-value') || '1';
+    var label = ((el.querySelector('span') || el).textContent || '').trim();
+    s.setAttribute('data-value', val);
+    var lb = byId('newTenantTypeLabel');
+    if(lb) lb.textContent = label;
+    s.querySelectorAll('.pisa-sel-opt').forEach(function(o){ o.classList.toggle('active', o === el); });
+    s.classList.remove('open');
+  };
   function applyTenantSession(data, tenant){
     if(data.token) localStorage.setItem('pisa_token', data.token);
     if(data.permissions) localStorage.setItem('pisa_perms', JSON.stringify(data.permissions));
@@ -569,7 +588,15 @@
       +   '<button class="pisa-modal-x" type="button" onclick="pisaHideTenantModal()">&times;</button></div>'
       + '<div class="pisa-modal-body">'
       +   '<div class="pisa-field"><label>商户名称 <i>*</i></label><input id="newTenantName" placeholder="如：张三五金店"></div>'
-      +   '<div class="pisa-field"><label>商户类型</label><select id="newTenantType"><option value="1">个体户</option><option value="2">有限公司</option><option value="3">合伙企业</option></select></div>'
+      +   '<div class="pisa-field"><label>商户类型</label>'
+      +     '<div class="pisa-sel" id="newTenantTypeSel" data-value="1">'
+      +       '<div class="pisa-sel-input" onclick="pisaToggleTenantType(event)"><span id="newTenantTypeLabel">个体户</span><svg class="pisa-sel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>'
+      +       '<div class="pisa-sel-panel">'
+      +         '<div class="pisa-sel-opt active" data-value="1" onclick="pisaPickTenantType(this)"><span>个体户</span><svg class="pisa-sel-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg></div>'
+      +         '<div class="pisa-sel-opt" data-value="2" onclick="pisaPickTenantType(this)"><span>有限公司</span><svg class="pisa-sel-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg></div>'
+      +         '<div class="pisa-sel-opt" data-value="3" onclick="pisaPickTenantType(this)"><span>合伙企业</span><svg class="pisa-sel-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg></div>'
+      +       '</div>'
+      +     '</div></div>'
       +   '<div class="pisa-field"><label>联系人</label><input id="newTenantContact" placeholder="请输入联系人"></div>'
       +   '<div class="pisa-field"><label>联系电话</label><input id="newTenantPhone" placeholder="请输入联系电话"></div>'
       +   '<div class="pisa-modal-hint">创建后该账号将成为新商户的主账号，并自动切换到新商户。</div>'
@@ -595,6 +622,12 @@
     var inp = byId('newTenantName'); if(inp) inp.value = '';
     var c = byId('newTenantContact'); if(c) c.value = '';
     var p = byId('newTenantPhone'); if(p) p.value = '';
+    var ts = byId('newTenantTypeSel');
+    if(ts){
+      ts.setAttribute('data-value','1'); ts.classList.remove('open');
+      var tl = byId('newTenantTypeLabel'); if(tl) tl.textContent = '个体户';
+      ts.querySelectorAll('.pisa-sel-opt').forEach(function(o){ o.classList.toggle('active', o.getAttribute('data-value') === '1'); });
+    }
     m.classList.add('show');
     if(inp) setTimeout(function(){ inp.focus(); }, 50);
   };
@@ -610,8 +643,8 @@
       contact_name: ((byId('newTenantContact') || {}).value || '').trim(),
       contact_phone: ((byId('newTenantPhone') || {}).value || '').trim()
     };
-    var typeSel = byId('newTenantType');
-    if(typeSel) payload.type = parseInt(typeSel.value, 10) || 1;
+    var typeSel = byId('newTenantTypeSel');
+    if(typeSel) payload.type = parseInt(typeSel.getAttribute('data-value'), 10) || 1;
     authPost('/api/auth/create-tenant', payload).then(function(res){
       if(btn){ btn.disabled = false; btn.textContent = old; }
       if(!res || res.code !== 0){ toast((res && res.message) || '创建失败'); return; }

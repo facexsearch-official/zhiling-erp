@@ -194,7 +194,7 @@ func (r *PriceRepository) categoryMap(tenantID int64) map[int64]string {
 func expandGoodsRows(g model.Goods, prices []model.GoodsPrice, catMap map[int64]string) []PriceRow {
 	cat := ""
 	if g.CategoryID != nil {
-		cat = catMap[*g.CategoryID]
+		cat = catMap[int64(*g.CategoryID)]
 	}
 	if len(prices) == 0 {
 		return []PriceRow{buildPriceRow(g, model.GoodsPrice{}, cat)}

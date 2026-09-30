@@ -79,3 +79,14 @@ func (r *CategoryRepository) GetDepth(ctx context.Context, categoryID int64) (in
 	}
 	return depth, nil
 }
+
+// ExistsByName 同级下是否存在同名分类（排除自身 ID）
+func (r *CategoryRepository) ExistsByName(ctx context.Context, name string, parentID, excludeID int64) (bool, error) {
+	var count int64
+	q := r.Scoped(ctx).Model(&model.GoodsCategory{}).Where("name = ? AND parent_id = ?", name, parentID)
+	if excludeID > 0 {
+		q = q.Where("id != ?", excludeID)
+	}
+	err := q.Count(&count).Error
+	return count > 0, err
+}

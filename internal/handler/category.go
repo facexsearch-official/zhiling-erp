@@ -73,6 +73,13 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 			return
 		}
 	}
+	if exists, err := h.repo.ExistsByName(ctx, cat.Name, cat.ParentID, 0); err != nil {
+		response.ServerError(c, "查询分类失败")
+		return
+	} else if exists {
+		response.BadRequest(c, "同级分类名称已存在")
+		return
+	}
 	cat.ID = 0
 	cat.TenantID = context.GetTenantID(ctx)
 	if err := h.repo.Create(ctx, &cat); err != nil {
@@ -127,6 +134,13 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 				return
 			}
 		}
+	}
+	if exists, err := h.repo.ExistsByName(ctx, body.Name, body.ParentID, id); err != nil {
+		response.ServerError(c, "查询分类失败")
+		return
+	} else if exists {
+		response.BadRequest(c, "同级分类名称已存在")
+		return
 	}
 	existing.Name = body.Name
 	existing.ParentID = body.ParentID

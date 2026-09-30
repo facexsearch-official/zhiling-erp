@@ -15,6 +15,7 @@ func Seed(db *gorm.DB) {
 	seedUsers(db)
 	seedTenants(db)
 	seedShops(db)
+	seedGoodsCategories(db)
 }
 
 func seedPlans(db *gorm.DB) {
@@ -126,4 +127,77 @@ func seedShops(db *gorm.DB) {
 		return
 	}
 	log.Printf("seed shop: name=总店, id=%d", shop.ID)
+}
+
+func seedGoodsCategories(db *gorm.DB) {
+	var tenant model.Tenant
+	db.Where("name = ?", "演示商户").First(&tenant)
+	if tenant.ID == 0 {
+		return
+	}
+
+	// 先清空该商户所有商品分类
+	db.Where("tenant_id = ?", tenant.ID).Delete(&model.GoodsCategory{})
+
+	type catDef struct {
+		Name  string
+		Sort  int
+		Kids  []catDef
+	}
+	tree := []catDef{
+		{Name: "食品饮料", Sort: 1, Kids: []catDef{
+			{Name: "休闲零食", Sort: 1},
+			{Name: "乳制品", Sort: 2},
+			{Name: "饮料冲调", Sort: 3},
+			{Name: "调味品", Sort: 4},
+		}},
+		{Name: "日用百货", Sort: 2, Kids: []catDef{
+			{Name: "清洁用品", Sort: 1},
+			{Name: "纸品家居", Sort: 2},
+			{Name: "个人护理", Sort: 3},
+		}},
+		{Name: "数码家电", Sort: 3, Kids: []catDef{
+			{Name: "手机配件", Sort: 1},
+			{Name: "电脑配件", Sort: 2},
+			{Name: "厨房电器", Sort: 3},
+		}},
+		{Name: "服装鞋帽", Sort: 4, Kids: []catDef{
+			{Name: "男装", Sort: 1},
+			{Name: "女装", Sort: 2},
+			{Name: "鞋靴", Sort: 3},
+		}},
+		{Name: "办公用品", Sort: 5, Kids: []catDef{
+			{Name: "文具", Sort: 1},
+			{Name: "打印耗材", Sort: 2},
+		}},
+	}
+
+	var created int
+	for _, t := range tree {
+		parent := model.GoodsCategory{
+			TenantID: tenant.ID,
+			Name:     t.Name,
+			ParentID: 0,
+			Sort:     t.Sort,
+		}
+		if err := db.Create(&parent).Error; err != nil {
+			log.Printf("seed category %s error: %v", t.Name, err)
+			continue
+		}
+		created++
+		for _, k := range t.Kids {
+			child := model.GoodsCategory{
+				TenantID: tenant.ID,
+				Name:     k.Name,
+				ParentID: parent.ID,
+				Sort:     k.Sort,
+			}
+			if err := db.Create(&child).Error; err != nil {
+				log.Printf("seed category %s error: %v", k.Name, err)
+				continue
+			}
+			created++
+		}
+	}
+	log.Printf("seed goods categories: %d 条", created)
 }

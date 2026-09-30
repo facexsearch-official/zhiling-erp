@@ -74,6 +74,7 @@ type UserTenant struct {
 // Shop 门店
 type Shop struct {
 	ID            int64     `json:"id" gorm:"primaryKey"`
+	IDStr         string    `json:"id_str" gorm:"->"`
 	TenantID      int64     `json:"tenant_id" gorm:"index"`
 	Name          string    `json:"name" gorm:"size:128"`
 	Address       string    `json:"address" gorm:"size:255"`

@@ -2,12 +2,20 @@ package repository
 
 import (
 	"context"
+	"strconv"
+
 	"pisa_server/internal/model"
 
 	customContext "pisa_server/internal/pkg/context"
 
 	"gorm.io/gorm"
 )
+
+func fillSupplierCategoryStr(s *model.Supplier) {
+	if s.CategoryID != nil {
+		s.CategoryIDStr = strconv.FormatInt(int64(*s.CategoryID), 10)
+	}
+}
 
 type SupplierRepository struct {
 	BaseRepository
@@ -42,19 +50,40 @@ func (r *SupplierRepository) List(ctx context.Context, page, pageSize int, keywo
 	}
 	q.Model(&model.Supplier{}).Count(&total)
 	q.Offset((page - 1) * pageSize).Limit(pageSize).Order("created_at DESC").Find(&list)
+	for i := range list {
+		fillSupplierCategoryStr(&list[i])
+	}
 	return list, total
 }
 
 func (r *SupplierRepository) ListAll(ctx context.Context) ([]model.Supplier, error) {
 	var list []model.Supplier
 	err := r.Scoped(ctx).Where("status = 1").Order("created_at ASC").Find(&list).Error
+	for i := range list {
+		fillSupplierCategoryStr(&list[i])
+	}
 	return list, err
+}
+
+// ExistsByName 判断同一商户下是否已存在同名供应商（excludeID>0 时排除自身）
+func (r *SupplierRepository) ExistsByName(ctx context.Context, name string, excludeID int64) bool {
+	tenantID := customContext.GetTenantID(ctx)
+	q := r.DB.Model(&model.Supplier{}).Where("tenant_id = ? AND name = ?", tenantID, name)
+	if excludeID > 0 {
+		q = q.Where("id <> ?", excludeID)
+	}
+	var cnt int64
+	q.Count(&cnt)
+	return cnt > 0
 }
 
 func (r *SupplierRepository) GetByID(ctx context.Context, id int64) (*model.Supplier, error) {
 	var supplier model.Supplier
 	tenantID := customContext.GetTenantID(ctx)
 	err := r.DB.Where("id = ? AND tenant_id = ?", id, tenantID).First(&supplier).Error
+	if err == nil {
+		fillSupplierCategoryStr(&supplier)
+	}
 	return &supplier, err
 }
 

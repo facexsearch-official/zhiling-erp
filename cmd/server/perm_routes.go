@@ -112,9 +112,6 @@ func permRoutes() perm.Routes {
 		// 系统设置
 		"GET /api/shop/system-setting": perm.SystemView,
 		"PUT /api/shop/system-setting": perm.SystemEdit,
-		// 积分设置
-		"GET /api/shop/points-setting": perm.PointsView,
-		"PUT /api/shop/points-setting": perm.PointsEdit,
 		// 打印设置
 		"GET /api/shop/print-setting": perm.PrintView,
 		"PUT /api/shop/print-setting": perm.PrintEdit,

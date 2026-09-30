@@ -30,7 +30,17 @@ func (h *PriceLevelHandler) List(c *gin.Context) {
 	}
 	var list []model.PriceLevel
 	h.db.Where("tenant_id = ?", tenantID).Order("sort ASC, id ASC").Find(&list)
-	response.OK(c, list)
+	out := make([]gin.H, 0, len(list))
+	for _, x := range list {
+		out = append(out, gin.H{
+			"id":      x.ID,
+			"id_str":  strconv.FormatInt(x.ID, 10),
+			"name":    x.Name,
+			"sort":    x.Sort,
+			"status":  x.Status,
+		})
+	}
+	response.OK(c, out)
 }
 
 type plReq struct {

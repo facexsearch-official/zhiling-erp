@@ -341,7 +341,7 @@ func (h *GoodsHandler) buildChildren(g *model.Goods, priceRowsRaw, stockRowsRaw 
 	mainUnit := ""
 	if g.UnitID != nil {
 		var u model.Unit
-		if h.repo.DB.Where("id = ?", *g.UnitID).First(&u).Error == nil {
+		if h.repo.DB.Where("id = ?", int64(*g.UnitID)).First(&u).Error == nil {
 			mainUnit = u.Name
 		}
 	}
