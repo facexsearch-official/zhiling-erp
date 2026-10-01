@@ -607,7 +607,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <div class="form-actions">
       <span class="fhint" id="drawerHint"></span>
       <button class="btn btn-secondary" onclick="closeDrawer()">取消</button>
-      <button class="btn btn-secondary" id="saveMoreBtn" onclick="submitForm(true)">保存并新增</button>
       <button class="btn btn-primary" id="saveBtn" onclick="submitForm(false)">保存</button>
     </div>
   </div><!-- /formView -->
@@ -1671,13 +1670,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
   function removeFormTab(){
     if(window.PisaTabs){
-      // 先把激活标签切回「商品」，再关掉新增标签（避免关闭时整页跳转）
+      // 先把激活标签切回「商品」，再关掉新增/修改标签
       PisaTabs.touch(LIST_KEY, '商品列表', '/goods.html');
       PisaTabs.close(ADD_KEY);
     }
-    if(location.hash === '#goods:add'){
-      try{ history.replaceState(null, '', '/goods.html'); }catch(e){}
-    }
+    // 明确回到商品列表，避免关闭标签时跳到相邻标签
+    location.href = '/goods.html';
   }
 
   function addViewTab(id){
@@ -1755,7 +1753,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     form.editId = null;
     state.editId = null;
     el('formTitle').textContent = '新增商品';
-    el('saveMoreBtn').style.display = '';
     resetForm();
     formInited = true;
     openDrawer();
@@ -1844,7 +1841,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       form.editId = id;
       state.editId = id;
       el('formTitle').textContent = '编辑商品';
-      el('saveMoreBtn').style.display = 'none';
       resetForm();
       fillFormFromGoods(res.data);
       formInited = true;
@@ -1866,8 +1862,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       form.editId = null;
       state.editId = null;
       el('formTitle').textContent = '新增商品';
-      el('saveMoreBtn').style.display = '';
-      resetForm();
+        resetForm();
       fillFormFromGoods(d);
       // 复制时清空唯一标识，避免冲突
       el('fCode').value = '';
@@ -3789,7 +3784,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     var isEdit = form.editId != null;
     var url = isEdit ? '/api/shop/goods/' + form.editId : '/api/shop/goods';
     var method = isEdit ? 'PUT' : 'POST';
-    el('saveBtn').disabled = true; el('saveMoreBtn').disabled = true;
+    el('saveBtn').disabled = true;
     el('drawerHint').textContent = '保存中…';
 
     apiFetch(url, { method: method, body: body }).then(function(res){
@@ -3805,14 +3800,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('网络错误', 'error');
     }).then(function(){
-      el('saveBtn').disabled = false; el('saveMoreBtn').disabled = false;
+      el('saveBtn').disabled = false;
       el('drawerHint').textContent = '';
     });
   };
 
   // --- Delete ---
-  window.deleteItem = function(id){
-    if(!confirm('确定要删除该商品吗？')) return;
+  window.deleteItem = async function(id){
+    var ok = await showConfirm({ title:'删除商品', message:'确定要删除该商品吗？', desc:'删除后不可恢复', iconType:'danger', okText:'删除', okClass:'btn-danger' });
+    if(!ok) return;
     apiFetch('/api/shop/goods/' + id, { method: 'DELETE' }).then(function(res){
       if(res.code !== 0){ showToast(res.message || '删除失败', 'error'); return; }
       showToast('删除成功', 'success');

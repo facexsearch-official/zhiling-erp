@@ -101,6 +101,7 @@ type PurchaseItem struct {
 	TenantID   int64     `json:"tenant_id" gorm:"index"`
 	PurchaseID int64     `json:"purchase_id" gorm:"index"`
 	GoodsID    int64     `json:"goods_id"`
+	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
 	Quantity   int       `json:"quantity"`
 	UnitPrice  float64   `json:"unit_price"`
 	Amount     float64   `json:"amount"`

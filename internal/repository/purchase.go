@@ -135,6 +135,7 @@ func (r *PurchaseRepository) FillItemDetails(ctx context.Context, items []model.
 		m[g.ID] = g
 	}
 	for i := range items {
+		items[i].GoodsIDStr = strconv.FormatInt(items[i].GoodsID, 10)
 		g := m[items[i].GoodsID]
 		items[i].GoodsName = g.Name
 		items[i].GoodsCode = g.Code

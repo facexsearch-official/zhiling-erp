@@ -172,7 +172,7 @@
     '/account.html':'funds:account'
   };
   // 无对应导航项的独立页面标签
-  var PAGE_LABEL = { 'stock:warehouse':'仓库管理', 'supplier:add':'新增供应商' };
+  var PAGE_LABEL = { 'stock:warehouse':'仓库管理', 'supplier:add':'新增供应商', 'settings:staff':'员工管理', 'settings:role':'角色权限', 'settings:shop':'商户信息', 'settings:shops':'门店管理' };
   function currentKey(){
     var h = location.hash.slice(1);
     if(h){
@@ -447,7 +447,7 @@
   function navGo(key){
     var f = findItem(key);
     var href = f && f.item ? f.item.href : null;
-    var label = f && f.item ? (f.item.tabLabel || f.item.label) : key;
+    var label = (f && f.item) ? (f.item.tabLabel || f.item.label) : (PAGE_LABEL[key] || (window.EXTRA_LABELS && window.EXTRA_LABELS[key]) || key);
 
     /* SPA (index.html) 内导航：不走整页刷新 */
     if(window.showPage){

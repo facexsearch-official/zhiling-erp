@@ -899,7 +899,7 @@ thead th{position:relative}
 <div class="toast" id="toast"></div>
 
 <script src="/js/tabs.js?v=20261054"></script>
-<script src="/js/app-shell.js?v=20261106"></script>
+<script src="/js/app-shell.js?v=20261107"></script>
 <script>
 /* ═══════════ State ═══════════ */
 const State = {
@@ -1206,7 +1206,8 @@ function showPage(key, arg){
     else if(key==='settings:role:edit') ROLE.editId=Number(arg)||null;
   }
   var f=findNavLabel(key);
-  const label=TAB_LABELS[key]||(f&&f.label)||EXTRA_LABELS[key]||key;
+  let label=TAB_LABELS[key]||(f&&f.label)||EXTRA_LABELS[key]||key;
+  if(key==='customer:create' && CU.editId) label='修改客户';
   // 独立页面：跳转到对应 html
   var standalone={'goods':'/goods.html','customer':'/customer.html','supplier':'/supplier.html','warehouse':'/warehouse.html','account':'/account.html'};
   if(standalone[key]){location.href=standalone[key];return;}
@@ -1989,12 +1990,8 @@ async function loadStaffUsers(){
 function renderStaffUsers(){
   const body=document.getElementById('staffBody'); if(!body) return;
   const st=StaffState;
-  const remainTxt = st.remaining<0 ? '不限' : st.remaining;
-  const remainColor = (st.remaining<0||st.remaining>0) ? 'var(--primary-600)' : 'var(--danger-500)';
   let h='<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">'
     +'<button class="btn btn-primary"'+pattr('settings.staff.add')+' onclick="openUserModal()">+ 新增用户</button>'
-    +'<span style="font-size:14px;color:var(--gray-500)">可用 '+st.maxStaff+' 个用户，剩余 <b style="color:'+remainColor+'">'+remainTxt+'</b> 个</span>'
-    +'<a style="font-size:14px;color:var(--primary-600);cursor:pointer" onclick="openNav(\'settings:shop\')">立即增购</a>'
     +'</div>';
   h+='<div class="table-wrapper"><table><thead><tr><th>姓名</th><th>手机号</th><th>角色</th><th>状态</th><th style="width:120px">操作</th></tr></thead><tbody>';
   if(!st.users.length){
@@ -2005,7 +2002,7 @@ function renderStaffUsers(){
     var rn=(u.role_name&&u.role_name!=='')?u.role_name:roleName(u.role);
     h+='<tr><td>'+name+'</td><td>'+stEsc(maskPhone(u.phone))+'</td><td>'+stEsc(rn)+'</td>'
       +'<td>'+(u.status===1?'启用中':'已停用')+'</td>'
-      +'<td><button class="btn btn-ghost btn-sm"'+pattr('settings.staff.edit')+' onclick="openUserModal('+u.id+')">修改</button></td></tr>';
+      +'<td><button class="btn btn-ghost btn-sm"'+pattr('settings.staff.edit')+' style="color:var(--accent-600)" onclick="openUserModal('+u.id+')">修改</button></td></tr>';
   });
   h+='</tbody></table></div>';
   body.innerHTML=h;
@@ -2032,8 +2029,8 @@ function renderStaffSalesmen(){
   }
   st.salesmen.forEach(function(s){
     h+='<tr><td>'+stEsc(s.name||'-')+'</td><td>'+stEsc(s.phone||'-')+'</td>'
-      +'<td><button class="btn btn-ghost btn-sm" onclick="openSalesmanModal('+s.id+')">修改</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="deleteSalesman('+s.id+')">删除</button></td></tr>';
+      +'<td><button class="btn btn-ghost btn-sm" style="color:var(--accent-600)" onclick="openSalesmanModal('+s.id+')">修改</button>'
+      +'<button class="btn btn-ghost btn-sm" style="color:var(--danger-500)" onclick="deleteSalesman('+s.id+')">删除</button></td></tr>';
   });
   h+='</tbody></table></div>';
   body.innerHTML=h;
@@ -2252,14 +2249,12 @@ const PC_COLS_DEF = {
     {key:'deposit_offset', l:'订金抵扣', num:true},
     {key:'paid_amount', l:'实付金额', num:true},
     {key:'unpaid_amount', l:'待付金额', num:true},
-    {key:'invoice_status', l:'开票状态'},
     {key:'account_name', l:'结算账户'},
     {key:'remark', l:'备注'},
     {key:'attachments', l:'图片附件'},
     {key:'created_at', l:'制单时间'},
     {key:'salesman_name', l:'业务员'},
-    {key:'maker_name', l:'制单人'},
-    {key:'print_status', l:'打印状态'}
+    {key:'maker_name', l:'制单人'}
   ],
   order: [
     {key:'supplier_name', l:'供应商'},
@@ -2482,11 +2477,13 @@ function pcRowActions(row){
   var kind=pcListKind;
   var pm=PC_KINDS[kind].perm;
   var h='<button class="btn btn-ghost btn-sm" style="color:var(--accent-600)" onclick="viewPurchase(\''+kind+'\',\''+row.id_str+'\')">查看</button>';
-  h+='<button class="btn btn-ghost btn-sm"'+pattr(pm+'.edit')+' style="color:var(--accent-600)" onclick="showToast(\'修改功能开发中\')">修改</button>';
+  if(Number(row.status)===1){
+    h+='<button class="btn btn-ghost btn-sm"'+pattr(pm+'.edit')+' style="color:var(--accent-600)" onclick="openPurchaseEdit(\''+kind+'\',\''+row.id_str+'\')">修改</button>';
+  }
   if(kind==='order'){
-    h+='<button class="btn btn-danger btn-sm"'+pattr(pm+'.void')+' onclick="voidPurchase(\''+kind+'\',\''+row.id_str+'\')">关闭</button>';
+    h+='<button class="btn btn-ghost btn-sm"'+pattr(pm+'.void')+' style="color:var(--danger-500)" onclick="voidPurchase(\''+kind+'\',\''+row.id_str+'\')">关闭</button>';
   } else if(row.status!==4){
-    h+='<button class="btn btn-danger btn-sm"'+pattr(pm+'.void')+' onclick="voidPurchase(\''+kind+'\',\''+row.id_str+'\')">作废</button>';
+    h+='<button class="btn btn-ghost btn-sm"'+pattr(pm+'.void')+' style="color:var(--danger-500)" onclick="voidPurchase(\''+kind+'\',\''+row.id_str+'\')">作废</button>';
   } else {
     h+='<span style="color:var(--gray-400);font-size:13px">已作废</span>';
   }
@@ -2640,7 +2637,9 @@ function initPurchaseColsDnD(){
 }
 
 async function voidPurchase(kind, id){
-  if(!confirm('确定作废该单据？')) return;
+  var docTitle=(PC_KINDS[kind||pcListKind]||{}).docTitle||'单据';
+  var ok=await showConfirm({title:'作废'+docTitle, message:'确定作废该'+docTitle+'？', desc:'作废后不可恢复', iconType:'danger', okText:'作废', okClass:'btn-danger'});
+  if(!ok) return;
   var res=await apiDelete(PC_KINDS[kind||pcListKind].base+'/'+id);
   if(res&&res.code===0){ showToast('已作废'); loadPurchases(PC_PAGE.page); }
   else showToast((res&&res.message)||'操作失败','error');
@@ -2685,12 +2684,6 @@ function renderPurchaseView(){
     +'<span class="pcv-tool" onclick="showToast(\'退货开发中\')">'+ic.back+'退货</span>'
     +'<span class="pcv-tool"'+pattr(PC_KINDS[pcViewKind].perm+'.void')+' onclick="voidPurchase(\''+pcViewKind+'\',\''+(d.id_str||'')+'\')">'+ic.trash+'作废</span>'
     +'<span class="pcv-tool" onclick="showToast(\'复制开发中\')">'+ic.copy+'复制</span>'
-    +'<span class="pcv-tool" onclick="showToast(\'历史单据开发中\')">'+ic.hist+'查看历史单据</span>'
-    +'<span class="pcv-tool" onclick="showToast(\'标记开票开发中\')">'+ic.check+'标记已开票</span>'
-    +'<div style="flex:1"></div>'
-    +'<button class="btn btn-secondary" onclick="showToast(\'打印标签开发中\')">打印标签</button>'
-    +'<button class="btn btn-secondary" onclick="showToast(\'导出PDF开发中\')">导出PDF</button>'
-    +'<button class="btn btn-secondary" onclick="showToast(\'打印开发中\')">打印/预览</button>'
     +'</div>';
   h+='<div class="pcv-divider"></div>';
   h+='<div class="pcv-title-row"><div class="pcv-title">'+PC_KINDS[pcViewKind].docTitle+'</div><div class="pcv-no">单据编号：<b>'+stEsc(d.order_no||'')+'</b></div></div>';
@@ -2741,16 +2734,23 @@ function renderPurchaseView(){
     +'<div class="row"><span><span class="k">备注：</span><span class="v">'+stEsc(d.remark||'')+'</span> <span class="link" style="color:var(--accent-600);cursor:pointer" onclick="showToast(\'修改备注开发中\')">修改</span></span></div>'
     +'</div>';
   h+='<div style="margin-top:12px"><div class="pc-upload" onclick="showToast(\'上传附件开发中\')"><span style="font-size:21px">+</span>上传附件</div></div>';
-  h+='<div class="pcv-pay-link"><span class="link" onclick="showToast(\'付款记录开发中\')">查看付款记录</span></div>';
   page.innerHTML=h;
 }
 
 /* ─── 新增进货单 ─── */
-const PC = { supplierId:0, salesmanId:0, billDate:'', accountId:0, shopId:0, discount:100, freight:0, deposit:0, paid:0, remark:'', items:[], suppliers:[], salesmen:[], accounts:[], shops:[], goods:[] };
+const PC = { editId:null, supplierId:0, salesmanId:0, billDate:'', accountId:0, shopId:0, discount:100, freight:0, deposit:0, paid:0, remark:'', items:[], suppliers:[], salesmen:[], accounts:[], shops:[], goods:[] };
 
 function openPurchaseCreate(kind){
   pcCurKind = kind || pcListKind;
+  PC.editId=null;
   if(window.PisaTabs) PisaTabs.touch(PC_KINDS[pcCurKind].create, PC_KINDS[pcCurKind].createLabel, '/#'+PC_KINDS[pcCurKind].create);
+  showPage(PC_KINDS[pcCurKind].create);
+}
+function openPurchaseEdit(kind, id){
+  pcCurKind = kind || pcListKind;
+  PC.editId=String(id);
+  var label='修改'+PC_KINDS[pcCurKind].docTitle;
+  if(window.PisaTabs) PisaTabs.touch(PC_KINDS[pcCurKind].create, label, '/#'+PC_KINDS[pcCurKind].create);
   showPage(PC_KINDS[pcCurKind].create);
 }
 function purchaseCreateHTML(kind){
@@ -2769,7 +2769,29 @@ async function pcInit(kind){
   PC.supplierId=PC.suppliers[0]?PC.suppliers[0].id:0;
   PC.accountId=PC.accounts[0]?PC.accounts[0].id:0;
   PC.shopId=PC.shops[0]?(PC.shops[0].id_str||String(PC.shops[0].id)):'';
+  if(PC.editId){
+    var g=await apiGet(PC_KINDS[pcCurKind].base+'/'+PC.editId);
+    if(g&&g.code===0&&g.data){ pcFillFromPurchase(g.data); pcRender(); return; }
+    PC.editId=null;
+  }
   if(pcRestoreDraft()){ pcRender(); } else { pcReset(true); }
+}
+function pcFillFromPurchase(d){
+  PC.supplierId=d.supplier_id||0;
+  PC.shopId=d.shop_id?String(d.shop_id):PC.shopId;
+  PC.salesmanId=d.salesman_id||0;
+  PC.accountId=d.account_id||0;
+  PC.billDate=d.bill_date||new Date().toISOString().slice(0,10);
+  PC.discount=(d.discount!=null?d.discount:100);
+  PC.freight=d.freight||0;
+  PC.deposit=d.deposit_offset||0;
+  PC.paid=d.paid_amount||0;
+  PC.remark=d.remark||'';
+  PC.items=(d.items||[]).map(function(it){
+    var gid=(it.goods_id_str!=null&&it.goods_id_str!=='')?String(it.goods_id_str):(it.goods_id!=null?String(it.goods_id):'');
+    var qty=Number(it.quantity||0), price=Number(it.unit_price||0);
+    return {goods_id:gid, name:it.goods_name||'', spec:it.spec||'', code:it.goods_code||'', barcode:it.barcode||'', unit:it.unit_name||'', qty:qty, price:price, amount:Number(it.amount||(qty*price)), remark:it.remark||''};
+  });
 }
 function pcSpecNames(g){
   try{ var gs=JSON.parse(g.spec_groups||'[]'); return gs.map(function(x){return x.name;}).filter(Boolean).join('/'); }catch(e){ return ''; }
@@ -2950,7 +2972,6 @@ function pcRender(){
     +'<td></td><td class="pc-amt" id="pcSumAmt">'+Number(pcSubtotal()).toFixed(2)+'</td><td></td></tr></tfoot></table></div>';
   // footer
   var footBtns='<div class="cu-form-foot">'
-    +'<label class="plist-check"><input type="checkbox" id="pcSaveContinue"> 保存后继续开单</label>'
     +'<div class="grow"></div>'
     +'<button class="btn btn-secondary" onclick="pcReset()">清空</button>'
     +'<button class="btn btn-primary"'+pattr(PC_KINDS[pcCurKind].perm+'.add')+' onclick="pcSave(false)">保存(Alt+S)</button>'
@@ -3324,9 +3345,10 @@ async function pcSave(andPrint){
     deposit_offset:Number(PC.deposit)||0, paid_amount:Number(PC.paid)||0, remark:PC.remark,
     items: items.map(function(it){ return {goods_id:it.goods_id, quantity:Number(it.qty), unit_price:Number(it.price), remark:it.remark||''}; })
   };
-  var res=await apiPost(PC_KINDS[pcCurKind].base, body);
+  var res = PC.editId ? await apiPut(PC_KINDS[pcCurKind].base+'/'+PC.editId, body) : await apiPost(PC_KINDS[pcCurKind].base, body);
   if(res&&res.code===0){
     showToast('保存成功');
+    if(PC.editId){ PC.editId=null; showPage(PC_KINDS[pcCurKind].list); return; }
     pcClearDraft();
     var keep=document.getElementById('pcSaveContinue');
     if(keep&&keep.checked){ PC.items=[]; PC.paid=0; PC.remark=''; pcRender(); }
@@ -6605,7 +6627,7 @@ function initCuColsDnD(){
 }
 
 function openCustomerCreate(){ CU.editId=null; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
-function openCustomerEdit(id){ CU.editId=id; if(window.PisaTabs) PisaTabs.touch('customer:create','新增客户','/#customer:create'); showPage('customer:create'); }
+function openCustomerEdit(id){ CU.editId=id; if(window.PisaTabs) PisaTabs.touch('customer:create','修改客户','/#customer:create'); showPage('customer:create'); }
 function openCustomerView(id){ CU.viewId=id; if(window.PisaTabs) PisaTabs.touch('customer:view','客户详情','/#customer:view'); showPage('customer:view'); }
 function openCustomerStatement(id, name){ CU.viewId=id; CU.stmtName=name||''; if(window.PisaTabs) PisaTabs.touch('customer:statement','客户对账单','/#customer:statement'); showPage('customer:statement'); }
 function openReceiptForCustomer(cid, name){ RC.editId=null; RC._prefill={customerId:cid, customerName:name}; if(window.PisaTabs) PisaTabs.touch('funds:receipt:create','新增收款单','/#funds:receipt:create'); showPage('funds:receipt:create'); }
@@ -6972,7 +6994,6 @@ function cuFormRender(){
   page.innerHTML='<div class="cu-form-body">'+body+'</div>'
     +'<div class="cu-form-foot">'
     +'<button class="btn btn-secondary" onclick="location.href=\'/customer.html\'">取消</button>'
-    +'<button class="btn btn-secondary" onclick="cuSave(true)">保存并新增</button>'
     +'<button class="btn btn-primary" onclick="cuSave(false)">保存</button></div>';
   cuAddrRender();
   cuRenderCategoryPicker();

@@ -136,8 +136,12 @@ func seedGoodsCategories(db *gorm.DB) {
 		return
 	}
 
-	// 先清空该商户所有商品分类
-	db.Where("tenant_id = ?", tenant.ID).Delete(&model.GoodsCategory{})
+	// 仅在该商户还没有任何商品分类时初始化，避免每次启动清空用户数据
+	var existing int64
+	db.Model(&model.GoodsCategory{}).Where("tenant_id = ?", tenant.ID).Count(&existing)
+	if existing > 0 {
+		return
+	}
 
 	type catDef struct {
 		Name  string
