@@ -32,13 +32,43 @@ type stockQueryRow struct {
 	StockValue   float64 `json:"stock_value"`
 }
 
+// categorySubtree 返回该分类及其所有下级分类 ID（支持多级）
+func (h *StockQueryHandler) categorySubtree(tenantID int64, root string) []int64 {
+	rootID, _ := strconv.ParseInt(root, 10, 64)
+	if rootID == 0 {
+		return []int64{}
+	}
+	type row struct {
+		ID       int64
+		ParentID int64
+	}
+	var rows []row
+	h.db.Table("goods_categories").Select("id, parent_id").Where("tenant_id = ?", tenantID).Scan(&rows)
+	children := map[int64][]int64{}
+	for _, r := range rows {
+		children[r.ParentID] = append(children[r.ParentID], r.ID)
+	}
+	ids := []int64{rootID}
+	queue := []int64{rootID}
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+		for _, ch := range children[cur] {
+			ids = append(ids, ch)
+			queue = append(queue, ch)
+		}
+	}
+	return ids
+}
+
 func (h *StockQueryHandler) applyFilters(q *gorm.DB, tenantID int64, c *gin.Context) *gorm.DB {
 	if kw := c.Query("keyword"); kw != "" {
 		like := "%" + kw + "%"
 		q = q.Where("g.name LIKE ? OR g.barcode LIKE ? OR g.code LIKE ?", like, like, like)
 	}
 	if v := c.Query("category_id"); v != "" && v != "0" {
-		q = q.Where("g.category_id = ?", v)
+		ids := h.categorySubtree(tenantID, v)
+		q = q.Where("g.category_id IN ?", ids)
 	}
 	if v := c.Query("supplier_id"); v != "" && v != "0" {
 		q = q.Where("g.supplier_id = ?", v)
@@ -467,4 +497,25 @@ func (h *StockQueryHandler) Alert(c *gin.Context) {
 		})
 	}
 	response.OK(c, gin.H{"list": list, "total": len(list)})
+}
+
+// Dist 商品在各仓库/门店的库存分布
+func (h *StockQueryHandler) Dist(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	type row struct {
+		Name     string `json:"name"`
+		Quantity int    `json:"quantity"`
+	}
+	var rows []row
+	h.db.Table("stock_balances AS sb").
+		Joins("LEFT JOIN shops sh ON sh.id = sb.shop_id").
+		Joins("LEFT JOIN warehouses w ON w.id = sb.warehouse_id").
+		Select("COALESCE(sh.name, w.name, '未分配') AS name, sb.quantity AS quantity").
+		Where("sb.tenant_id = ? AND sb.goods_id = ?", tenantID, id).
+		Order("sb.quantity DESC").
+		Scan(&rows)
+	response.OK(c, gin.H{"rows": rows})
 }

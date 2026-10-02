@@ -28,14 +28,14 @@ func NewPurchaseOrderHandler(dbConn *gorm.DB) *PurchaseOrderHandler {
 func round2o(v float64) float64 { return math.Round(v*100) / 100 }
 
 type orderItemReq struct {
-	GoodsID   int64   `json:"goods_id"`
+	GoodsID   model.FlexInt64 `json:"goods_id"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 	Remark    string  `json:"remark"`
 }
 
 type orderCreateReq struct {
-	ShopID        int64          `json:"shop_id"`
+	ShopID        model.FlexInt64 `json:"shop_id"`
 	WarehouseID   int64          `json:"warehouse_id"`
 	SupplierID    int64          `json:"supplier_id"`
 	SalesmanID    int64          `json:"salesman_id"`
@@ -132,7 +132,7 @@ func (h *PurchaseOrderHandler) Create(c *gin.Context) {
 	o := model.PurchaseOrder{
 		ID:            snowflake.GenID(),
 		TenantID:      tenantID,
-		ShopID:        req.ShopID,
+		ShopID:        int64(req.ShopID),
 		WarehouseID:   req.WarehouseID,
 		OrderNo:       fmt.Sprintf("CGDD%s%04d", today, count+1),
 		SupplierID:    req.SupplierID,
@@ -156,7 +156,7 @@ func (h *PurchaseOrderHandler) Create(c *gin.Context) {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		subtotal += amt
 		items = append(items, model.PurchaseOrderItem{
-			ID: snowflake.GenID(), TenantID: tenantID, GoodsID: it.GoodsID,
+			ID: snowflake.GenID(), TenantID: tenantID, GoodsID: int64(it.GoodsID),
 			Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark,
 		})
 	}

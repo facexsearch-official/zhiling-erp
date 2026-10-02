@@ -74,6 +74,12 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.Income{},
 		&model.IncomeItem{},
 	}
+	// goods_stocks 旧唯一索引 uk_gs 仅含 (goods_id, spec_key)，需重建为含 shop_id 的多门店唯一索引
+	if db.Migrator().HasTable("goods_stocks") {
+		if err := db.Migrator().DropIndex(&model.GoodsStock{}, "uk_gs"); err != nil {
+			log.Printf("drop goods_stocks.uk_gs error: %v", err)
+		}
+	}
 	for _, t := range tables {
 		if err := db.AutoMigrate(t); err != nil {
 			log.Printf("auto migrate %T error: %v", t, err)

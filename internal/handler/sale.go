@@ -30,9 +30,9 @@ type saleItemReq struct {
 }
 
 type saleCreateReq struct {
-	ShopID           int64         `json:"shop_id"`
-	WarehouseID      int64         `json:"warehouse_id"`
-	CustomerID       int64         `json:"customer_id"`
+	ShopID           model.FlexInt64 `json:"shop_id"`
+	WarehouseID      model.FlexInt64 `json:"warehouse_id"`
+	CustomerID       model.FlexInt64 `json:"customer_id"`
 	SalesmanID       int64         `json:"salesman_id"`
 	AccountID        int64         `json:"account_id"`
 	BillDate         string        `json:"bill_date"`
@@ -96,10 +96,9 @@ func (h *SalesHandler) goodsMap(tenantID int64, ids []int64) map[int64]model.Goo
 }
 
 func nextNo(db *gorm.DB, tenantID int64, table, prefix string) string {
-	today := time.Now().Format("20060102")
-	var count int64
-	db.Table(table).Where("tenant_id = ? AND order_no LIKE ?", tenantID, prefix+today+"%").Count(&count)
-	return fmt.Sprintf("%s%s%04d", prefix, today, count+1)
+	// 按时间生成，不查库：前缀 + 年月日时分秒 + 毫秒
+	now := time.Now()
+	return fmt.Sprintf("%s%s%03d", prefix, now.Format("20060102150405"), now.Nanosecond()/1000000)
 }
 
 func calcItems(req []saleItemReq) ([]model.SaleItem, float64) {
@@ -129,6 +128,7 @@ func (h *SalesHandler) ListSales(c *gin.Context) {
 	q := h.db.Table("sales AS p").
 		Joins("LEFT JOIN customers c ON c.id = p.customer_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
@@ -143,7 +143,7 @@ func (h *SalesHandler) ListSales(c *gin.Context) {
 		q = q.Where("p.bill_date <= ?", dateTo)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, c.name AS customer_name, sm.name AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
+	q.Select("p.*, c.name AS customer_name, COALESCE(sm.name, su.nickname) AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -161,11 +161,13 @@ func (h *SalesHandler) GetSale(c *gin.Context) {
 		return
 	}
 	s.IDStr = strconv.FormatInt(s.ID, 10)
+	s.CustomerIDStr = strconv.FormatInt(s.CustomerID, 10)
 	s.CustomerName, s.SalesmanName, s.AccountName, s.MakerName = h.names(tenantID, s.CustomerID, s.SalesmanID, s.AccountID, s.CreatedBy)
 	var items []model.SaleItem
 	h.db.Table("sale_items").Where("sale_id = ?", s.ID).Order("id ASC").Find(&items)
 	gm := h.goodsMap(tenantID, itemGoodsIDs(items))
 	for i := range items {
+		items[i].GoodsIDStr = strconv.FormatInt(items[i].GoodsID, 10)
 		g := gm[items[i].GoodsID]
 		items[i].GoodsName = g.Name
 		items[i].GoodsCode = g.Code
@@ -189,7 +191,7 @@ func (h *SalesHandler) CreateSale(c *gin.Context) {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if req.CustomerID == 0 || len(req.Items) == 0 {
+	if int64(req.CustomerID) == 0 || len(req.Items) == 0 {
 		response.BadRequest(c, "请选择客户并添加明细")
 		return
 	}
@@ -199,9 +201,71 @@ func (h *SalesHandler) CreateSale(c *gin.Context) {
 		discount = 100
 	}
 	s := model.Sale{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID, WarehouseID: req.WarehouseID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID), WarehouseID: int64(req.WarehouseID),
 		OrderNo: nextNo(h.db, tenantID, "sales", "XH"), RelatedOrderNo: req.RelatedOrderNo,
-		CustomerID: req.CustomerID, SalesmanID: req.SalesmanID, AccountID: req.AccountID,
+		CustomerID: int64(req.CustomerID), SalesmanID: req.SalesmanID, AccountID: req.AccountID,
+		BillDate: req.BillDate, Discount: discount, Subtotal: subtotal,
+		RoundOff: req.RoundOff, InvoiceStatus: req.InvoiceStatus, PrintStatus: req.PrintStatus,
+		Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
+	}
+	s.TotalAmount = round2o(subtotal*discount/100 - s.RoundOff)
+	s.ReceivedAmount = req.ReceivedAmount
+	s.UnreceivedAmount = round2o(s.TotalAmount - s.ReceivedAmount)
+	if s.ReceivedAmount <= 0 {
+		s.ReceiveStatus = 0
+	} else if s.UnreceivedAmount <= 0 {
+		s.ReceiveStatus = 2
+	} else {
+		s.ReceiveStatus = 1
+	}
+	if err := h.db.Table("sales").Create(&s).Error; err != nil {
+		response.ServerError(c, err.Error())
+		return
+	}
+	for i := range items {
+		items[i].TenantID = tenantID
+		items[i].SaleID = s.ID
+	}
+	if len(items) > 0 {
+		h.db.Table("sale_items").Create(&items)
+	}
+	s.IDStr = strconv.FormatInt(s.ID, 10)
+	s.Items = items
+	response.OK(c, s)
+}
+
+func (h *SalesHandler) UpdateSale(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	userID := context.GetUserID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	var existing model.Sale
+	if err := h.db.Table("sales").Where("id = ? AND tenant_id = ?", id, tenantID).First(&existing).Error; err != nil {
+		response.NotFound(c, "销货单不存在")
+		return
+	}
+	var req saleCreateReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	if int64(req.CustomerID) == 0 || len(req.Items) == 0 {
+		response.BadRequest(c, "请选择客户并添加明细")
+		return
+	}
+	// 删除旧单后重建
+	h.db.Table("sale_items").Where("sale_id = ?", id).Delete(&model.SaleItem{})
+	h.db.Table("sales").Where("id = ? AND tenant_id = ?", id, tenantID).Delete(&model.Sale{})
+
+	items, subtotal := calcItems(req.Items)
+	discount := req.Discount
+	if discount <= 0 {
+		discount = 100
+	}
+	s := model.Sale{
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID), WarehouseID: int64(req.WarehouseID),
+		OrderNo: nextNo(h.db, tenantID, "sales", "XH"), RelatedOrderNo: req.RelatedOrderNo,
+		CustomerID: int64(req.CustomerID), SalesmanID: req.SalesmanID, AccountID: req.AccountID,
 		BillDate: req.BillDate, Discount: discount, Subtotal: subtotal,
 		RoundOff: req.RoundOff, InvoiceStatus: req.InvoiceStatus, PrintStatus: req.PrintStatus,
 		Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
@@ -257,6 +321,7 @@ func (h *SalesHandler) ListSaleOrders(c *gin.Context) {
 	q := h.db.Table("sale_orders AS p").
 		Joins("LEFT JOIN customers c ON c.id = p.customer_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
@@ -271,7 +336,7 @@ func (h *SalesHandler) ListSaleOrders(c *gin.Context) {
 		q = q.Where("p.order_date <= ?", dateTo)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, c.name AS customer_name, sm.name AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
+	q.Select("p.*, c.name AS customer_name, COALESCE(sm.name, su.nickname) AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -289,11 +354,13 @@ func (h *SalesHandler) GetSaleOrder(c *gin.Context) {
 		return
 	}
 	s.IDStr = strconv.FormatInt(s.ID, 10)
+	s.CustomerIDStr = strconv.FormatInt(s.CustomerID, 10)
 	s.CustomerName, s.SalesmanName, s.AccountName, s.MakerName = h.names(tenantID, s.CustomerID, s.SalesmanID, s.AccountID, s.CreatedBy)
 	var items []model.SaleOrderItem
 	h.db.Table("sale_order_items").Where("order_id = ?", s.ID).Order("id ASC").Find(&items)
 	gm := h.goodsMap(tenantID, orderItemGoodsIDs(items))
 	for i := range items {
+		items[i].GoodsIDStr = strconv.FormatInt(items[i].GoodsID, 10)
 		g := gm[items[i].GoodsID]
 		items[i].GoodsName = g.Name
 		items[i].GoodsCode = g.Code
@@ -317,7 +384,7 @@ func (h *SalesHandler) CreateSaleOrder(c *gin.Context) {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if req.CustomerID == 0 || len(req.Items) == 0 {
+	if int64(req.CustomerID) == 0 || len(req.Items) == 0 {
 		response.BadRequest(c, "请选择客户并添加明细")
 		return
 	}
@@ -334,8 +401,8 @@ func (h *SalesHandler) CreateSaleOrder(c *gin.Context) {
 		date = req.BillDate
 	}
 	s := model.SaleOrder{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID, WarehouseID: req.WarehouseID,
-		OrderNo: nextNo(h.db, tenantID, "sale_orders", "XSDD"), CustomerID: req.CustomerID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID), WarehouseID: int64(req.WarehouseID),
+		OrderNo: nextNo(h.db, tenantID, "sale_orders", "XSDD"), CustomerID: int64(req.CustomerID),
 		SalesmanID: req.SalesmanID, AccountID: req.AccountID, OrderDate: date,
 		TotalAmount: total, ReceivedAmount: req.ReceivedAmount,
 		PrintStatus: req.PrintStatus, Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
@@ -381,6 +448,7 @@ func (h *SalesHandler) ListSalesReturns(c *gin.Context) {
 	q := h.db.Table("sales_returns AS p").
 		Joins("LEFT JOIN customers c ON c.id = p.customer_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
@@ -395,7 +463,7 @@ func (h *SalesHandler) ListSalesReturns(c *gin.Context) {
 		q = q.Where("p.bill_date <= ?", dateTo)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, c.name AS customer_name, sm.name AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
+	q.Select("p.*, c.name AS customer_name, COALESCE(sm.name, su.nickname) AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -413,11 +481,13 @@ func (h *SalesHandler) GetSalesReturn(c *gin.Context) {
 		return
 	}
 	s.IDStr = strconv.FormatInt(s.ID, 10)
+	s.CustomerIDStr = strconv.FormatInt(s.CustomerID, 10)
 	s.CustomerName, s.SalesmanName, s.AccountName, s.MakerName = h.names(tenantID, s.CustomerID, s.SalesmanID, s.AccountID, s.CreatedBy)
 	var items []model.SalesReturnItem
 	h.db.Table("sales_return_items").Where("return_id = ?", s.ID).Order("id ASC").Find(&items)
 	gm := h.goodsMap(tenantID, returnItemGoodsIDs(items))
 	for i := range items {
+		items[i].GoodsIDStr = strconv.FormatInt(items[i].GoodsID, 10)
 		g := gm[items[i].GoodsID]
 		items[i].GoodsName = g.Name
 		items[i].GoodsCode = g.Code
@@ -441,7 +511,7 @@ func (h *SalesHandler) CreateSalesReturn(c *gin.Context) {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if req.CustomerID == 0 || len(req.Items) == 0 {
+	if int64(req.CustomerID) == 0 || len(req.Items) == 0 {
 		response.BadRequest(c, "请选择客户并添加明细")
 		return
 	}
@@ -454,8 +524,8 @@ func (h *SalesHandler) CreateSalesReturn(c *gin.Context) {
 	}
 	total = round2o(total)
 	s := model.SalesReturn{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID, WarehouseID: req.WarehouseID,
-		OrderNo: nextNo(h.db, tenantID, "sales_returns", "XSTH"), CustomerID: req.CustomerID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID), WarehouseID: int64(req.WarehouseID),
+		OrderNo: nextNo(h.db, tenantID, "sales_returns", "XSTH"), CustomerID: int64(req.CustomerID),
 		SalesmanID: req.SalesmanID, AccountID: req.AccountID, BillDate: req.BillDate,
 		RoundOff: req.RoundOff, TotalAmount: round2o(total - req.RoundOff), ReceivedAmount: req.ReceivedAmount,
 		PrintStatus: req.PrintStatus, Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
@@ -501,6 +571,7 @@ func (h *SalesHandler) ListQuotes(c *gin.Context) {
 	q := h.db.Table("quotes AS p").
 		Joins("LEFT JOIN customers c ON c.id = p.customer_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
 	if keyword != "" {
@@ -514,7 +585,7 @@ func (h *SalesHandler) ListQuotes(c *gin.Context) {
 		q = q.Where("p.bill_date <= ?", dateTo)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, c.name AS customer_name, sm.name AS salesman_name, u.nickname AS maker_name").
+	q.Select("p.*, c.name AS customer_name, COALESCE(sm.name, su.nickname) AS salesman_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -560,14 +631,14 @@ func (h *SalesHandler) CreateQuote(c *gin.Context) {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	if req.CustomerID == 0 || len(req.Items) == 0 {
+	if int64(req.CustomerID) == 0 || len(req.Items) == 0 {
 		response.BadRequest(c, "请选择客户并添加明细")
 		return
 	}
 	items, total := calcItems(req.Items)
 	q := model.Quote{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID,
-		OrderNo: nextNo(h.db, tenantID, "quotes", "BJ"), CustomerID: req.CustomerID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID),
+		OrderNo: nextNo(h.db, tenantID, "quotes", "BJ"), CustomerID: int64(req.CustomerID),
 		SalesmanID: req.SalesmanID, BillDate: req.BillDate, TotalAmount: total,
 		Remark: req.Remark, CreatedBy: userID,
 	}

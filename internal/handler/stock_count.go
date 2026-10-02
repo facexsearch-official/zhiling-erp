@@ -21,7 +21,7 @@ func NewStockCountHandler(dbConn *gorm.DB) *StockCountHandler {
 }
 
 type stockCountItemReq struct {
-	GoodsID   int64  `json:"goods_id"`
+	GoodsID   model.FlexInt64 `json:"goods_id"`
 	BookQty   int    `json:"book_qty"`
 	ActualQty int    `json:"actual_qty"`
 	DiffQty   int    `json:"diff_qty"`
@@ -54,6 +54,7 @@ func (h *StockCountHandler) List(c *gin.Context) {
 	q := h.db.Table("stock_counts AS p").
 		Joins("LEFT JOIN warehouses w ON w.id = p.warehouse_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
 	if keyword != "" {
@@ -73,7 +74,7 @@ func (h *StockCountHandler) List(c *gin.Context) {
 		q = q.Where("p.diff_qty <> 0")
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, w.name AS warehouse_name, sm.name AS salesman_name, u.nickname AS maker_name").
+	q.Select("p.*, w.name AS warehouse_name, COALESCE(sm.name, su.nickname) AS salesman_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -101,6 +102,11 @@ func (h *StockCountHandler) GetByID(c *gin.Context) {
 		var sm model.Salesman
 		if h.db.Where("id = ?", sc.SalesmanID).First(&sm).Error == nil {
 			sc.SalesmanName = sm.Name
+		} else {
+			var su model.User
+			if h.db.Where("id = ?", sc.SalesmanID).First(&su).Error == nil {
+				sc.SalesmanName = su.Nickname
+			}
 		}
 	}
 	if sc.CreatedBy != 0 {
@@ -160,7 +166,7 @@ func (h *StockCountHandler) Create(c *gin.Context) {
 		ta += it.ActualQty
 		td += diff
 		items = append(items, model.StockCountItem{
-			ID: snowflake.GenID(), TenantID: tenantID, GoodsID: it.GoodsID,
+			ID: snowflake.GenID(), TenantID: tenantID, GoodsID: int64(it.GoodsID),
 			BookQty: it.BookQty, ActualQty: it.ActualQty, DiffQty: diff, Remark: it.Remark,
 		})
 	}

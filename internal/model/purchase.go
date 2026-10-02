@@ -156,6 +156,7 @@ type PurchaseReturnItem struct {
 	TenantID         int64     `json:"tenant_id" gorm:"index"`
 	PurchaseReturnID int64     `json:"purchase_return_id" gorm:"index"`
 	GoodsID          int64     `json:"goods_id"`
+	GoodsIDStr       string    `json:"goods_id_str" gorm:"->"`
 	Quantity         int       `json:"quantity"`
 	UnitPrice        float64   `json:"unit_price"`
 	Amount           float64   `json:"amount"`
@@ -180,6 +181,7 @@ type SaleOrder struct {
 	WarehouseID      int64           `json:"warehouse_id"`
 	OrderNo          string          `json:"order_no" gorm:"size:32"`
 	CustomerID       int64           `json:"customer_id"`
+	CustomerIDStr    string          `json:"customer_id_str" gorm:"->"`
 	SalesmanID       int64           `json:"salesman_id"`
 	AccountID        int64           `json:"account_id"`
 	OrderDate        string          `json:"order_date" gorm:"size:10"`
@@ -206,6 +208,7 @@ type SaleOrderItem struct {
 	TenantID  int64     `json:"tenant_id" gorm:"index"`
 	OrderID   int64     `json:"order_id" gorm:"index"`
 	GoodsID   int64     `json:"goods_id"`
+	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
 	Quantity  int       `json:"quantity"`
 	UnitPrice float64   `json:"unit_price"`
 	Amount    float64   `json:"amount"`
@@ -231,6 +234,7 @@ type Sale struct {
 	OrderNo          string     `json:"order_no" gorm:"size:32"`
 	RelatedOrderNo   string     `json:"related_order_no" gorm:"size:32"`
 	CustomerID       int64      `json:"customer_id"`
+	CustomerIDStr    string     `json:"customer_id_str" gorm:"->"`
 	SalesmanID       int64      `json:"salesman_id"`
 	AccountID        int64      `json:"account_id"`
 	BillDate         string     `json:"bill_date" gorm:"size:10"`
@@ -262,6 +266,7 @@ type SaleItem struct {
 	TenantID  int64     `json:"tenant_id" gorm:"index"`
 	SaleID    int64     `json:"sale_id" gorm:"index"`
 	GoodsID   int64     `json:"goods_id"`
+	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
 	Quantity  int       `json:"quantity"`
 	UnitPrice float64   `json:"unit_price"`
 	Amount    float64   `json:"amount"`
@@ -286,6 +291,7 @@ type SalesReturn struct {
 	WarehouseID      int64             `json:"warehouse_id"`
 	OrderNo          string            `json:"order_no" gorm:"size:32"`
 	CustomerID       int64             `json:"customer_id"`
+	CustomerIDStr    string            `json:"customer_id_str" gorm:"->"`
 	SalesmanID       int64             `json:"salesman_id"`
 	AccountID        int64             `json:"account_id"`
 	BillDate         string            `json:"bill_date" gorm:"size:10"`
@@ -312,6 +318,7 @@ type SalesReturnItem struct {
 	TenantID  int64     `json:"tenant_id" gorm:"index"`
 	ReturnID  int64     `json:"return_id" gorm:"index"`
 	GoodsID   int64     `json:"goods_id"`
+	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
 	Quantity  int       `json:"quantity"`
 	UnitPrice float64   `json:"unit_price"`
 	Amount    float64   `json:"amount"`
@@ -353,6 +360,7 @@ type QuoteItem struct {
 	TenantID  int64     `json:"tenant_id" gorm:"index"`
 	QuoteID   int64     `json:"quote_id" gorm:"index"`
 	GoodsID   int64     `json:"goods_id"`
+	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
 	Quantity  int       `json:"quantity"`
 	UnitPrice float64   `json:"unit_price"`
 	Amount    float64   `json:"amount"`

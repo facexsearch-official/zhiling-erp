@@ -119,7 +119,15 @@ type Goods struct {
 	Units         []GoodsUnit        `json:"units" gorm:"-"`
 	Prices        []GoodsPrice       `json:"prices" gorm:"-"`
 	Stocks        []GoodsStock       `json:"stocks" gorm:"-"`
+	ShopStocks    []GoodsShopStock   `json:"shop_stocks" gorm:"-"`
 	UnitSummaries []GoodsUnitSummary `json:"units_summary" gorm:"-"`
+}
+
+// GoodsShopStock 货品在门店/仓库的当前库存（非持久化聚合展示）
+type GoodsShopStock struct {
+	ShopID   int64  `json:"shop_id"`
+	ShopName string `json:"shop_name"`
+	Quantity int    `json:"quantity"`
 }
 
 // GoodsUnit 货品多单位（单位定义，价格/条码见 goods_prices）
@@ -156,6 +164,7 @@ type GoodsStock struct {
 	ID          int64   `json:"id" gorm:"primaryKey"`
 	TenantID    int64   `json:"tenant_id" gorm:"index"`
 	GoodsID     int64   `json:"goods_id" gorm:"index;uniqueIndex:uk_gs"`
+	ShopID      int64   `json:"shop_id" gorm:"uniqueIndex:uk_gs"`
 	SpecKey     string  `json:"spec_key" gorm:"size:255;uniqueIndex:uk_gs"`
 	Stock       int     `json:"stock"`
 	MinStock    int     `json:"min_stock"`

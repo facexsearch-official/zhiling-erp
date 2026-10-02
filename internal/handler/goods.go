@@ -411,17 +411,22 @@ func (h *GoodsHandler) buildChildren(g *model.Goods, priceRowsRaw, stockRowsRaw 
 		prices = append(prices, buildGoodsPrice(mainUnit, "", row))
 	}
 
-	// ── 库存 ──
-	var sr map[string]map[string]interface{}
+	// ── 库存（按门店/仓库：shopId -> specKey -> row） ──
+	var sr map[string]map[string]map[string]interface{}
 	if stockRowsRaw != "" {
 		_ = json.Unmarshal([]byte(stockRowsRaw), &sr)
 	}
 	stocks := []model.GoodsStock{}
-	if len(sr) > 0 {
-		for _, sk := range sortedKeys(sr) {
-			stocks = append(stocks, buildGoodsStock(sk, sr[sk]))
+	for _, shopKey := range sortedKeys(sr) {
+		shopID, _ := strconv.ParseInt(shopKey, 10, 64)
+		specs := sr[shopKey]
+		for _, sk := range sortedKeys(specs) {
+			st := buildGoodsStock(sk, specs[sk])
+			st.ShopID = shopID
+			stocks = append(stocks, st)
 		}
-	} else {
+	}
+	if len(stocks) == 0 {
 		stocks = append(stocks, model.GoodsStock{
 			SpecKey:  "",
 			Stock:    g.CurrentStock,

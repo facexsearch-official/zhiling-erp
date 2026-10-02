@@ -160,6 +160,13 @@ func (r *GoodsRepository) GetByIDWithChildren(ctx context.Context, id int64) (*m
 		Order("sort ASC, id ASC").Find(&goods.Prices)
 	r.DB.Where("goods_id = ? AND tenant_id = ?", id, tenantID).
 		Order("id ASC").Find(&goods.Stocks)
+	var shopStocks []model.GoodsShopStock
+	r.DB.Table("stock_balances sb").
+		Joins("LEFT JOIN shops sh ON sh.id = sb.shop_id").
+		Select("sb.shop_id AS shop_id, COALESCE(sh.name,'未分配') AS shop_name, COALESCE(SUM(sb.quantity),0) AS quantity").
+		Where("sb.tenant_id = ? AND sb.goods_id = ?", tenantID, id).
+		Group("sb.shop_id, sh.name").Order("sb.shop_id ASC").Scan(&shopStocks)
+	goods.ShopStocks = shopStocks
 	return goods, nil
 }
 

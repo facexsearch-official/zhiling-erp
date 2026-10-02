@@ -379,6 +379,14 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .detail-table-wrap td.muted{color:var(--gray-500)}
 .detail-foot{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 24px;margin:36px -24px -20px;border-top:1px solid var(--gray-200);background:#fff}
 .detail-foot .btn{justify-content:center}
+.stock-shop-row{display:flex;align-items:center;gap:16px}
+.stock-shop-label{font-size:15px;color:var(--gray-600)}
+.stock-shop-tabs{display:flex;gap:10px;flex-wrap:wrap}
+.stock-shop-tab{padding:6px 16px;border:1px solid var(--gray-300);border-radius:var(--radius-md);background:#fff;font-size:14px;color:var(--gray-700);cursor:pointer}
+.stock-shop-tab.active{background:#00B8D4;border-color:#00B8D4;color:#fff}
+.detail-edit-ic{display:inline-flex;align-items:center;margin-left:10px;color:#00B8D4;cursor:pointer;vertical-align:middle}
+.detail-edit-ic svg{width:15px;height:15px}
+.detail-edit-ic:hover{color:#00A5C0}
 </style>
 <link rel="stylesheet" href="/css/app-shell.css?v=20261054">
 <link rel="stylesheet" href="/css/tabs.css?v=20261054">
@@ -579,14 +587,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <div class="fsection" id="formSecPrice">
       <div class="fsection-title">商品价格</div>
       <div id="priceSimple">
-        <div class="price-unit-bar"><span class="flink price-more" onclick="addMorePrice()">新增更多价格</span></div>
         <div class="spec-table-wrap"><table class="spec-table" id="simplePriceTable"></table></div>
       </div>
       <div id="priceMulti" style="display:none">
         <div class="price-unit-bar">
           <span class="price-unit-label">价格单位</span>
           <div class="price-unit-tabs" id="priceUnitTabs"></div>
-          <span class="flink price-more" onclick="addMorePrice()">新增更多价格</span>
         </div>
         <div class="spec-table-wrap"><table class="spec-table" id="priceTable"></table></div>
       </div>
@@ -595,7 +601,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <!-- 库存 -->
     <div class="fsection" id="formSecStock">
       <div class="fsection-title">商品库存</div>
-      <div id="stockSimple" style="margin-top:16px">
+      <div class="stock-shop-row" id="stockShopRow" style="margin-top:16px"><span class="stock-shop-label">切换仓库</span><div class="stock-shop-tabs" id="stockShopTabs"></div></div>
+      <div id="stockSimple" style="margin-top:10px">
         <div class="spec-table-wrap"><table class="spec-table" id="simpleStockTable"></table></div>
       </div>
       <div id="stockMulti" style="display:none">
@@ -630,7 +637,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     <div class="detail-section">
       <div class="detail-section-head">
         <div class="detail-section-title">商品价格</div>
-        <span class="detail-link" onclick="printLabels()">批量打印标签</span>
       </div>
       <div class="detail-table-wrap"><table id="detailPriceTable"></table></div>
     </div>
@@ -1603,7 +1609,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 
   // ═══════════ 抽屉表单 ═══════════
   var meta = { categories: [], units: [], suppliers: [], brands: [], extraBrands: [], attributes: [], loaded: false };
-  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', priceColumns: [], simpleRow: { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }, simpleStock: { stock:'', init_cost:'', min_stock:'', max_stock:'' }, suppliers: [], brand: '', categoryId: 0, unitId: 0, editId: null };
+  var form = { images: [], units: [], specGroups: [], priceRows: {}, stockRows: {}, priceUnit: '', priceColumns: [], simpleRow: { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }, simpleStock: { stock:'', init_cost:'', min_stock:'', max_stock:'' }, suppliers: [], shops: [], stockShop: 0, stockByShop: {}, brand: '', categoryId: 0, unitId: 0, editId: null };
 
   function el(id){ return document.getElementById(id); }
   function num(id){ return parseFloat(el(id).value) || 0; }
@@ -1628,7 +1634,8 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       apiFetch('/api/shop/unit/all'),
       apiFetch('/api/shop/supplier/all'),
       apiFetch('/api/shop/goods/brands'),
-      apiFetch('/api/shop/attribute/all')
+      apiFetch('/api/shop/attribute/all'),
+      apiFetch('/api/shop/shops')
     ]).then(function(r){
       meta.categories = ((r[0] && r[0].data) || []).map(function(c){
         c.id = c.id_str || String(c.id);
@@ -1644,12 +1651,15 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       });
       meta.brands.sort();
       meta.attributes = (r[4] && r[4].data) || [];
+      form.shops = ((r[5] && r[5].data) || []).map(function(s){ return { id:String(s.id_str||s.id), name:s.name, is_main:Number(s.is_main)||0 }; });
+      if(form.shops.length && !form.stockShop) form.stockShop = (form.shops.filter(function(s){return s.is_main===1;})[0]||form.shops[0]).id;
       meta.loaded = true;
       renderUnitPicker();
       renderCategoryPicker();
       renderSupplierTags();
       renderBrandTags();
       renderCatTree();
+      renderStockShopTabs();
       if(checked('fMultiSpec')) renderSpecGroups();
     }).catch(function(e){
       if(e.message !== 'Unauthorized') showToast('基础资料加载失败', 'error');
@@ -1813,10 +1823,14 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
           disabled: !!p.disabled, custom: parseCustom(p.custom)
         };
       });
-      form.stockRows = {};
+      form.stockByShop = {};
       (d.stocks || []).forEach(function(s){
-        form.stockRows[s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
+        var sid = String(s.shop_id || 0);
+        if(!form.stockByShop[sid]) form.stockByShop[sid] = {};
+        form.stockByShop[sid][s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
       });
+      form.stockShop = (form.shops && form.shops.length) ? ((form.shops.filter(function(s){return s.is_main===1;})[0]||form.shops[0]).id) : '0';
+      form.stockRows = (form.stockByShop[String(form.stockShop)] || {});
       form.priceUnit = '';
       try{ form.priceColumns = JSON.parse(d.price_columns || '[]') || []; }catch(e){ form.priceColumns = []; }
       if(!Array.isArray(form.priceColumns)) form.priceColumns = [];
@@ -2102,7 +2116,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       var rel = (u.factor || 1) / (prev.factor || 1);
       h += row('辅单位' + i, esc(u.name) + ' (1' + esc(u.name) + ' = ' + fmtQty(rel) + esc(prev.name) + ')');
     });
-    h += row('销售/进货', esc(d.sales_unit || detailMainUnitName(d) || '--') + '；' + esc(d.purchase_unit || detailMainUnitName(d) || '--'));
     h += row('默认供应商', esc(supplierName));
     h += row('备注', esc(d.remark || '--'));
     var attrs = [];
@@ -2146,53 +2159,118 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     renderCurrentStockTable();
 
     // ── 初始库存 ──
-    var ih = '<thead><tr>';
-    groups.forEach(function(g){ ih += '<th>' + esc(g.name) + '</th>'; });
-    ih += '<th>单位</th><th>初始库存</th><th>初始成本价</th></tr></thead><tbody>';
+    renderInitTable();
+
+  }
+
+  function detailShopList(d){
+    var map = {};
+    (form.shops || []).forEach(function(s){ map[String(s.id)] = s.name; });
+    (d.shop_stocks || []).forEach(function(s){ if(map[String(s.shop_id)]==null) map[String(s.shop_id)] = s.shop_name || '未分配'; });
+    return Object.keys(map).map(function(id){ return { id:id, name:map[id] }; });
+  }
+  function detailInitByShop(d){
+    var out = {};
+    (d.stocks || []).forEach(function(s){
+      var sid = String(s.shop_id || 0);
+      if(!out[sid]) out[sid] = {};
+      out[sid][s.spec_key || ''] = { stock: s.stock, init_cost: s.init_cost };
+    });
+    return out;
+  }
+
+  var DETAIL_EDIT_SVG = '<span class="detail-edit-ic" onclick="showToast(\'修改库存开发中\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>';
+  function detailUnitCell(selDef, ci, unitDefs, multi){
+    if(!multi && unitDefs.length > 1){
+      return '<div class="unit-drop">'
+        + '<button type="button" class="unit-trigger" data-ci="' + ci + '" onclick="toggleDetailUnitDrop(this, event)">'
+        + '<span class="unit-trigger-label">' + esc(selDef.name) + '</span>'
+        + '<svg class="unit-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
+        + '</button></div>';
+    }
+    return esc(selDef.name || '--');
+  }
+  function renderCurrentStockTable(){
+    var d = detailData; if(!d) return;
+    var groups = d._groups, counts = d._counts, combos = d._combos, unitDefs = d._unitDefs, stockRows = d._stockRows;
+    var shops = detailShopList(d);
+    var map = detailInitByShop(d);
+    var multi = groups.length > 0;
+    var ch = '<thead>';
+    if(multi){
+      ch += '<tr>';
+      groups.forEach(function(g){ ch += '<th rowspan="2">' + esc(g.name) + '</th>'; });
+      ch += '<th rowspan="2">单位</th>';
+      ch += '<th class="num" colspan="' + (shops.length || 1) + '">当前库存</th></tr><tr>';
+      if(shops.length) shops.forEach(function(sp){ ch += '<th class="num">' + esc(sp.name) + '</th>'; });
+      else ch += '<th class="num">数量</th>';
+      ch += '</tr>';
+    } else {
+      ch += '<tr><th>单位</th>';
+      if(shops.length) shops.forEach(function(sp){ ch += '<th class="num">' + esc(sp.name) + '</th>'; });
+      else ch += '<th class="num">当前库存</th>';
+      ch += '</tr>';
+    }
+    ch += '</thead><tbody>';
+    combos.forEach(function(combo, ci){
+      var s = detailStockOf(d, combo.key, stockRows);
+      var selName = state.detailStockUnits[ci] || (unitDefs[0] && unitDefs[0].name) || '';
+      var selDef = unitDefs.filter(function(u){ return u.name === selName; })[0] || unitDefs[0] || { factor: 1, name: '' };
+      ch += '<tr>';
+      ch += detailSpecCells(groups, counts, 1, combo, ci);
+      ch += '<td>' + detailUnitCell(selDef, ci, unitDefs, multi) + '</td>';
+      if(shops.length){
+        shops.forEach(function(sp){
+          var row = (map[String(sp.id)] || {})[combo.key];
+          var base = row ? (Number(row.stock) || 0) : 0;
+          ch += '<td class="num">' + fmtQty(base / (selDef.factor||1)) + esc(selDef.name) + DETAIL_EDIT_SVG + '</td>';
+        });
+      } else {
+        ch += '<td class="num">' + fmtQty((parseFloat(s.stock) || 0) / (selDef.factor||1)) + esc(selDef.name) + '</td>';
+      }
+      ch += '</tr>';
+    });
+    ch += '</tbody>';
+    el('detailCurrentTable').innerHTML = ch;
+  }
+  function renderInitTable(){
+    var d = detailData; if(!d) return;
+    var groups = d._groups, counts = d._counts, combos = d._combos, stockRows = d._stockRows;
+    var shops = detailShopList(d);
+    var map = detailInitByShop(d);
+    var multi = groups.length > 0;
+    var ih = '<thead>';
+    if(multi){
+      ih += '<tr>';
+      groups.forEach(function(g){ ih += '<th rowspan="2">' + esc(g.name) + '</th>'; });
+      ih += '<th rowspan="2">单位</th>';
+      ih += '<th class="num" colspan="' + (shops.length || 1) + '">初始库存</th>';
+      ih += '<th rowspan="2" class="num">初始成本价</th></tr><tr>';
+      if(shops.length) shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
+      else ih += '<th class="num">数量</th>';
+      ih += '</tr>';
+    } else {
+      ih += '<tr><th>单位</th>';
+      if(shops.length) shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
+      else ih += '<th class="num">初始库存</th>';
+      ih += '<th class="num">初始成本价</th></tr>';
+    }
+    ih += '</thead><tbody>';
     combos.forEach(function(combo, ci){
       var s = detailStockOf(d, combo.key, stockRows);
       ih += '<tr>';
       ih += detailSpecCells(groups, counts, 1, combo, ci);
       ih += '<td>' + esc(detailMainUnitName(d) || '--') + '</td>';
-      ih += '<td class="num">' + fmtQty(s.stock) + '</td>';
+      if(shops.length){
+        shops.forEach(function(sp){ var row = (map[String(sp.id)] || {})[combo.key]; ih += '<td class="num">' + fmtQty(row ? row.stock : 0) + '</td>'; });
+      } else {
+        ih += '<td class="num">' + fmtQty(s.stock) + '</td>';
+      }
       ih += '<td class="num">' + fmtPrice(s.init_cost) + '</td>';
       ih += '</tr>';
     });
     ih += '</tbody>';
     el('detailInitTable').innerHTML = ih;
-
-  }
-
-  function renderCurrentStockTable(){
-    var d = detailData; if(!d) return;
-    var groups = d._groups, counts = d._counts, combos = d._combos, unitDefs = d._unitDefs, stockRows = d._stockRows;
-    var ch = '<thead><tr>';
-    groups.forEach(function(g){ ch += '<th>' + esc(g.name) + '</th>'; });
-    ch += '<th>单位</th><th>当前库存</th></tr></thead><tbody>';
-    combos.forEach(function(combo, ci){
-      var s = detailStockOf(d, combo.key, stockRows);
-      var selName = state.detailStockUnits[ci] || (unitDefs[0] && unitDefs[0].name) || '';
-      var selDef = unitDefs.filter(function(u){ return u.name === selName; })[0] || unitDefs[0] || { factor: 1, name: '' };
-      var base = parseFloat(s.stock) || 0;
-      var shown = base / (selDef.factor || 1);
-      var unitCell;
-      if(unitDefs.length > 1){
-        unitCell = '<div class="unit-drop">'
-          + '<button type="button" class="unit-trigger" data-ci="' + ci + '" onclick="toggleDetailUnitDrop(this, event)">'
-          + '<span class="unit-trigger-label">' + esc(selDef.name) + '</span>'
-          + '<svg class="unit-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'
-          + '</button></div>';
-      } else {
-        unitCell = esc(selDef.name || '--');
-      }
-      ch += '<tr>';
-      ch += detailSpecCells(groups, counts, 1, combo, ci);
-      ch += '<td>' + unitCell + '</td>';
-      ch += '<td class="num">' + fmtQty(shown) + esc(selDef.name) + '</td>';
-      ch += '</tr>';
-    });
-    ch += '</tbody>';
-    el('detailCurrentTable').innerHTML = ch;
   }
 
   function resetForm(){
@@ -2206,8 +2284,9 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     form.brand = '';
     renderBrandTags();
     form.images = []; form.specGroups = []; form.suppliers = [];
-    form.priceRows = {}; form.stockRows = {}; form.priceUnit = ''; form.priceColumns = []; form.simpleRow = { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }; form.simpleStock = { stock:'', init_cost:'', min_stock:'', max_stock:'' };
+    form.priceRows = {}; form.stockRows = {}; form.stockByShop = {}; form.stockShop = (form.shops && form.shops.length) ? ((form.shops.filter(function(s){return s.is_main===1;})[0]||form.shops[0]).id) : '0'; form.priceUnit = ''; form.priceColumns = []; form.simpleRow = { purchase_price:'', retail_price:'', wholesale_price:'', custom:{} }; form.simpleStock = { stock:'', init_cost:'', min_stock:'', max_stock:'' };
     renderImages(); renderSpecGroups(); renderSupplierTags();
+    renderStockShopTabs();
     toggleMultiSpec();
     el('drawerHint').textContent = '';
   }
@@ -3438,6 +3517,40 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     h += '</tr></tbody>';
     t.innerHTML = h;
   }
+  function renderStockShopTabs(){
+    var c = el('stockShopTabs'); if(!c) return;
+    if(!form.shops || !form.shops.length){ c.innerHTML=''; return; }
+    var _has = form.shops.some(function(s){ return String(s.id)===String(form.stockShop); });
+    if(!_has) form.stockShop = (form.shops.filter(function(s){return s.is_main===1;})[0]||form.shops[0]).id;
+    c.innerHTML = form.shops.map(function(s){
+      return '<button type="button" class="stock-shop-tab'+(String(form.stockShop)===String(s.id)?' active':'')+'" onclick="stockShopSwitch(\''+s.id+'\')">'+esc(s.name)+'</button>';
+    }).join('');
+  }
+  function stockShopFlush(){
+    if(!form.stockByShop) form.stockByShop = {};
+    if(!form.stockShop) return;
+    readSimpleStock();
+    if(checked('fMultiSpec')) readStockTable();
+    form.stockByShop[String(form.stockShop)] = checked('fMultiSpec') ? form.stockRows : { '': form.simpleStock };
+  }
+  function stockShopLoad(id){
+    if(!form.stockByShop) form.stockByShop = {};
+    var rows = form.stockByShop[String(id)] || {};
+    if(checked('fMultiSpec')){
+      form.stockRows = rows;
+    } else {
+      form.simpleStock = rows[''] || { stock:'', init_cost:'', min_stock:'', max_stock:'' };
+    }
+    form.stockShop = String(id);
+    renderSimpleStock();
+    if(checked('fMultiSpec')) renderStockTable();
+    renderStockShopTabs();
+  }
+  window.stockShopSwitch = function(id){
+    if(String(form.stockShop)===String(id)) return;
+    stockShopFlush();
+    stockShopLoad(id);
+  };
   function renderSimplePrice(){
     var t = el('simplePriceTable'); if(!t) return;
     var r = form.simpleRow;
@@ -3774,10 +3887,28 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       price_rows: JSON.stringify((function(){
         var pr = {};
         Object.keys(form.priceRows || {}).forEach(function(u){ pr[u] = form.priceRows[u]; });
-        pr['__simple__'] = { '': form.simpleRow };
+        if(checked('fMultiSpec')){
+          pr['__simple__'] = { '': form.simpleRow };
+        }else if(Object.keys(pr).length){
+          // 非多规格：把简单价格表编辑的值合并进主单位行，避免旧单位行覆盖
+          var mainU = mainUnitName() || '';
+          if(mainU){
+            if(!pr[mainU]) pr[mainU] = {};
+            pr[mainU][''] = Object.assign({}, pr[mainU][''] || {}, form.simpleRow);
+          }else{
+            pr['__simple__'] = { '': form.simpleRow };
+          }
+        }else{
+          pr['__simple__'] = { '': form.simpleRow };
+        }
         return pr;
       })()),
-      stock_rows: checked('fMultiSpec') ? JSON.stringify(form.stockRows) : '',
+      stock_rows: (function(){
+        stockShopFlush();
+        var out = {};
+        Object.keys(form.stockByShop || {}).forEach(function(sid){ out[sid] = form.stockByShop[sid]; });
+        return JSON.stringify(out);
+      })(),
       price_columns: JSON.stringify(form.priceColumns)
     };
 

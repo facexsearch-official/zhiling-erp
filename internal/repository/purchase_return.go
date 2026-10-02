@@ -26,6 +26,7 @@ func (r *PurchaseReturnRepository) List(ctx context.Context, page, pageSize int,
 	q := r.DB.Table("purchase_returns AS p").
 		Joins("LEFT JOIN suppliers s ON s.id = p.supplier_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
@@ -40,7 +41,7 @@ func (r *PurchaseReturnRepository) List(ctx context.Context, page, pageSize int,
 		q = q.Where("p.order_no LIKE ? OR s.name LIKE ?", kw, kw)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, s.name AS supplier_name, sm.name AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
+	q.Select("p.*, s.name AS supplier_name, COALESCE(sm.name, su.nickname) AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -115,6 +116,7 @@ func (r *PurchaseReturnRepository) FillItemDetails(ctx context.Context, items []
 		m[g.ID] = g
 	}
 	for i := range items {
+		items[i].GoodsIDStr = strconv.FormatInt(items[i].GoodsID, 10)
 		g := m[items[i].GoodsID]
 		items[i].GoodsName = g.Name
 		items[i].GoodsCode = g.Code

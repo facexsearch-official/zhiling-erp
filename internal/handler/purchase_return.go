@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
@@ -33,7 +32,7 @@ func NewPurchaseReturnHandler(
 }
 
 type returnCreateReq struct {
-	ShopID        int64           `json:"shop_id"`
+	ShopID        model.FlexInt64 `json:"shop_id"`
 	WarehouseID   int64           `json:"warehouse_id"`
 	SupplierID    int64           `json:"supplier_id"`
 	SalesmanID    int64           `json:"salesman_id"`
@@ -51,7 +50,7 @@ type returnCreateReq struct {
 }
 
 type returnItemReq struct {
-	GoodsID   int64   `json:"goods_id"`
+	GoodsID   model.FlexInt64 `json:"goods_id"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 	Remark    string  `json:"remark"`
@@ -98,14 +97,11 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 		return
 	}
 
-	today := time.Now().Format("20060102")
-	var count int64
-	h.db.Table("purchase_returns").Where("tenant_id = ? AND order_no LIKE ?", tenantID, "TH"+today+"%").Count(&count)
 	pr := model.PurchaseReturn{
 		TenantID:      tenantID,
-		ShopID:        req.ShopID,
+		ShopID:        int64(req.ShopID),
 		WarehouseID:   req.WarehouseID,
-		OrderNo:       fmt.Sprintf("TH%s%04d", today, count+1),
+		OrderNo:       nextNo(h.db, tenantID, "purchase_returns", "TH"),
 		SupplierID:    req.SupplierID,
 		SalesmanID:    req.SalesmanID,
 		AccountID:     req.AccountID,
@@ -126,7 +122,82 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 		amt := float64(item.Quantity) * item.UnitPrice
 		items = append(items, model.PurchaseReturnItem{
 			TenantID:  tenantID,
-			GoodsID:   item.GoodsID,
+			GoodsID:   int64(item.GoodsID),
+			Quantity:  item.Quantity,
+			UnitPrice: item.UnitPrice,
+			Amount:    amt,
+			Remark:    item.Remark,
+		})
+		total += amt
+	}
+	pr.TotalAmount = total
+	pr.RefundAmount = total
+	pr.UnpaidAmount = total - pr.PaidAmount
+
+	if err := h.returnRepo.Create(ctx, &pr); err != nil {
+		response.ServerError(c, err.Error())
+		return
+	}
+	for i := range items {
+		items[i].PurchaseReturnID = pr.ID
+	}
+	h.itemRepo.BatchCreate(ctx, items)
+	response.OK(c, pr)
+}
+
+func (h *PurchaseReturnHandler) Update(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	userID := context.GetUserID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	existing, err := h.returnRepo.GetByID(ctx, id)
+	if err != nil {
+		response.NotFound(c, "退货单不存在")
+		return
+	}
+	if existing.Status != 1 {
+		response.BadRequest(c, "草稿状态才能编辑")
+		return
+	}
+	var req returnCreateReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	if req.SupplierID == 0 || req.BillDate == "" || len(req.Items) == 0 {
+		response.BadRequest(c, "请填写必要信息")
+		return
+	}
+
+	// 删除旧单（明细+主表）后重建
+	h.itemRepo.DeleteByReturnID(ctx, id)
+	h.returnRepo.Delete(ctx, id)
+
+	pr := model.PurchaseReturn{
+		TenantID:      tenantID,
+		ShopID:        int64(req.ShopID),
+		WarehouseID:   req.WarehouseID,
+		OrderNo:       nextNo(h.db, tenantID, "purchase_returns", "TH"),
+		SupplierID:    req.SupplierID,
+		SalesmanID:    req.SalesmanID,
+		AccountID:     req.AccountID,
+		BillDate:      req.BillDate,
+		DepositOffset: req.DepositOffset,
+		PaidAmount:    req.PaidAmount,
+		InvoiceStatus: req.InvoiceStatus,
+		RelatedNo:     req.RelatedNo,
+		Attachments:   req.Attachments,
+		Status:        1,
+		Remark:        req.Remark,
+		CreatedBy:     userID,
+	}
+	var total float64
+	var items []model.PurchaseReturnItem
+	for _, item := range req.Items {
+		amt := float64(item.Quantity) * item.UnitPrice
+		items = append(items, model.PurchaseReturnItem{
+			TenantID:  tenantID,
+			GoodsID:   int64(item.GoodsID),
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Amount:    amt,

@@ -289,6 +289,7 @@ func main() {
 			shopGroup.GET("/purchase-return/list", purchaseReturnHandler.List)
 			shopGroup.GET("/purchase-return/:id", purchaseReturnHandler.GetByID)
 			shopGroup.POST("/purchase-return", purchaseReturnHandler.Create)
+			shopGroup.PUT("/purchase-return/:id", purchaseReturnHandler.Update)
 			shopGroup.DELETE("/purchase-return/:id", purchaseReturnHandler.Delete)
 			shopGroup.POST("/purchase-return/:id/audit", purchaseReturnHandler.Audit)
 
@@ -301,6 +302,7 @@ func main() {
 			shopGroup.GET("/sale/list", salesHandler.ListSales)
 			shopGroup.GET("/sale/:id", salesHandler.GetSale)
 			shopGroup.POST("/sale", salesHandler.CreateSale)
+			shopGroup.PUT("/sale/:id", salesHandler.UpdateSale)
 			shopGroup.DELETE("/sale/:id", salesHandler.DeleteSale)
 			shopGroup.GET("/sale-order/list", salesHandler.ListSaleOrders)
 			shopGroup.GET("/sale-order/:id", salesHandler.GetSaleOrder)
@@ -354,6 +356,7 @@ func main() {
 			shopGroup.GET("/stock-query/alert", stockQueryHandler.Alert)
 			shopGroup.GET("/stock-query/flow/:id", stockQueryHandler.Flow)
 			shopGroup.GET("/stock-query/cost/:id", stockQueryHandler.Cost)
+			shopGroup.GET("/stock-query/dist/:id", stockQueryHandler.Dist)
 
 			shopGroup.GET("/batch/list", batchHandler.List)
 			shopGroup.GET("/batch/expiry", batchHandler.Expiry)

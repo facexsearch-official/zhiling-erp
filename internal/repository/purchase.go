@@ -28,6 +28,7 @@ func (r *PurchaseRepository) List(ctx context.Context, page, pageSize int, suppl
 	q := r.DB.Table("purchases AS p").
 		Joins("LEFT JOIN suppliers s ON s.id = p.supplier_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
 		Where("p.tenant_id = ?", tenantID)
@@ -48,7 +49,7 @@ func (r *PurchaseRepository) List(ctx context.Context, page, pageSize int, suppl
 		q = q.Where("p.bill_date <= ?", dateTo)
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, s.name AS supplier_name, sm.name AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
+	q.Select("p.*, s.name AS supplier_name, COALESCE(sm.name, su.nickname) AS salesman_name, a.name AS account_name, u.nickname AS maker_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)

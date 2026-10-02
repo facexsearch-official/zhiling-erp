@@ -67,8 +67,7 @@
         {key:'stock:take',      label:'盘点',     tabLabel:'盘点单列表', href:'/#stock:take'}
       ]},
       {title:'查询', items:[
-        {key:'stock:query',  label:'库存查询', tabLabel:'库存查询', href:'/#stock:query'},
-        {key:'stock:alert',  label:'库存预警', tabLabel:'库存预警', href:'/#stock:alert'}
+        {key:'stock:query',  label:'库存查询', tabLabel:'库存查询', href:'/#stock:query'}
       ]}
     ]},
 
@@ -79,18 +78,12 @@
       {title:'收支', items:[
         {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt'},
         {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment'}
-      ]},
-      {title:'对账', items:[
-        {key:'funds:cashflow',       label:'资金流水',   tabLabel:'资金流水',   href:'/#funds:cashflow'}
       ]}
     ]},
 
     {key:'analysis', label:'分析', icon:IC.analysis, cols:[
       {title:'销售分析', items:[
         {key:'analysis:sales', label:'销售统计', tabLabel:'销售统计', href:'/#analysis:sales'}
-      ]},
-      {title:'库存分析', items:[
-        {key:'analysis:stock',    label:'库存统计', tabLabel:'库存统计', href:'/#analysis:stock'}
       ]}
     ]}
   ];
