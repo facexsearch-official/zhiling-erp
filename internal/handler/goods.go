@@ -13,6 +13,7 @@ import (
 	"pisa_server/internal/repository"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type GoodsHandler struct {
@@ -324,6 +325,60 @@ func (h *GoodsHandler) Delete(c *gin.Context) {
 		return
 	}
 	response.OKMsg(c, "删除成功")
+}
+
+type goodsStockAdjustReq struct {
+	ShopID  model.FlexInt64 `json:"shop_id"`
+	SpecKey string          `json:"spec_key"`
+	Stock   int             `json:"stock"`
+}
+
+// AdjustStock 调整某门店+规格的当前库存（查看商品-当前库存 编辑按钮）
+func (h *GoodsHandler) AdjustStock(c *gin.Context) {
+	ctx := c.Request.Context()
+	tenantID := context.GetTenantID(ctx)
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	if id <= 0 {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	var req goodsStockAdjustReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	if req.Stock < 0 {
+		req.Stock = 0
+	}
+	var goods model.Goods
+	if err := h.repo.DB.Where("id = ? AND tenant_id = ?", id, tenantID).First(&goods).Error; err != nil {
+		response.NotFound(c, "货品不存在")
+		return
+	}
+	shopID := int64(req.ShopID)
+	err := h.repo.DB.Transaction(func(tx *gorm.DB) error {
+		var gs model.GoodsStock
+		if e := tx.Where("tenant_id = ? AND goods_id = ? AND shop_id = ? AND spec_key = ?",
+			tenantID, id, shopID, req.SpecKey).First(&gs).Error; e == gorm.ErrRecordNotFound {
+			gs = model.GoodsStock{TenantID: tenantID, GoodsID: id, ShopID: shopID, SpecKey: req.SpecKey, Stock: req.Stock}
+			if e := tx.Create(&gs).Error; e != nil {
+				return e
+			}
+		} else if e != nil {
+			return e
+		} else {
+			gs.Stock = req.Stock
+			if e := tx.Save(&gs).Error; e != nil {
+				return e
+			}
+		}
+		return repository.RecomputeGoodsAggregate(tx, tenantID, id)
+	})
+	if err != nil {
+		response.ServerError(c, "调整库存失败")
+		return
+	}
+	response.OK(c, gin.H{"stock": req.Stock})
 }
 
 func (h *GoodsHandler) respondWithDetail(c *gin.Context, id int64, fallback model.Goods) {

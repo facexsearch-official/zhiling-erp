@@ -294,6 +294,19 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 .confirm-text p{font-size:14px;color:var(--gray-500);line-height:1.6}
 .confirm-text .detail{margin-top:8px;padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-md);font-size:13px;color:var(--gray-600);border:1px solid var(--gray-100)}
 
+/* Stock adjust dialog */
+.sa-info{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;padding:20px 24px;background:var(--gray-50);border-radius:var(--radius-md);margin-bottom:28px}
+.sa-info .sa-k{color:var(--gray-500);margin-right:8px}
+.sa-info .sa-v{color:var(--gray-800)}
+.sa-field{display:flex;align-items:center;margin-bottom:22px}
+.sa-field .sa-label{width:96px;color:var(--gray-600);flex-shrink:0}
+.sa-field .sa-cur{color:var(--gray-800)}
+.sa-field .sa-input{flex:1;height:40px;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:0 12px;font-size:15px;color:var(--gray-800);outline:none;transition:border-color .2s,box-shadow .2s;background:#fff;max-width:520px}
+.sa-field .sa-input:focus{border-color:var(--primary-400);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.stock-cell .stock-edit-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:8px;color:var(--accent-600);cursor:pointer;vertical-align:middle}
+.stock-cell .stock-edit-ic:hover{color:var(--accent-700)}
+.stock-cell .stock-edit-ic svg{width:16px;height:16px}
+
 /* Form */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .form-group{display:flex;flex-direction:column;gap:5px}
@@ -775,6 +788,30 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeAlert()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- 库存调整弹窗 -->
+<div class="modal-overlay" id="stockAdjustModal">
+  <div class="modal" style="width:680px">
+    <div class="modal-header">
+      <h2 style="flex:1;text-align:center">库存调整</h2>
+      <button class="modal-close" onclick="closeStockAdjust()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="sa-info">
+        <div><span class="sa-k">商品：</span><span class="sa-v" id="saGoods">--</span></div>
+        <div><span class="sa-k">规格：</span><span class="sa-v" id="saSpec">--</span></div>
+        <div><span class="sa-k">仓库：</span><span class="sa-v" id="saShop">--</span></div>
+        <div><span class="sa-k">计量单位：</span><span class="sa-v" id="saUnit">--</span></div>
+      </div>
+      <div class="sa-field"><span class="sa-label">当前库存</span><span class="sa-cur" id="saCurrent">0</span></div>
+      <div class="sa-field"><span class="sa-label">实际库存</span><input class="sa-input" id="saInput" type="number" min="0" value="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeStockAdjust()">取消</button>
+      <button class="btn btn-primary" onclick="saveStockAdjust()">确定</button>
     </div>
   </div>
 </div>
@@ -1825,7 +1862,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       });
       form.stockByShop = {};
       (d.stocks || []).forEach(function(s){
-        var sid = String(s.shop_id || 0);
+        var sid = String((s.shop_id_str!=null && s.shop_id_str!=='') ? s.shop_id_str : (s.shop_id || 0));
         if(!form.stockByShop[sid]) form.stockByShop[sid] = {};
         form.stockByShop[sid][s.spec_key || ''] = { stock: s.stock, min_stock: s.min_stock, safe_stock: s.safety_stock, max_stock: s.max_stock, init_cost: s.init_cost };
       });
@@ -2172,7 +2209,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   function detailInitByShop(d){
     var out = {};
     (d.stocks || []).forEach(function(s){
-      var sid = String(s.shop_id || 0);
+      var sid = String((s.shop_id_str!=null && s.shop_id_str!=='') ? s.shop_id_str : (s.shop_id || 0));
       if(!out[sid]) out[sid] = {};
       out[sid][s.spec_key || ''] = { stock: s.stock, init_cost: s.init_cost };
     });
@@ -2180,6 +2217,39 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
   }
 
   var DETAIL_EDIT_SVG = '<span class="detail-edit-ic" onclick="showToast(\'修改库存开发中\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>';
+  var STOCK_EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var STOCK_ADJ = { shopId: '0', specKey: '', goodsId: null };
+  window.openStockAdjust = function(shopId, specKey, icEl){
+    var d = detailData; if(!d) return;
+    STOCK_ADJ.shopId = String(shopId == null ? '0' : shopId);
+    STOCK_ADJ.specKey = specKey || '';
+    STOCK_ADJ.goodsId = state.detailId;
+    var shops = detailShopList(d);
+    var shop = shops.filter(function(s){ return String(s.id) === STOCK_ADJ.shopId; })[0];
+    var map = detailInitByShop(d);
+    var row = (map[STOCK_ADJ.shopId] || {})[STOCK_ADJ.specKey];
+    var cur = row ? (Number(row.stock) || 0) : 0;
+    var combo = (d._combos || []).filter(function(c){ return c.key === STOCK_ADJ.specKey; })[0];
+    var specLabel = (combo && combo.values && combo.values.length) ? combo.values.join('/') : (STOCK_ADJ.specKey || '--');
+    el('saGoods').textContent = d.name || '--';
+    el('saSpec').textContent = specLabel;
+    el('saShop').textContent = shop ? shop.name : (STOCK_ADJ.shopId === '0' ? '未分配' : STOCK_ADJ.shopId);
+    el('saUnit').textContent = detailMainUnitName(d) || '--';
+    el('saCurrent').textContent = fmtQty(cur);
+    el('saInput').value = cur;
+    el('stockAdjustModal').classList.add('show');
+    setTimeout(function(){ var i = el('saInput'); if(i){ i.focus(); i.select&&i.select(); } }, 50);
+  };
+  window.closeStockAdjust = function(){ el('stockAdjustModal').classList.remove('show'); };
+  window.saveStockAdjust = function(){
+    var v = parseInt(el('saInput').value, 10); if(isNaN(v) || v < 0) v = 0;
+    apiFetch('/api/shop/goods/' + STOCK_ADJ.goodsId + '/stock', { method:'PUT', body:{ shop_id:String(STOCK_ADJ.shopId), spec_key:STOCK_ADJ.specKey, stock:v } }).then(function(res){
+      if(!res || res.code !== 0){ showToast((res && res.message) || '调整失败', 'error'); return; }
+      showToast('库存已调整');
+      closeStockAdjust();
+      apiFetch('/api/shop/goods/' + STOCK_ADJ.goodsId).then(function(r2){ if(r2 && r2.code === 0) renderDetail(r2.data); });
+    });
+  };
   function detailUnitCell(selDef, ci, unitDefs, multi){
     if(!multi && unitDefs.length > 1){
       return '<div class="unit-drop">'
@@ -2223,10 +2293,12 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
         shops.forEach(function(sp){
           var row = (map[String(sp.id)] || {})[combo.key];
           var base = row ? (Number(row.stock) || 0) : 0;
-          ch += '<td class="num">' + fmtQty(base / (selDef.factor||1)) + esc(selDef.name) + DETAIL_EDIT_SVG + '</td>';
+          ch += '<td class="num stock-cell"><span class="stock-val">' + fmtQty(base / (selDef.factor||1)) + esc(selDef.name) + '</span>'
+            + '<span class="stock-edit-ic" onclick="openStockAdjust(\'' + escAttr(String(sp.id)) + '\',\'' + escAttr(combo.key) + '\',this)">' + STOCK_EDIT_SVG + '</span></td>';
         });
       } else {
-        ch += '<td class="num">' + fmtQty((parseFloat(s.stock) || 0) / (selDef.factor||1)) + esc(selDef.name) + '</td>';
+        ch += '<td class="num stock-cell"><span class="stock-val">' + fmtQty((parseFloat(s.stock) || 0) / (selDef.factor||1)) + esc(selDef.name) + '</span>'
+          + '<span class="stock-edit-ic" onclick="openStockAdjust(\'0\',\'' + escAttr(combo.key) + '\',this)">' + STOCK_EDIT_SVG + '</span></td>';
       }
       ch += '</tr>';
     });
@@ -2240,20 +2312,19 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     var map = detailInitByShop(d);
     var multi = groups.length > 0;
     var ih = '<thead>';
-    if(multi){
+    if(shops.length){
       ih += '<tr>';
       groups.forEach(function(g){ ih += '<th rowspan="2">' + esc(g.name) + '</th>'; });
       ih += '<th rowspan="2">单位</th>';
-      ih += '<th class="num" colspan="' + (shops.length || 1) + '">初始库存</th>';
-      ih += '<th rowspan="2" class="num">初始成本价</th></tr><tr>';
-      if(shops.length) shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
-      else ih += '<th class="num">数量</th>';
+      ih += '<th class="num" colspan="' + shops.length + '">初始库存</th>';
+      ih += '<th class="num" colspan="' + shops.length + '">初始成本价</th></tr><tr>';
+      shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
+      shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
       ih += '</tr>';
     } else {
-      ih += '<tr><th>单位</th>';
-      if(shops.length) shops.forEach(function(sp){ ih += '<th class="num">' + esc(sp.name) + '</th>'; });
-      else ih += '<th class="num">初始库存</th>';
-      ih += '<th class="num">初始成本价</th></tr>';
+      ih += '<tr>';
+      groups.forEach(function(g){ ih += '<th>' + esc(g.name) + '</th>'; });
+      ih += '<th>单位</th><th class="num">初始库存</th><th class="num">初始成本价</th></tr>';
     }
     ih += '</thead><tbody>';
     combos.forEach(function(combo, ci){
@@ -2263,10 +2334,11 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
       ih += '<td>' + esc(detailMainUnitName(d) || '--') + '</td>';
       if(shops.length){
         shops.forEach(function(sp){ var row = (map[String(sp.id)] || {})[combo.key]; ih += '<td class="num">' + fmtQty(row ? row.stock : 0) + '</td>'; });
+        shops.forEach(function(sp){ var row = (map[String(sp.id)] || {})[combo.key]; ih += '<td class="num">' + fmtPrice(row ? (row.init_cost||0) : 0) + '</td>'; });
       } else {
         ih += '<td class="num">' + fmtQty(s.stock) + '</td>';
+        ih += '<td class="num">' + fmtPrice(s.init_cost) + '</td>';
       }
-      ih += '<td class="num">' + fmtPrice(s.init_cost) + '</td>';
       ih += '</tr>';
     });
     ih += '</tbody>';
@@ -4057,6 +4129,6 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
 })();
 </script>
 <script src="/js/tabs.js?v=20261054"></script>
-<script src="/js/app-shell.js?v=20261054"></script>
+<script src="/js/app-shell.js?v=20261123"></script>
 </body>
 </html>

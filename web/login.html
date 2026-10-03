@@ -106,6 +106,7 @@ let loginMode = 'pwd';
 let tenants = [];
 let selectedTenant = null;
 let token = '';
+let loginUser = null;
 let loginPerms = null, loginSens = null;
 
 function switchTab(mode) {
@@ -172,6 +173,7 @@ async function handleLogin(e) {
     if (data.code === 0) {
       token = data.data.token;
       tenants = data.data.tenants || [];
+      loginUser = data.data.user || null;
       loginPerms = data.data.permissions || null;
       loginSens = data.data.sensitive_data || null;
       if (tenants.length === 0) {
@@ -180,12 +182,8 @@ async function handleLogin(e) {
         loginBtn.textContent = '登 录';
         return false;
       }
-      if (tenants.length === 1) {
-        selectedTenant = tenants[0];
-        enterSystem();
-      } else {
-        showTenantSelect();
-      }
+      selectedTenant = tenants[0];
+      enterSystem();
     } else {
       showToast(data.message || '登录失败');
     }
@@ -225,10 +223,12 @@ function enterSystem() {
   if (!selectedTenant) { showToast('请选择商户'); return; }
   localStorage.setItem('pisa_token', token);
   localStorage.setItem('pisa_user', JSON.stringify({
-    id: selectedTenant.tenant_id,
-    phone: document.getElementById('phone').value.trim(),
-    name: selectedTenant.role_name,
-    role: selectedTenant.role
+    id: loginUser ? loginUser.id : selectedTenant.tenant_id,
+    phone: (loginUser && loginUser.phone) || document.getElementById('phone').value.trim(),
+    name: (loginUser && loginUser.name) || selectedTenant.role_name,
+    avatar: (loginUser && loginUser.avatar) || '',
+    role: selectedTenant.role,
+    role_name: selectedTenant.role_name
   }));
   localStorage.setItem('pisa_tenants', JSON.stringify(tenants));
   localStorage.setItem('pisa_currentTenant', JSON.stringify(selectedTenant));

@@ -102,6 +102,7 @@ type PurchaseItem struct {
 	PurchaseID int64     `json:"purchase_id" gorm:"index"`
 	GoodsID    int64     `json:"goods_id"`
 	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
+	SpecKey    string    `json:"spec_key" gorm:"size:255"`
 	Quantity   int       `json:"quantity"`
 	UnitPrice  float64   `json:"unit_price"`
 	Amount     float64   `json:"amount"`
@@ -157,6 +158,7 @@ type PurchaseReturnItem struct {
 	PurchaseReturnID int64     `json:"purchase_return_id" gorm:"index"`
 	GoodsID          int64     `json:"goods_id"`
 	GoodsIDStr       string    `json:"goods_id_str" gorm:"->"`
+	SpecKey          string    `json:"spec_key" gorm:"size:255"`
 	Quantity         int       `json:"quantity"`
 	UnitPrice        float64   `json:"unit_price"`
 	Amount           float64   `json:"amount"`
@@ -204,24 +206,25 @@ type SaleOrder struct {
 
 // SaleOrderItem 销售订单明细
 type SaleOrderItem struct {
-	ID        int64     `json:"id" gorm:"primaryKey"`
-	TenantID  int64     `json:"tenant_id" gorm:"index"`
-	OrderID   int64     `json:"order_id" gorm:"index"`
-	GoodsID   int64     `json:"goods_id"`
-	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
-	Quantity  int       `json:"quantity"`
-	UnitPrice float64   `json:"unit_price"`
-	Amount    float64   `json:"amount"`
-	Remark    string    `json:"remark" gorm:"size:255"`
-	CreatedAt time.Time `json:"created_at"`
-	GoodsName string    `json:"goods_name" gorm:"->"`
-	GoodsCode string    `json:"goods_code" gorm:"->"`
-	UnitName  string    `json:"unit_name" gorm:"->"`
-	Spec      string    `json:"spec" gorm:"->"`
-	Barcode   string    `json:"barcode" gorm:"->"`
-	ImageURL  string    `json:"image_url" gorm:"->"`
-	Brand     string    `json:"brand" gorm:"->"`
-	Origin    string    `json:"origin" gorm:"->"`
+	ID         int64     `json:"id" gorm:"primaryKey"`
+	TenantID   int64     `json:"tenant_id" gorm:"index"`
+	OrderID    int64     `json:"order_id" gorm:"index"`
+	GoodsID    int64     `json:"goods_id"`
+	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
+	SpecKey    string    `json:"spec_key" gorm:"size:255"`
+	Quantity   int       `json:"quantity"`
+	UnitPrice  float64   `json:"unit_price"`
+	Amount     float64   `json:"amount"`
+	Remark     string    `json:"remark" gorm:"size:255"`
+	CreatedAt  time.Time `json:"created_at"`
+	GoodsName  string    `json:"goods_name" gorm:"->"`
+	GoodsCode  string    `json:"goods_code" gorm:"->"`
+	UnitName   string    `json:"unit_name" gorm:"->"`
+	Spec       string    `json:"spec" gorm:"->"`
+	Barcode    string    `json:"barcode" gorm:"->"`
+	ImageURL   string    `json:"image_url" gorm:"->"`
+	Brand      string    `json:"brand" gorm:"->"`
+	Origin     string    `json:"origin" gorm:"->"`
 }
 
 // Sale 销货单
@@ -262,24 +265,25 @@ type Sale struct {
 
 // SaleItem 销货单明细
 type SaleItem struct {
-	ID        int64     `json:"id" gorm:"primaryKey"`
-	TenantID  int64     `json:"tenant_id" gorm:"index"`
-	SaleID    int64     `json:"sale_id" gorm:"index"`
-	GoodsID   int64     `json:"goods_id"`
-	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
-	Quantity  int       `json:"quantity"`
-	UnitPrice float64   `json:"unit_price"`
-	Amount    float64   `json:"amount"`
-	Remark    string    `json:"remark" gorm:"size:255"`
-	CreatedAt time.Time `json:"created_at"`
-	GoodsName string    `json:"goods_name" gorm:"->"`
-	GoodsCode string    `json:"goods_code" gorm:"->"`
-	UnitName  string    `json:"unit_name" gorm:"->"`
-	Spec      string    `json:"spec" gorm:"->"`
-	Barcode   string    `json:"barcode" gorm:"->"`
-	ImageURL  string    `json:"image_url" gorm:"->"`
-	Brand     string    `json:"brand" gorm:"->"`
-	Origin    string    `json:"origin" gorm:"->"`
+	ID         int64     `json:"id" gorm:"primaryKey"`
+	TenantID   int64     `json:"tenant_id" gorm:"index"`
+	SaleID     int64     `json:"sale_id" gorm:"index"`
+	GoodsID    int64     `json:"goods_id"`
+	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
+	SpecKey    string    `json:"spec_key" gorm:"size:255"`
+	Quantity   int       `json:"quantity"`
+	UnitPrice  float64   `json:"unit_price"`
+	Amount     float64   `json:"amount"`
+	Remark     string    `json:"remark" gorm:"size:255"`
+	CreatedAt  time.Time `json:"created_at"`
+	GoodsName  string    `json:"goods_name" gorm:"->"`
+	GoodsCode  string    `json:"goods_code" gorm:"->"`
+	UnitName   string    `json:"unit_name" gorm:"->"`
+	Spec       string    `json:"spec" gorm:"->"`
+	Barcode    string    `json:"barcode" gorm:"->"`
+	ImageURL   string    `json:"image_url" gorm:"->"`
+	Brand      string    `json:"brand" gorm:"->"`
+	Origin     string    `json:"origin" gorm:"->"`
 }
 
 // SalesReturn 销货退货
@@ -314,24 +318,25 @@ type SalesReturn struct {
 
 // SalesReturnItem 销货退货明细
 type SalesReturnItem struct {
-	ID        int64     `json:"id" gorm:"primaryKey"`
-	TenantID  int64     `json:"tenant_id" gorm:"index"`
-	ReturnID  int64     `json:"return_id" gorm:"index"`
-	GoodsID   int64     `json:"goods_id"`
-	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
-	Quantity  int       `json:"quantity"`
-	UnitPrice float64   `json:"unit_price"`
-	Amount    float64   `json:"amount"`
-	Remark    string    `json:"remark" gorm:"size:255"`
-	CreatedAt time.Time `json:"created_at"`
-	GoodsName string    `json:"goods_name" gorm:"->"`
-	GoodsCode string    `json:"goods_code" gorm:"->"`
-	UnitName  string    `json:"unit_name" gorm:"->"`
-	Spec      string    `json:"spec" gorm:"->"`
-	Barcode   string    `json:"barcode" gorm:"->"`
-	ImageURL  string    `json:"image_url" gorm:"->"`
-	Brand     string    `json:"brand" gorm:"->"`
-	Origin    string    `json:"origin" gorm:"->"`
+	ID         int64     `json:"id" gorm:"primaryKey"`
+	TenantID   int64     `json:"tenant_id" gorm:"index"`
+	ReturnID   int64     `json:"return_id" gorm:"index"`
+	GoodsID    int64     `json:"goods_id"`
+	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
+	SpecKey    string    `json:"spec_key" gorm:"size:255"`
+	Quantity   int       `json:"quantity"`
+	UnitPrice  float64   `json:"unit_price"`
+	Amount     float64   `json:"amount"`
+	Remark     string    `json:"remark" gorm:"size:255"`
+	CreatedAt  time.Time `json:"created_at"`
+	GoodsName  string    `json:"goods_name" gorm:"->"`
+	GoodsCode  string    `json:"goods_code" gorm:"->"`
+	UnitName   string    `json:"unit_name" gorm:"->"`
+	Spec       string    `json:"spec" gorm:"->"`
+	Barcode    string    `json:"barcode" gorm:"->"`
+	ImageURL   string    `json:"image_url" gorm:"->"`
+	Brand      string    `json:"brand" gorm:"->"`
+	Origin     string    `json:"origin" gorm:"->"`
 }
 
 // Quote 报价单
@@ -356,22 +361,23 @@ type Quote struct {
 
 // QuoteItem 报价单明细
 type QuoteItem struct {
-	ID        int64     `json:"id" gorm:"primaryKey"`
-	TenantID  int64     `json:"tenant_id" gorm:"index"`
-	QuoteID   int64     `json:"quote_id" gorm:"index"`
-	GoodsID   int64     `json:"goods_id"`
-	GoodsIDStr string   `json:"goods_id_str" gorm:"->"`
-	Quantity  int       `json:"quantity"`
-	UnitPrice float64   `json:"unit_price"`
-	Amount    float64   `json:"amount"`
-	Remark    string    `json:"remark" gorm:"size:255"`
-	CreatedAt time.Time `json:"created_at"`
-	GoodsName string    `json:"goods_name" gorm:"->"`
-	GoodsCode string    `json:"goods_code" gorm:"->"`
-	UnitName  string    `json:"unit_name" gorm:"->"`
-	Spec      string    `json:"spec" gorm:"->"`
-	Barcode   string    `json:"barcode" gorm:"->"`
-	ImageURL  string    `json:"image_url" gorm:"->"`
-	Brand     string    `json:"brand" gorm:"->"`
-	Origin    string    `json:"origin" gorm:"->"`
+	ID         int64     `json:"id" gorm:"primaryKey"`
+	TenantID   int64     `json:"tenant_id" gorm:"index"`
+	QuoteID    int64     `json:"quote_id" gorm:"index"`
+	GoodsID    int64     `json:"goods_id"`
+	GoodsIDStr string    `json:"goods_id_str" gorm:"->"`
+	SpecKey    string    `json:"spec_key" gorm:"size:255"`
+	Quantity   int       `json:"quantity"`
+	UnitPrice  float64   `json:"unit_price"`
+	Amount     float64   `json:"amount"`
+	Remark     string    `json:"remark" gorm:"size:255"`
+	CreatedAt  time.Time `json:"created_at"`
+	GoodsName  string    `json:"goods_name" gorm:"->"`
+	GoodsCode  string    `json:"goods_code" gorm:"->"`
+	UnitName   string    `json:"unit_name" gorm:"->"`
+	Spec       string    `json:"spec" gorm:"->"`
+	Barcode    string    `json:"barcode" gorm:"->"`
+	ImageURL   string    `json:"image_url" gorm:"->"`
+	Brand      string    `json:"brand" gorm:"->"`
+	Origin     string    `json:"origin" gorm:"->"`
 }

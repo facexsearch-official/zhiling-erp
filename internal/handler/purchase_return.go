@@ -51,9 +51,10 @@ type returnCreateReq struct {
 
 type returnItemReq struct {
 	GoodsID   model.FlexInt64 `json:"goods_id"`
-	Quantity  int     `json:"quantity"`
-	UnitPrice float64 `json:"unit_price"`
-	Remark    string  `json:"remark"`
+	SpecKey   string          `json:"spec_key"`
+	Quantity  int             `json:"quantity"`
+	UnitPrice float64         `json:"unit_price"`
+	Remark    string          `json:"remark"`
 }
 
 func (h *PurchaseReturnHandler) List(c *gin.Context) {
@@ -123,6 +124,7 @@ func (h *PurchaseReturnHandler) Create(c *gin.Context) {
 		items = append(items, model.PurchaseReturnItem{
 			TenantID:  tenantID,
 			GoodsID:   int64(item.GoodsID),
+			SpecKey:   item.SpecKey,
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Amount:    amt,
@@ -198,6 +200,7 @@ func (h *PurchaseReturnHandler) Update(c *gin.Context) {
 		items = append(items, model.PurchaseReturnItem{
 			TenantID:  tenantID,
 			GoodsID:   int64(item.GoodsID),
+			SpecKey:   item.SpecKey,
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Amount:    amt,

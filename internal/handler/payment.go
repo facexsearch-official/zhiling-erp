@@ -17,17 +17,17 @@ type PaymentHandler struct{ db *gorm.DB }
 func NewPaymentHandler(db *gorm.DB) *PaymentHandler { return &PaymentHandler{db: db} }
 
 type paymentCreateReq struct {
-	ShopID         int64   `json:"shop_id"`
-	RelatedNo      string  `json:"related_no"`
-	Type           string  `json:"type"`
-	SupplierID     int64   `json:"supplier_id"`
-	SalesmanID     int64   `json:"salesman_id"`
-	BillDate       string  `json:"bill_date"`
-	Amount         float64 `json:"amount"`
-	DiscountAmount float64 `json:"discount_amount"`
-	AccountID      int64   `json:"account_id"`
-	Attachments    string  `json:"attachments"`
-	Remark         string  `json:"remark"`
+	ShopID         model.FlexInt64 `json:"shop_id"`
+	RelatedNo      string          `json:"related_no"`
+	Type           string          `json:"type"`
+	SupplierID     model.FlexInt64 `json:"supplier_id"`
+	SalesmanID     int64           `json:"salesman_id"`
+	BillDate       string          `json:"bill_date"`
+	Amount         float64         `json:"amount"`
+	DiscountAmount float64         `json:"discount_amount"`
+	AccountID      int64           `json:"account_id"`
+	Attachments    string          `json:"attachments"`
+	Remark         string          `json:"remark"`
 }
 
 func (h *PaymentHandler) List(c *gin.Context) {
@@ -38,6 +38,7 @@ func (h *PaymentHandler) List(c *gin.Context) {
 	keyword := c.Query("keyword")
 	dateFrom := c.Query("date_from")
 	dateTo := c.Query("date_to")
+	shopID := c.Query("shop_id")
 	hideVoid := c.Query("hide_void") == "1"
 
 	var total int64
@@ -46,7 +47,9 @@ func (h *PaymentHandler) List(c *gin.Context) {
 		Joins("LEFT JOIN suppliers s ON s.id = p.supplier_id").
 		Joins("LEFT JOIN accounts a ON a.id = p.account_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = p.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = p.salesman_id").
 		Joins("LEFT JOIN users u ON u.id = p.created_by").
+		Joins("LEFT JOIN shops sh ON sh.id = p.shop_id").
 		Where("p.tenant_id = ?", tenantID)
 	if keyword != "" {
 		kw := "%" + keyword + "%"
@@ -58,11 +61,14 @@ func (h *PaymentHandler) List(c *gin.Context) {
 	if dateTo != "" {
 		q = q.Where("p.bill_date <= ?", dateTo)
 	}
+	if shopID != "" && shopID != "0" {
+		q = q.Where("p.shop_id = ?", shopID)
+	}
 	if hideVoid {
 		q = q.Where("p.status = 1")
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("p.*, s.name AS supplier_name, a.name AS account_name, sm.name AS salesman_name, u.nickname AS maker_name").
+	q.Select("p.*, s.name AS supplier_name, a.name AS account_name, COALESCE(sm.name, su.nickname) AS salesman_name, u.nickname AS maker_name, sh.name AS shop_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("p.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -91,6 +97,7 @@ func (h *PaymentHandler) GetByID(c *gin.Context) {
 		return
 	}
 	p.IDStr = strconv.FormatInt(p.ID, 10)
+	p.ShopIDStr = strconv.FormatInt(p.ShopID, 10)
 	if p.SupplierID != 0 {
 		var s model.Supplier
 		if h.db.Where("id = ?", p.SupplierID).First(&s).Error == nil {
@@ -135,9 +142,9 @@ func (h *PaymentHandler) Create(c *gin.Context) {
 		req.Type = "直接付款"
 	}
 	p := model.Payment{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID),
 		OrderNo: nextNo(h.db, tenantID, "payments", "FKD"), RelatedNo: req.RelatedNo, Type: req.Type,
-		SupplierID: req.SupplierID, SalesmanID: req.SalesmanID, BillDate: req.BillDate,
+		SupplierID: int64(req.SupplierID), SalesmanID: req.SalesmanID, BillDate: req.BillDate,
 		Amount: req.Amount, DiscountAmount: req.DiscountAmount, AccountID: req.AccountID,
 		Attachments: req.Attachments, Status: 1, Remark: req.Remark, CreatedBy: userID,
 	}
@@ -186,7 +193,7 @@ func (h *PaymentHandler) Update(c *gin.Context) {
 			}
 		}
 		if err := tx.Table("payments").Where("id = ?", p.ID).Updates(map[string]interface{}{
-			"related_no": req.RelatedNo, "type": req.Type, "supplier_id": req.SupplierID,
+			"shop_id": int64(req.ShopID), "related_no": req.RelatedNo, "type": req.Type, "supplier_id": int64(req.SupplierID),
 			"salesman_id": req.SalesmanID, "bill_date": req.BillDate, "amount": req.Amount,
 			"discount_amount": req.DiscountAmount, "account_id": req.AccountID, "remark": req.Remark,
 		}).Error; err != nil {

@@ -79,12 +79,6 @@
         {key:'funds:receipt', label:'收款',     tabLabel:'收款单列表', href:'/#funds:receipt'},
         {key:'funds:payment', label:'付款',     tabLabel:'付款单列表', href:'/#funds:payment'}
       ]}
-    ]},
-
-    {key:'analysis', label:'分析', icon:IC.analysis, cols:[
-      {title:'销售分析', items:[
-        {key:'analysis:sales', label:'销售统计', tabLabel:'销售统计', href:'/#analysis:sales'}
-      ]}
     ]}
   ];
 
@@ -222,13 +216,6 @@
       +   '<input type="text" placeholder="快速查价 / 搜索商品、客户、单据...">'
       + '</div>'
       + '<div class="topbar-actions">'
-      +   '<div class="tenant-switch" id="tenantSwitch" onclick="pisaToggleTenantMenu(event)">'
-      +     '<span class="tenant-badge" id="tenantBadge">A</span>'
-      +     '<span class="ts-name" id="currentTenant">-</span>'
-      +     IC.chevron
-      +     '<div class="tenant-menu" id="tenantMenu"></div>'
-      +   '</div>'
-      +   '<button class="topbar-icon-btn" title="消息">' + IC.bell + '<span class="dot">8</span></button>'
       +   '<div class="topbar-user" id="topbarUser" onclick="pisaUserMenu(event)">'
       +     '<div class="avatar" id="userAvatar">U</div>'
       +     '<div class="u-meta"><span class="u-name" id="userName">用户</span>'
@@ -247,7 +234,8 @@
     var av = byId('userAvatar'), un = byId('userName'), us = byId('userSub');
     if(av) av.textContent = name.charAt(0);
     if(un) un.textContent = name;
-    if(us) us.textContent = (t && t.name) ? t.name : '我的店铺';
+    var role = (t && (t.role_name || t.role)) ? (t.role_name || '') : (u.role_name || u.role || '操作员');
+    if(us) us.textContent = role;
   }
   window.pisaUserMenu = function(e){
     if(e) e.stopPropagation();
@@ -278,6 +266,40 @@
     var m = byId('userMenu'); if(m && m.parentNode) m.parentNode.removeChild(m);
     document.removeEventListener('click', userMenuDocHandler);
   };
+  window.pisaChangePassword = function(){
+    var old = byId('pisaPwdModal'); if(old) old.remove();
+    var inp = 'width:100%;height:40px;border:1px solid #E2E8F0;border-radius:8px;padding:0 12px;font-size:14px;outline:none;box-sizing:border-box';
+    var label = 'font-size:14px;color:#4B5563;margin-bottom:6px';
+    var ov = document.createElement('div');
+    ov.id = 'pisaPwdModal';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:4000';
+    ov.innerHTML = '<div style="width:380px;max-width:94vw;background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.2);overflow:hidden">'
+      + '<div style="display:flex;align-items:center;justify-content:center;position:relative;padding:18px 20px;border-bottom:1px solid #F1F5F9">'
+      +   '<span style="font-size:17px;font-weight:600;color:#1F2937">修改密码</span>'
+      +   '<span onclick="document.getElementById(\'pisaPwdModal\').remove()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94A3B8;font-size:22px;line-height:1">×</span>'
+      + '</div>'
+      + '<div style="padding:20px 24px">'
+      +   '<div style="margin-bottom:14px"><div style="'+label+'">原密码</div><input id="pisaOldPwd" type="password" autocomplete="current-password" style="'+inp+'"></div>'
+      +   '<div style="margin-bottom:14px"><div style="'+label+'">新密码</div><input id="pisaNewPwd" type="password" autocomplete="new-password" style="'+inp+'"></div>'
+      +   '<div><div style="'+label+'">确认新密码</div><input id="pisaNewPwd2" type="password" autocomplete="new-password" style="'+inp+'"></div>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid #F1F5F9">'
+      +   '<button onclick="document.getElementById(\'pisaPwdModal\').remove()" style="height:38px;padding:0 18px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;font-size:14px;cursor:pointer;color:#374151">取消</button>'
+      +   '<button id="pisaPwdOk" style="height:38px;padding:0 18px;border-radius:8px;border:none;background:#059669;color:#fff;font-size:14px;cursor:pointer">确定</button>'
+      + '</div></div>';
+    document.body.appendChild(ov);
+    byId('pisaPwdOk').onclick = function(){
+      var o = byId('pisaOldPwd').value, n = byId('pisaNewPwd').value, n2 = byId('pisaNewPwd2').value;
+      if(!o){ toast('请输入原密码'); return; }
+      if(n.length < 6){ toast('新密码至少 6 位'); return; }
+      if(n !== n2){ toast('两次输入的新密码不一致'); return; }
+      authPost('/api/auth/change-password', { old_password:o, new_password:n }).then(function(res){
+        if(res && res.code === 0){ var m = byId('pisaPwdModal'); if(m) m.remove(); toast('密码修改成功'); }
+        else toast((res && res.message) || '修改失败');
+      });
+    };
+    setTimeout(function(){ var el = byId('pisaOldPwd'); if(el) el.focus(); }, 30);
+  };
   window.pisaLogout = function(){
     try{ ['pisa_token','pisa_user','pisa_tenants','pisa_currentTenant','pisa_perms','pisa_sens'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
     location.href = '/login.html';
@@ -301,8 +323,7 @@
     m.innerHTML = items.map(function(it){
       return '<div class="um-item" onclick="pisaHideTopbarSettings();if(window.PisaShell)PisaShell.navGo(\'' + it.key + '\')">' + esc(it.label) + '</div>';
     }).join('')
-      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaToast(\'操作记录开发中\')">操作记录</div>'
-      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaToast(\'网络诊断开发中\')">网络诊断</div>'
+      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaChangePassword()">修改密码</div>'
       + '<div class="um-item um-danger" onclick="pisaHideTopbarSettings();pisaLogout()">退出</div>';
     m.style.display = 'block';
     var r = e.currentTarget.getBoundingClientRect();

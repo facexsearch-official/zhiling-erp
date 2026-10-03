@@ -15,6 +15,7 @@ func permRoutes() perm.Routes {
 		"POST /api/shop/goods":          perm.GoodsAdd,
 		"POST /api/shop/goods/batch":    perm.GoodsEdit,
 		"PUT /api/shop/goods/:id":       perm.GoodsEdit,
+		"PUT /api/shop/goods/:id/stock": perm.GoodsEdit,
 		"DELETE /api/shop/goods/:id":    perm.GoodsDel,
 		// 商品分类（并入商品）
 		"GET /api/shop/category/all":    perm.GoodsView,

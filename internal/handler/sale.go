@@ -9,6 +9,7 @@ import (
 	"pisa_server/internal/pkg/context"
 	"pisa_server/internal/pkg/response"
 	"pisa_server/internal/pkg/snowflake"
+	"pisa_server/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,31 +25,32 @@ func NewSalesHandler(dbConn *gorm.DB) *SalesHandler {
 
 type saleItemReq struct {
 	GoodsID   model.FlexInt64 `json:"goods_id"`
-	Quantity  int     `json:"quantity"`
-	UnitPrice float64 `json:"unit_price"`
-	Remark    string  `json:"remark"`
+	SpecKey   string          `json:"spec_key"`
+	Quantity  int             `json:"quantity"`
+	UnitPrice float64         `json:"unit_price"`
+	Remark    string          `json:"remark"`
 }
 
 type saleCreateReq struct {
 	ShopID           model.FlexInt64 `json:"shop_id"`
 	WarehouseID      model.FlexInt64 `json:"warehouse_id"`
 	CustomerID       model.FlexInt64 `json:"customer_id"`
-	SalesmanID       int64         `json:"salesman_id"`
-	AccountID        int64         `json:"account_id"`
-	BillDate         string        `json:"bill_date"`
-	OrderDate        string        `json:"order_date"`
-	RelatedOrderNo   string        `json:"related_order_no"`
-	Discount         float64       `json:"discount"`
-	Subtotal         float64       `json:"subtotal"`
-	RoundOff         float64       `json:"round_off"`
-	TotalAmount      float64       `json:"total_amount"`
-	ReceivedAmount   float64       `json:"received_amount"`
-	UnreceivedAmount float64       `json:"unreceived_amount"`
-	InvoiceStatus    int8          `json:"invoice_status"`
-	PrintStatus      int8          `json:"print_status"`
-	Attachments      string        `json:"attachments"`
-	Remark           string        `json:"remark"`
-	Items            []saleItemReq `json:"items"`
+	SalesmanID       int64           `json:"salesman_id"`
+	AccountID        int64           `json:"account_id"`
+	BillDate         string          `json:"bill_date"`
+	OrderDate        string          `json:"order_date"`
+	RelatedOrderNo   string          `json:"related_order_no"`
+	Discount         float64         `json:"discount"`
+	Subtotal         float64         `json:"subtotal"`
+	RoundOff         float64         `json:"round_off"`
+	TotalAmount      float64         `json:"total_amount"`
+	ReceivedAmount   float64         `json:"received_amount"`
+	UnreceivedAmount float64         `json:"unreceived_amount"`
+	InvoiceStatus    int8            `json:"invoice_status"`
+	PrintStatus      int8            `json:"print_status"`
+	Attachments      string          `json:"attachments"`
+	Remark           string          `json:"remark"`
+	Items            []saleItemReq   `json:"items"`
 }
 
 /* ── helpers ── */
@@ -107,7 +109,7 @@ func calcItems(req []saleItemReq) ([]model.SaleItem, float64) {
 	for _, it := range req {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SaleItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SaleItem{ID: snowflake.GenID(), SpecKey: it.SpecKey, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	return items, round2o(total)
 }
@@ -228,6 +230,11 @@ func (h *SalesHandler) CreateSale(c *gin.Context) {
 	}
 	if len(items) > 0 {
 		h.db.Table("sale_items").Create(&items)
+	}
+	// 销售出库：按门店+规格减少 goods_stocks，使「查看商品-当前库存」同步
+	for i := range items {
+		_ = repository.AdjustGoodsStock(h.db, tenantID, int64(req.ShopID), items[i].GoodsID, items[i].SpecKey, -items[i].Quantity)
+		_ = repository.RecomputeGoodsAggregate(h.db, tenantID, items[i].GoodsID)
 	}
 	s.IDStr = strconv.FormatInt(s.ID, 10)
 	s.Items = items
@@ -393,7 +400,7 @@ func (h *SalesHandler) CreateSaleOrder(c *gin.Context) {
 	for _, it := range req.Items {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SaleOrderItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SaleOrderItem{ID: snowflake.GenID(), SpecKey: it.SpecKey, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	total = round2o(total)
 	date := req.OrderDate
@@ -520,7 +527,7 @@ func (h *SalesHandler) CreateSalesReturn(c *gin.Context) {
 	for _, it := range req.Items {
 		amt := round2o(float64(it.Quantity) * it.UnitPrice)
 		total += amt
-		items = append(items, model.SalesReturnItem{ID: snowflake.GenID(), GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
+		items = append(items, model.SalesReturnItem{ID: snowflake.GenID(), SpecKey: it.SpecKey, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: amt, Remark: it.Remark})
 	}
 	total = round2o(total)
 	s := model.SalesReturn{
@@ -648,7 +655,7 @@ func (h *SalesHandler) CreateQuote(c *gin.Context) {
 	}
 	qitems := make([]model.QuoteItem, 0, len(items))
 	for _, it := range items {
-		qitems = append(qitems, model.QuoteItem{ID: snowflake.GenID(), TenantID: tenantID, QuoteID: q.ID, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: it.Amount, Remark: it.Remark})
+		qitems = append(qitems, model.QuoteItem{ID: snowflake.GenID(), TenantID: tenantID, QuoteID: q.ID, SpecKey: it.SpecKey, GoodsID: int64(it.GoodsID), Quantity: it.Quantity, UnitPrice: it.UnitPrice, Amount: it.Amount, Remark: it.Remark})
 	}
 	if len(qitems) > 0 {
 		h.db.Table("quote_items").Create(&qitems)

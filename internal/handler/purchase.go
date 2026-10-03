@@ -37,9 +37,10 @@ type purchaseCreateReq struct {
 
 type purchaseItemReq struct {
 	GoodsID   model.FlexInt64 `json:"goods_id"`
-	Quantity  int     `json:"quantity"`
-	UnitPrice float64 `json:"unit_price"`
-	Remark    string  `json:"remark"`
+	SpecKey   string          `json:"spec_key"`
+	Quantity  int             `json:"quantity"`
+	UnitPrice float64         `json:"unit_price"`
+	Remark    string          `json:"remark"`
 }
 
 func (h *PurchaseHandler) List(c *gin.Context) {
@@ -108,6 +109,7 @@ func (h *PurchaseHandler) Create(c *gin.Context) {
 	for _, item := range req.Items {
 		items = append(items, model.PurchaseItem{
 			GoodsID:   int64(item.GoodsID),
+			SpecKey:   item.SpecKey,
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Remark:    item.Remark,
@@ -169,6 +171,7 @@ func (h *PurchaseHandler) Update(c *gin.Context) {
 	for _, item := range req.Items {
 		items = append(items, model.PurchaseItem{
 			GoodsID:   int64(item.GoodsID),
+			SpecKey:   item.SpecKey,
 			Quantity:  item.Quantity,
 			UnitPrice: item.UnitPrice,
 			Remark:    item.Remark,

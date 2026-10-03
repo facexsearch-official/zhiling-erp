@@ -80,6 +80,7 @@ func main() {
 		protected.POST("/auth/switch-tenant", authHandler.SwitchTenant)
 		protected.POST("/auth/create-tenant", authHandler.CreateTenant)
 		protected.GET("/auth/me", authHandler.Me)
+		protected.POST("/auth/change-password", authHandler.ChangePassword)
 
 		tenantGroup := protected.Group("/tenant")
 		if database != nil {
@@ -119,6 +120,7 @@ func main() {
 			printSettingHandler := handler.NewPrintSettingHandler(database)
 			warehouseHandler := handler.NewWarehouseHandler(warehouseRepo)
 			goodsHandler := handler.NewGoodsHandler(goodsRepo)
+			dashboardHandler := handler.NewDashboardHandler(database)
 			accountHandler := handler.NewAccountHandler(accountRepo)
 			categoryHandler := handler.NewCategoryHandler(categoryRepo)
 			unitHandler := handler.NewUnitHandler(unitRepo)
@@ -210,6 +212,7 @@ func main() {
 			shopGroup.PUT("/warehouse/:id", warehouseHandler.Update)
 			shopGroup.DELETE("/warehouse/:id", warehouseHandler.Delete)
 
+			shopGroup.GET("/dashboard/summary", dashboardHandler.Summary)
 			shopGroup.GET("/goods/list", goodsHandler.List)
 			shopGroup.GET("/goods/all", goodsHandler.ListAll)
 			shopGroup.GET("/goods/next-code", goodsHandler.NextCode)
@@ -219,6 +222,7 @@ func main() {
 			shopGroup.POST("/goods", middleware.PlanLimitMiddleware(limitChecker, "goods"), goodsHandler.Create)
 			shopGroup.POST("/goods/batch", goodsHandler.BatchUpdate)
 			shopGroup.PUT("/goods/:id", goodsHandler.Update)
+			shopGroup.PUT("/goods/:id/stock", goodsHandler.AdjustStock)
 			shopGroup.DELETE("/goods/:id", goodsHandler.Delete)
 
 			shopGroup.GET("/category/all", categoryHandler.ListAll)

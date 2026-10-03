@@ -506,16 +506,17 @@ func (h *StockQueryHandler) Dist(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	type row struct {
-		Name     string `json:"name"`
-		Quantity int    `json:"quantity"`
+		ShopIDStr string `json:"shop_id_str"`
+		Name      string `json:"name"`
+		Quantity  int    `json:"quantity"`
 	}
 	var rows []row
-	h.db.Table("stock_balances AS sb").
-		Joins("LEFT JOIN shops sh ON sh.id = sb.shop_id").
-		Joins("LEFT JOIN warehouses w ON w.id = sb.warehouse_id").
-		Select("COALESCE(sh.name, w.name, '未分配') AS name, sb.quantity AS quantity").
-		Where("sb.tenant_id = ? AND sb.goods_id = ?", tenantID, id).
-		Order("sb.quantity DESC").
+	h.db.Table("goods_stocks AS gs").
+		Joins("LEFT JOIN shops sh ON sh.id = gs.shop_id").
+		Select("CAST(gs.shop_id AS CHAR) AS shop_id_str, COALESCE(sh.name, '未分配') AS name, COALESCE(SUM(gs.stock),0) AS quantity").
+		Where("gs.tenant_id = ? AND gs.goods_id = ?", tenantID, id).
+		Group("gs.shop_id, sh.name").
+		Order("quantity DESC").
 		Scan(&rows)
 	response.OK(c, gin.H{"rows": rows})
 }

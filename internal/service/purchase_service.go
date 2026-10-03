@@ -113,6 +113,10 @@ func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 	}
 
 	tx := s.db.Begin()
+	stockShopID := shopID
+	if purchase.ShopID != 0 {
+		stockShopID = purchase.ShopID
+	}
 
 	for _, item := range items {
 		var balance model.StockBalance
@@ -166,6 +170,15 @@ func (s *PurchaseService) Audit(ctx context.Context, id int64) error {
 			tx.Rollback()
 			return err
 		}
+		// 同步 goods_stocks（按门店+规格），使「查看商品-当前库存」联动
+		if err := repository.AdjustGoodsStock(tx, tenantID, stockShopID, item.GoodsID, item.SpecKey, item.Quantity); err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := repository.RecomputeGoodsAggregate(tx, tenantID, item.GoodsID); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	purchase.Status = 3
@@ -195,6 +208,10 @@ func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 	}
 
 	tx := s.db.Begin()
+	stockShopID := shopID
+	if purchase.ShopID != 0 {
+		stockShopID = purchase.ShopID
+	}
 
 	for _, item := range items {
 		var balance model.StockBalance
@@ -234,6 +251,14 @@ func (s *PurchaseService) UnAudit(ctx context.Context, id int64) error {
 			"created_at":   time.Now(),
 		}
 		if err := tx.Table("stock_logs").Create(stockLog).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := repository.AdjustGoodsStock(tx, tenantID, stockShopID, item.GoodsID, item.SpecKey, -item.Quantity); err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := repository.RecomputeGoodsAggregate(tx, tenantID, item.GoodsID); err != nil {
 			tx.Rollback()
 			return err
 		}

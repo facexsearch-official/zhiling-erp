@@ -121,10 +121,55 @@ func (r *GoodsRepository) attachSummaries(ctx context.Context, list []model.Good
 func (r *GoodsRepository) ListAll(ctx context.Context) ([]model.Goods, error) {
 	var list []model.Goods
 	err := r.Scoped(ctx).Where("status = 1").Order("created_at ASC").Find(&list).Error
+	if err != nil {
+		return list, err
+	}
 	for i := range list {
 		fillGoodsCategoryStr(&list[i])
 	}
-	return list, err
+	r.attachAllChildren(ctx, list)
+	return list, nil
+}
+
+// attachAllChildren 为列表批量填充单位/价格/库存（供商品选择对话框按规格展开）
+func (r *GoodsRepository) attachAllChildren(ctx context.Context, list []model.Goods) {
+	if len(list) == 0 {
+		return
+	}
+	tenantID := customContext.GetTenantID(ctx)
+	ids := make([]int64, 0, len(list))
+	idx := make(map[int64]int, len(list))
+	for i := range list {
+		ids = append(ids, list[i].ID)
+		idx[list[i].ID] = i
+	}
+	var units []model.GoodsUnit
+	r.DB.Where("tenant_id = ? AND goods_id IN ?", tenantID, ids).
+		Order("is_main DESC, sort ASC, id ASC").Find(&units)
+	for _, u := range units {
+		if i, ok := idx[u.GoodsID]; ok {
+			list[i].Units = append(list[i].Units, u)
+		}
+	}
+	var prices []model.GoodsPrice
+	r.DB.Where("tenant_id = ? AND goods_id IN ?", tenantID, ids).
+		Order("sort ASC, id ASC").Find(&prices)
+	for _, p := range prices {
+		if i, ok := idx[p.GoodsID]; ok {
+			list[i].Prices = append(list[i].Prices, p)
+		}
+	}
+	var stocks []model.GoodsStock
+	r.DB.Where("tenant_id = ? AND goods_id IN ?", tenantID, ids).
+		Order("id ASC").Find(&stocks)
+	for i := range stocks {
+		stocks[i].ShopIDStr = strconv.FormatInt(stocks[i].ShopID, 10)
+	}
+	for _, s := range stocks {
+		if i, ok := idx[s.GoodsID]; ok {
+			list[i].Stocks = append(list[i].Stocks, s)
+		}
+	}
 }
 
 func (r *GoodsRepository) GetByID(ctx context.Context, id int64) (*model.Goods, error) {
@@ -160,6 +205,9 @@ func (r *GoodsRepository) GetByIDWithChildren(ctx context.Context, id int64) (*m
 		Order("sort ASC, id ASC").Find(&goods.Prices)
 	r.DB.Where("goods_id = ? AND tenant_id = ?", id, tenantID).
 		Order("id ASC").Find(&goods.Stocks)
+	for i := range goods.Stocks {
+		goods.Stocks[i].ShopIDStr = strconv.FormatInt(goods.Stocks[i].ShopID, 10)
+	}
 	var shopStocks []model.GoodsShopStock
 	r.DB.Table("stock_balances sb").
 		Joins("LEFT JOIN shops sh ON sh.id = sb.shop_id").
@@ -296,6 +344,26 @@ func recomputeAggregate(tx *gorm.DB, tenantID, goodsID int64) error {
 			"retail_price":    first.RetailPrice,
 			"wholesale_price": first.WholesalePrice,
 		}).Error
+}
+
+// AdjustGoodsStock 按门店+规格增减 goods_stocks.stock（用于进货/销售联动当前库存）
+func AdjustGoodsStock(tx *gorm.DB, tenantID, shopID, goodsID int64, specKey string, delta int) error {
+	var gs model.GoodsStock
+	err := tx.Where("tenant_id = ? AND goods_id = ? AND shop_id = ? AND spec_key = ?", tenantID, goodsID, shopID, specKey).First(&gs).Error
+	if err == gorm.ErrRecordNotFound {
+		gs = model.GoodsStock{TenantID: tenantID, GoodsID: goodsID, ShopID: shopID, SpecKey: specKey, Stock: delta}
+		if gs.Stock < 0 {
+			gs.Stock = 0
+		}
+		return tx.Create(&gs).Error
+	} else if err != nil {
+		return err
+	}
+	gs.Stock += delta
+	if gs.Stock < 0 {
+		gs.Stock = 0
+	}
+	return tx.Save(&gs).Error
 }
 
 // RecomputeGoodsAggregate 供价格模块在改价后同步聚合列

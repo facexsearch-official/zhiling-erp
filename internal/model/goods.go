@@ -165,6 +165,7 @@ type GoodsStock struct {
 	TenantID    int64   `json:"tenant_id" gorm:"index"`
 	GoodsID     int64   `json:"goods_id" gorm:"index;uniqueIndex:uk_gs"`
 	ShopID      int64   `json:"shop_id" gorm:"uniqueIndex:uk_gs"`
+	ShopIDStr   string  `json:"shop_id_str" gorm:"->"`
 	SpecKey     string  `json:"spec_key" gorm:"size:255;uniqueIndex:uk_gs"`
 	Stock       int     `json:"stock"`
 	MinStock    int     `json:"min_stock"`

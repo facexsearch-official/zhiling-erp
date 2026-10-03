@@ -133,11 +133,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	response.OK(c, gin.H{
 		"token": tokenStr,
 		"user": gin.H{
-			"id":       user.ID,
-			"phone":    user.Phone,
-			"name":     user.Nickname,
-			"avatar":   user.Avatar,
-			"role":     role,
+			"id":     user.ID,
+			"phone":  user.Phone,
+			"name":   user.Nickname,
+			"avatar": user.Avatar,
+			"role":   role,
 		},
 		"tenants":        tenants,
 		"permissions":    perm.Load(h.db, user.ID, firstTenantID).Raw(),
@@ -174,6 +174,48 @@ func (h *AuthHandler) Me(c *gin.Context) {
 		"permissions":    perm.Load(h.db, userID, tenantID).Raw(),
 		"sensitive_data": perm.LoadSensitive(h.db, userID, tenantID).Raw(),
 	})
+}
+
+type changePasswordReq struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+// ChangePassword 修改当前登录用户密码
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	userID := c.GetInt64("user_id")
+	var req changePasswordReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+	if strings.TrimSpace(req.OldPassword) == "" {
+		response.BadRequest(c, "请输入原密码")
+		return
+	}
+	if utf8.RuneCountInString(req.NewPassword) < 6 {
+		response.BadRequest(c, "新密码至少 6 位")
+		return
+	}
+	var user model.User
+	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		response.NotFound(c, "用户不存在")
+		return
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+		response.BadRequest(c, "原密码错误")
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		response.ServerError(c, "修改失败")
+		return
+	}
+	if err := h.db.Model(&model.User{}).Where("id = ?", userID).Update("password_hash", string(hash)).Error; err != nil {
+		response.ServerError(c, "修改失败")
+		return
+	}
+	response.OKMsg(c, "密码修改成功")
 }
 
 type CreateTenantRequest struct {

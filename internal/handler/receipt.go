@@ -33,18 +33,18 @@ func (h *ReceiptHandler) recalcReceivable(tx *gorm.DB, tenantID, customerID int6
 }
 
 type receiptCreateReq struct {
-	ShopID         int64   `json:"shop_id"`
-	RelatedNo      string  `json:"related_no"`
-	Type           string  `json:"type"`
+	ShopID         model.FlexInt64 `json:"shop_id"`
+	RelatedNo      string          `json:"related_no"`
+	Type           string          `json:"type"`
 	CustomerID     model.FlexInt64 `json:"customer_id"`
-	SalesmanID     int64   `json:"salesman_id"`
-	BillDate       string  `json:"bill_date"`
-	Amount         float64 `json:"amount"`
-	DiscountAmount float64 `json:"discount_amount"`
-	DepositOffset  float64 `json:"deposit_offset"`
-	AccountID      int64   `json:"account_id"`
-	Attachments    string  `json:"attachments"`
-	Remark         string  `json:"remark"`
+	SalesmanID     int64           `json:"salesman_id"`
+	BillDate       string          `json:"bill_date"`
+	Amount         float64         `json:"amount"`
+	DiscountAmount float64         `json:"discount_amount"`
+	DepositOffset  float64         `json:"deposit_offset"`
+	AccountID      int64           `json:"account_id"`
+	Attachments    string          `json:"attachments"`
+	Remark         string          `json:"remark"`
 }
 
 func (h *ReceiptHandler) List(c *gin.Context) {
@@ -55,6 +55,7 @@ func (h *ReceiptHandler) List(c *gin.Context) {
 	keyword := c.Query("keyword")
 	dateFrom := c.Query("date_from")
 	dateTo := c.Query("date_to")
+	shopID := c.Query("shop_id")
 	hideVoid := c.Query("hide_void") == "1"
 
 	var total int64
@@ -63,7 +64,9 @@ func (h *ReceiptHandler) List(c *gin.Context) {
 		Joins("LEFT JOIN customers cu ON cu.id = r.customer_id").
 		Joins("LEFT JOIN accounts a ON a.id = r.account_id").
 		Joins("LEFT JOIN salesmen sm ON sm.id = r.salesman_id").
+		Joins("LEFT JOIN users su ON su.id = r.salesman_id").
 		Joins("LEFT JOIN users u ON u.id = r.created_by").
+		Joins("LEFT JOIN shops sh ON sh.id = r.shop_id").
 		Where("r.tenant_id = ?", tenantID)
 	if keyword != "" {
 		kw := "%" + keyword + "%"
@@ -75,11 +78,14 @@ func (h *ReceiptHandler) List(c *gin.Context) {
 	if dateTo != "" {
 		q = q.Where("r.bill_date <= ?", dateTo)
 	}
+	if shopID != "" && shopID != "0" {
+		q = q.Where("r.shop_id = ?", shopID)
+	}
 	if hideVoid {
 		q = q.Where("r.status = 1")
 	}
 	q.Session(&gorm.Session{}).Count(&total)
-	q.Select("r.*, cu.name AS customer_name, a.name AS account_name, sm.name AS salesman_name, u.nickname AS maker_name").
+	q.Select("r.*, cu.name AS customer_name, a.name AS account_name, COALESCE(sm.name, su.nickname) AS salesman_name, u.nickname AS maker_name, sh.name AS shop_name").
 		Offset((page - 1) * pageSize).Limit(pageSize).Order("r.created_at DESC").Scan(&list)
 	for i := range list {
 		list[i].IDStr = strconv.FormatInt(list[i].ID, 10)
@@ -97,6 +103,7 @@ func (h *ReceiptHandler) GetByID(c *gin.Context) {
 		return
 	}
 	r.IDStr = strconv.FormatInt(r.ID, 10)
+	r.ShopIDStr = strconv.FormatInt(r.ShopID, 10)
 	if r.CustomerID != 0 {
 		var cu model.Customer
 		if h.db.Where("id = ?", r.CustomerID).First(&cu).Error == nil {
@@ -141,7 +148,7 @@ func (h *ReceiptHandler) Create(c *gin.Context) {
 		req.Type = "直接收款"
 	}
 	r := model.Receipt{
-		ID: snowflake.GenID(), TenantID: tenantID, ShopID: req.ShopID,
+		ID: snowflake.GenID(), TenantID: tenantID, ShopID: int64(req.ShopID),
 		OrderNo: nextNo(h.db, tenantID, "receipts", "SKD"), RelatedNo: req.RelatedNo, Type: req.Type,
 		CustomerID: int64(req.CustomerID), SalesmanID: req.SalesmanID, BillDate: req.BillDate,
 		Amount: req.Amount, DiscountAmount: req.DiscountAmount, DepositOffset: req.DepositOffset,
@@ -193,7 +200,7 @@ func (h *ReceiptHandler) Update(c *gin.Context) {
 			}
 		}
 		if err := tx.Table("receipts").Where("id = ?", r.ID).Updates(map[string]interface{}{
-			"related_no": req.RelatedNo, "type": req.Type, "customer_id": int64(req.CustomerID),
+			"shop_id": int64(req.ShopID), "related_no": req.RelatedNo, "type": req.Type, "customer_id": int64(req.CustomerID),
 			"salesman_id": req.SalesmanID, "bill_date": req.BillDate, "amount": req.Amount,
 			"discount_amount": req.DiscountAmount, "deposit_offset": req.DepositOffset,
 			"account_id": req.AccountID, "remark": req.Remark,

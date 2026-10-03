@@ -76,6 +76,8 @@ type Receipt struct {
 	IDStr          string    `json:"id_str" gorm:"->"`
 	TenantID       int64     `json:"tenant_id" gorm:"index"`
 	ShopID         int64     `json:"shop_id"`
+	ShopIDStr      string    `json:"shop_id_str" gorm:"-"`
+	ShopName       string    `json:"shop_name" gorm:"->"`
 	OrderNo        string    `json:"order_no" gorm:"size:32"`
 	RelatedNo      string    `json:"related_no" gorm:"size:32"`
 	Type           string    `json:"type" gorm:"size:32"`
@@ -103,6 +105,8 @@ type Payment struct {
 	IDStr          string    `json:"id_str" gorm:"->"`
 	TenantID       int64     `json:"tenant_id" gorm:"index"`
 	ShopID         int64     `json:"shop_id"`
+	ShopIDStr      string    `json:"shop_id_str" gorm:"-"`
+	ShopName       string    `json:"shop_name" gorm:"->"`
 	OrderNo        string    `json:"order_no" gorm:"size:32"`
 	RelatedNo      string    `json:"related_no" gorm:"size:32"`
 	Type           string    `json:"type" gorm:"size:32"`
