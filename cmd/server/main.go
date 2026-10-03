@@ -41,6 +41,7 @@ func main() {
 	} else {
 		db.AutoCreateTables(database)
 		db.Seed(database)
+		db.MockIfRequested(database)
 		limitChecker = middleware.NewLimitChecker(database)
 	}
 
