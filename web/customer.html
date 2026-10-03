@@ -2348,7 +2348,7 @@ tr:hover td.c-check,tr:hover td.c-idx,tr:hover td.c-actions{background:var(--gra
     _hoverCatTimer = setTimeout(function(){ setHoverPath(catParentUI, id, depth, renderCatParentCols); }, 50);
   };
   window.selectCatParent = function(id){
-    catParentUI.value = id ? parseInt(id, 10) : 0;
+    catParentUI.value = id ? String(id) : '0';
     renderCatParentPicker();
     closeCatParentDrop();
   };

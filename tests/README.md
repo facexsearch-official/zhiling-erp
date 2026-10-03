@@ -53,6 +53,18 @@ python3 tests/test_business.py
 - JWT 由 `config.yaml` 的 `secret` 现场签发（测试租户主账号）
 - 退出码：全部通过为 0，否则为 1（便于 CI）
 
+### 分类接口专项：`tests/test_category.py`
+
+覆盖「商品分类 / 客户分类 / 供应商分类」的 **列表 / 新增子类(字符串 parent_id) / 新增顶级(空 parent_id) / 修改 / 列表校验 / 删除**，共 30 条用例。
+
+```bash
+python3 tests/test_category.py
+# 指定服务地址 / 商户 / 用户
+PISA_BASE=http://127.0.0.1:8080 PISA_TENANT_ID=2104556395360686080 python3 tests/test_category.py
+```
+
+> 默认商户为「演示商户」，用户取该商户主账号；退出码 0 表示全部通过。
+
 ## 建议流程
 
 ```bash

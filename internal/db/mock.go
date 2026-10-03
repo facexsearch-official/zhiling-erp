@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"sort"
 	"time"
 
 	"pisa_server/internal/model"
@@ -403,19 +404,44 @@ func mockUnits(db *gorm.DB, tenantID int64) []model.Unit {
 }
 
 func mockGoodsAttrs(db *gorm.DB, tenantID int64) []model.GoodsAttribute {
-	base := []string{"颜色", "尺码", "材质", "口味", "规格", "型号", "容量", "重量", "功率", "版本",
-		"款式", "图案", "香型", "度数", "产地", "包装", "净含量", "适用人群", "季节", "风格"}
-	vals := []string{"红色,蓝色,绿色", "S,M,L,XL", "棉,涤纶,混纺", "原味,香辣,五香", "小,中,大",
-		"A型,B型,C型", "500ml,1L,2L", "1kg,2kg,5kg", "10W,20W,50W", "标准版,豪华版"}
+	vmap := map[string][]string{
+		"颜色":   {"红色", "蓝色", "绿色", "黑色", "白色", "黄色"},
+		"尺码":   {"S", "M", "L", "XL", "XXL"},
+		"材质":   {"棉", "涤纶", "混纺", "真皮", "帆布"},
+		"口味":   {"原味", "香辣", "五香", "麻辣", "香甜"},
+		"规格":   {"小", "中", "大", "特大"},
+		"型号":   {"A型", "B型", "C型", "Pro"},
+		"容量":   {"500ml", "1L", "1.5L", "2L"},
+		"重量":   {"100g", "500g", "1kg", "2kg", "5kg"},
+		"功率":   {"10W", "20W", "50W", "100W"},
+		"版本":   {"标准版", "豪华版", "旗舰版"},
+		"款式":   {"简约", "复古", "运动", "商务"},
+		"图案":   {"纯色", "条纹", "格子", "印花"},
+		"香型":   {"柠檬", "薰衣草", "玫瑰", "薄荷"},
+		"度数":   {"38度", "42度", "52度"},
+		"产地":   {"国产", "进口"},
+		"包装":   {"袋装", "盒装", "瓶装", "罐装"},
+		"净含量":  {"100g", "250g", "500g", "1kg"},
+		"适用人群": {"男", "女", "儿童", "通用"},
+		"季节":   {"春季", "夏季", "秋季", "冬季"},
+		"风格":   {"现代", "北欧", "中式", "工业"},
+	}
+	var base []string
+	for k := range vmap {
+		base = append(base, k)
+	}
+	sort.Strings(base)
 	list := make([]model.GoodsAttribute, 0, 50)
 	for i := 0; i < 50; i++ {
-		name := base[i%len(base)]
+		key := base[i%len(base)]
+		name := key
 		if i >= len(base) {
-			name = fmt.Sprintf("%s%d", name, i/len(base)+1)
+			name = fmt.Sprintf("%s%d", key, i/len(base)+1)
 		}
+		vb, _ := json.Marshal(vmap[key])
 		list = append(list, model.GoodsAttribute{
 			ID: snowflake.GenID(), TenantID: tenantID, Name: name,
-			Values: pickStr(vals), Sort: i + 1, Status: 1,
+			Values: string(vb), Sort: i + 1, Status: 1,
 		})
 	}
 	insertBatches(db, list)

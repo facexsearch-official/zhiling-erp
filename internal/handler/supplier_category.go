@@ -27,31 +27,48 @@ func (h *SupplierCategoryHandler) ListAll(c *gin.Context) {
 		response.ServerError(c, "查询分类失败")
 		return
 	}
-	response.OK(c, list)
+	// 附带字符串 ID，供前端级联选择器精确匹配
+	out := make([]gin.H, 0, len(list))
+	for _, x := range list {
+		out = append(out, gin.H{
+			"id":            x.ID,
+			"id_str":        strconv.FormatInt(x.ID, 10),
+			"parent_id":     x.ParentID,
+			"parent_id_str": strconv.FormatInt(x.ParentID, 10),
+			"name":          x.Name,
+			"sort":          x.Sort,
+		})
+	}
+	response.OK(c, out)
 }
 
 func (h *SupplierCategoryHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
-	var cat model.SupplierCategory
-	if err := c.ShouldBindJSON(&cat); err != nil {
+	var req struct {
+		Name     string          `json:"name"`
+		ParentID model.FlexInt64 `json:"parent_id"`
+		Sort     int             `json:"sort"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "参数错误")
 		return
 	}
-	cat.Name = strings.TrimSpace(cat.Name)
-	if cat.Name == "" {
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
 		response.BadRequest(c, "分类名称不能为空")
 		return
 	}
-	if utf8.RuneCountInString(cat.Name) > 30 {
+	if utf8.RuneCountInString(name) > 30 {
 		response.BadRequest(c, "类别名称不能超过30个字符")
 		return
 	}
-	if cat.ParentID != 0 {
-		if _, err := h.repo.GetByID(ctx, cat.ParentID); err != nil {
+	parentID := int64(req.ParentID)
+	if parentID != 0 {
+		if _, err := h.repo.GetByID(ctx, parentID); err != nil {
 			response.BadRequest(c, "上级类别不存在")
 			return
 		}
-		parentDepth, err := h.repo.GetDepth(ctx, cat.ParentID)
+		parentDepth, err := h.repo.GetDepth(ctx, parentID)
 		if err != nil {
 			response.ServerError(c, "查询分类层级失败")
 			return
@@ -61,8 +78,12 @@ func (h *SupplierCategoryHandler) Create(c *gin.Context) {
 			return
 		}
 	}
-	cat.ID = 0
-	cat.TenantID = context.GetTenantID(ctx)
+	cat := model.SupplierCategory{
+		TenantID: context.GetTenantID(ctx),
+		Name:     name,
+		ParentID: parentID,
+		Sort:     req.Sort,
+	}
 	if err := h.repo.Create(ctx, &cat); err != nil {
 		response.ServerError(c, "创建分类失败")
 		return
@@ -79,8 +100,8 @@ func (h *SupplierCategoryHandler) Update(c *gin.Context) {
 		return
 	}
 	var body struct {
-		Name     string `json:"name"`
-		ParentID int64  `json:"parent_id"`
+		Name     string          `json:"name"`
+		ParentID model.FlexInt64 `json:"parent_id"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.BadRequest(c, "参数错误")
@@ -95,17 +116,18 @@ func (h *SupplierCategoryHandler) Update(c *gin.Context) {
 		response.BadRequest(c, "类别名称不能超过30个字符")
 		return
 	}
-	if body.ParentID == id {
+	parentID := int64(body.ParentID)
+	if parentID == id {
 		response.BadRequest(c, "上级类别不能是自身")
 		return
 	}
-	if body.ParentID != 0 {
-		if _, err := h.repo.GetByID(ctx, body.ParentID); err != nil {
+	if parentID != 0 {
+		if _, err := h.repo.GetByID(ctx, parentID); err != nil {
 			response.BadRequest(c, "上级类别不存在")
 			return
 		}
-		if body.ParentID != existing.ParentID {
-			newParentDepth, err := h.repo.GetDepth(ctx, body.ParentID)
+		if parentID != existing.ParentID {
+			newParentDepth, err := h.repo.GetDepth(ctx, parentID)
 			if err != nil {
 				response.ServerError(c, "查询分类层级失败")
 				return
@@ -117,7 +139,7 @@ func (h *SupplierCategoryHandler) Update(c *gin.Context) {
 		}
 	}
 	existing.Name = body.Name
-	existing.ParentID = body.ParentID
+	existing.ParentID = parentID
 	if err := h.repo.Update(ctx, existing); err != nil {
 		response.ServerError(c, "更新分类失败")
 		return

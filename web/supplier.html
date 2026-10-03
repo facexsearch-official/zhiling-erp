@@ -566,7 +566,7 @@ select.sf-input{appearance:none;background-image:url("data:image/svg+xml;utf8,<s
     var name = (el('catNameInput').value || '').trim();
     if(!name){ showToast('请输入分类名称', 'error'); return; }
     if(name.length > 30){ showToast('分类名称不能超过30个字符', 'error'); return; }
-    var pid = Number(catParentValue) || 0;
+    var pid = catParentValue || '0';
     var p;
     if(catUI.editingId){
       p = apiPut('/shop/supplier-category/' + catUI.editingId, { name:name, parent_id:pid });
