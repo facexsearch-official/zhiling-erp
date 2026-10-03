@@ -5,7 +5,15 @@
 *.so
 *.dylib
 /server
+/pisa_server
+/pisa_server_*
 __debug_bin*
+
+# 本地构建产物
+/main
+/mockdata
+/apitest
+*.db
 
 # Test
 *.test
@@ -25,6 +33,10 @@ vendor/
 # OS
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
 
 # Environment
 .env

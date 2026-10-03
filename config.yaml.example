@@ -1,0 +1,12 @@
+server:
+  port: 8080
+  mode: debug  # debug/release
+
+jwt:
+  secret: "change-me-in-production"
+  expire_hours: 72
+
+database:
+  dsn: "root:your_password@tcp(127.0.0.1:3306)/pisa?charset=utf8mb4&parseTime=True&loc=Local"
+  max_open_conns: 50
+  max_idle_conns: 20
