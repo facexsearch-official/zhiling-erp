@@ -1,5 +1,5 @@
 /* ============================================================
-   PISA App Shell — shared chrome
+   智领进销存 App Shell — shared chrome
    Renders: topbar (brand/search/tenant/actions) · sidebar + flyout
             · tabbar mount · unified navigation
    ============================================================ */
@@ -159,7 +159,8 @@
     '/account.html':'funds:account'
   };
   // 无对应导航项的独立页面标签
-  var PAGE_LABEL = { 'stock:warehouse':'仓库管理', 'supplier:add':'新增供应商', 'settings:staff':'员工管理', 'settings:role':'角色权限', 'settings:shop':'商户信息', 'settings:shops':'门店管理' };
+  var PAGE_LABEL = { 'stock:warehouse':'仓库管理', 'supplier:add':'新增供应商', 'settings:staff':'员工管理', 'settings:role':'角色权限', 'settings:shop':'商户信息', 'settings:shops':'门店管理', 'settings:shops:edit':'编辑门店', 'settings:role:edit':'新增角色', 'goods:attr':'商品属性', 'goods:price':'价格管理', 'sales:commission':'业绩提成', 'settings:print':'打印模板', 'settings:system':'系统设置' };
+  window.PISA_PAGE_LABEL = PAGE_LABEL;
   function currentKey(){
     var h = location.hash.slice(1);
     if(h){
@@ -209,8 +210,8 @@
     el.id = 'topbar';
     el.innerHTML =
       '<div class="topbar-brand">'
-      +   '<div class="brand-logo">P</div>'
-      +   '<span class="brand-name">PISA 进销存</span>'
+      +   '<div class="brand-logo">智</div>'
+      +   '<span class="brand-name">智领进销存</span>'
       + '</div>'
       + '<div class="topbar-search">' + IC.search
       +   '<input type="text" placeholder="快速查价 / 搜索商品、客户、单据...">'

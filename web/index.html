@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PISA 进销存</title>
+<title>智领进销存</title>
 <style>
 /* 布局与主题见 /css/app-shell.css，此处仅保留页面组件样式 */
 html{color-scheme:light}
@@ -957,7 +957,7 @@ thead th{position:relative}
 <div class="toast" id="toast"></div>
 
 <script src="/js/tabs.js?v=20261054"></script>
-<script src="/js/app-shell.js?v=20261123"></script>
+<script src="/js/app-shell.js?v=20261126"></script>
 <script>
 /* ═══════════ State ═══════════ */
 const State = {
@@ -1179,7 +1179,7 @@ const SET = {
   '商户信息':{query:'',cols:['项目','内容'],rows:[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']]},
   '套餐订阅':{query:'',cols:['项目','套餐限额','已使用','状态'],rows:[['商品数','2,000','128','正常'],['员工账号','10','3','正常'],['门店数','1','1','已满'],['本月单据','不限','1,240','正常']]},
   '系统参数':{query:'',cols:['参数项','当前值','说明','操作'],
-    rows:[['店铺名称','PISA 进销存体验店','显示在单据与系统标题'],['金额小数位数','2','金额保留两位小数'],['允许负库存','否','否：库存不足时禁止出库'],['单据审核','开启','开启后单据需审核才生效'],['成本核算方法','加权平均','可切换为先进先出']]},
+    rows:[['店铺名称','智领进销存体验店','显示在单据与系统标题'],['金额小数位数','2','金额保留两位小数'],['允许负库存','否','否：库存不足时禁止出库'],['单据审核','开启','开启后单据需审核才生效'],['成本核算方法','加权平均','可切换为先进先出']]},
   '用户管理':{query:'输入用户名或姓名查询',cols:['登录账号','姓名','角色','状态','操作'],
     rows:[['admin','张三','超级管理员','启用'],['user01','喜羊羊','操作员','启用'],['user02','雨','操作员','停用']]},
   '操作日志':{query:'输入操作人或对象查询',cols:['操作时间','操作人','操作类型','操作对象','IP'],
@@ -1205,7 +1205,7 @@ function findNavLabel(key){
   }
   return null;
 }
-const EXTRA_LABELS={'purchase:create':'新增进货单','purchase:view':'查看进货单','purchase-order:create':'新增进货预订','purchase-order:view':'查看进货预订','purchase-return:create':'新增进货退货单','sale:create':'新增销售单','sale-order:create':'新增销售预订','sale-return:create':'新增销售退货单','quote:create':'新增报价单','sale:view':'查看销售单','sale-order:view':'查看销售预订','sale-return:view':'查看销售退货单','quote:view':'查看报价单','purchase-return:view':'查看进货退货单','goods:combo:create':'新增套餐','stock:take:create':'新增盘点单','stock:take:view':'盘点单详情','stock:assembly:create':'新增组装单','stock:assembly:view':'组装单详情','stock:recipe:create':'新增配方','stock:split:create':'新增拆分单','stock:split:view':'拆分单详情','stock:flow':'库存流水','stock:cost':'成本明细','stock:alert':'库存预警','stock:batch':'批次查询','stock:expiry':'保质期查询','funds:account':'账户概览','funds:transfer':'转账','funds:receipt':'收款单列表','funds:receipt:create':'新增收款单','funds:receipt:view':'收款单详情','funds:payment':'付款单列表','funds:payment:create':'新增付款单','funds:payment:view':'付款单详情','funds:income':'其他收入列表','funds:income:create':'新增其他收入','funds:income:view':'其他收入详情','funds:income-type':'收支类型','funds:expense':'其他支出列表','funds:expense:create':'新增其他支出','funds:expense:view':'其他支出详情','funds:recon-customer':'客户对账','funds:recon-supplier':'供应商对账','funds:cashflow':'资金流水','analysis:sales':'销售统计','analysis:hot':'热销分析','analysis:staff':'员工业绩统计','analysis:purchase':'进货统计','analysis:stock':'库存统计','analysis:profit':'经营利润','analysis:surplus':'盘盈明细','analysis:loss':'盘亏明细','customer:list':'客户列表','customer:create':'新增客户','customer:view':'客户详情','customer:statement':'客户对账单','customer:level':'价格等级','customer:quote':'报价管理','quote:by-customer':'根据客户报价','quote:by-goods':'根据商品报价','settings:shop':'商户信息','settings:shops':'门店管理','settings:shops:edit':'编辑门店','settings:role':'角色权限','settings:role:edit':'新增角色'};
+const EXTRA_LABELS={'purchase:create':'新增进货单','purchase:view':'查看进货单','purchase-order:create':'新增进货预订','purchase-order:view':'查看进货预订','purchase-return:create':'新增进货退货单','sale:create':'新增销售单','sale-order:create':'新增销售预订','sale-return:create':'新增销售退货单','quote:create':'新增报价单','sale:view':'查看销售单','sale-order:view':'查看销售预订','sale-return:view':'查看销售退货单','quote:view':'查看报价单','purchase-return:view':'查看进货退货单','goods:combo:create':'新增套餐','stock:take:create':'新增盘点单','stock:take:view':'盘点单详情','stock:assembly:create':'新增组装单','stock:assembly:view':'组装单详情','stock:recipe:create':'新增配方','stock:split:create':'新增拆分单','stock:split:view':'拆分单详情','stock:flow':'库存流水','stock:cost':'成本明细','stock:alert':'库存预警','stock:batch':'批次查询','stock:expiry':'保质期查询','funds:account':'账户概览','funds:transfer':'转账','funds:receipt':'收款单列表','funds:receipt:create':'新增收款单','funds:receipt:view':'收款单详情','funds:payment':'付款单列表','funds:payment:create':'新增付款单','funds:payment:view':'付款单详情','funds:income':'其他收入列表','funds:income:create':'新增其他收入','funds:income:view':'其他收入详情','funds:income-type':'收支类型','funds:expense':'其他支出列表','funds:expense:create':'新增其他支出','funds:expense:view':'其他支出详情','funds:recon-customer':'客户对账','funds:recon-supplier':'供应商对账','funds:cashflow':'资金流水','analysis:sales':'销售统计','analysis:hot':'热销分析','analysis:staff':'员工业绩统计','analysis:purchase':'进货统计','analysis:stock':'库存统计','analysis:profit':'经营利润','analysis:surplus':'盘盈明细','analysis:loss':'盘亏明细','customer:list':'客户列表','customer:create':'新增客户','customer:view':'客户详情','customer:statement':'客户对账单','customer:level':'价格等级','customer:quote':'报价管理','quote:by-customer':'根据客户报价','quote:by-goods':'根据商品报价','settings:shop':'商户信息','settings:shops':'门店管理','settings:shops:edit':'编辑门店','settings:staff':'员工管理','settings:role':'角色权限','settings:role:edit':'新增角色','goods:attr':'商品属性','goods:price':'价格管理','sales:commission':'业绩提成','settings:print':'打印模板','settings:system':'系统设置'};
 const TAB_LABELS={'customer:list':'客户列表','purchase:new':'进货单列表','purchases':'进货单列表','purchase:order':'进货预订列表','purchase-order':'进货预订列表','purchase:return':'进货退货列表','purchase-return':'进货退货列表','sales:new':'销售单列表','sales:order':'销售预订列表','sales:return':'销售退货单列表','sales:quote':'报价','goods:combo':'套餐列表','stock:take':'盘点单列表','stock:assembly':'组装单列表','stock:recipe':'配方列表','stock:split':'拆分单列表','stock:query':'库存查询'};
 window.TAB_LABELS=TAB_LABELS; window.EXTRA_LABELS=EXTRA_LABELS;
 (function normalizeTabs(){
@@ -1264,7 +1264,7 @@ function showPage(key, arg){
     else if(key==='settings:role:edit') ROLE.editId=Number(arg)||null;
   }
   var f=findNavLabel(key);
-  let label=TAB_LABELS[key]||(f&&f.label)||EXTRA_LABELS[key]||key;
+  let label=TAB_LABELS[key]||(f&&f.label)||EXTRA_LABELS[key]||(window.PISA_PAGE_LABEL&&window.PISA_PAGE_LABEL[key])||key;
   if(key==='customer:create' && CU.editId) label='修改客户';
   if(typeof PC!=='undefined' && PC.editId){
     Object.keys(PC_KINDS).some(function(k){ if(PC_KINDS[k].create===key){ label='修改'+PC_KINDS[k].docTitle; return true; } return false; });

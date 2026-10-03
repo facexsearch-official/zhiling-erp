@@ -1,5 +1,5 @@
 /* ============================================================
-   PISA 多标签页 (Page Tabs) — 浏览器式，位于 .main 顶部
+   智领进销存 多标签页 (Page Tabs) — 浏览器式，位于 .main 顶部
    ============================================================ */
 .tabbar{
   height:44px;flex-shrink:0;display:flex;align-items:flex-end;gap:2px;
