@@ -81,13 +81,66 @@ python3 tests/test_category.py     # 分类接口
 python3 tests/test_business.py     # 业务接口
 ```
 
-## 截图
+## 界面截图
 
-> 截图占位，欢迎补充到 `docs/screenshots/`。
+### 首页
+![首页](docs/screenshots/首页.png)
 
-| 首页 | 商品列表 |
-|------|----------|
-| _待补充_ | _待补充_ |
+### 商品
+| 商品列表 | 新增商品 |
+|:---:|:---:|
+| ![商品列表](docs/screenshots/商品列表.png) | ![新增商品](docs/screenshots/新增商品.png) |
+
+### 客户
+| 客户列表 | 新增客户 |
+|:---:|:---:|
+| ![客户列表](docs/screenshots/客户列表.png) | ![新增客户](docs/screenshots/新增客户.png) |
+
+### 供应商
+| 供应商列表 | 新增供应商 |
+|:---:|:---:|
+| ![供应商列表](docs/screenshots/供应商列表.png) | ![新增供应商](docs/screenshots/新增供应商.png) |
+
+### 进货
+| 进货单列表 | 新增进货单 |
+|:---:|:---:|
+| ![进货单列表](docs/screenshots/进货单列表.png) | ![新增进货单](docs/screenshots/新增进货单.png) |
+
+| 进货退货列表 | 新增进货退货单 |
+|:---:|:---:|
+| ![进货退货列表](docs/screenshots/进货退货列表.png) | ![新增进货退货单](docs/screenshots/新增进货退货单.png) |
+
+### 销售
+| 销售单列表 | 新增销售单 |
+|:---:|:---:|
+| ![销售单列表](docs/screenshots/销售单列表.png) | ![新增销售单](docs/screenshots/新增销售单.png) |
+
+| 销售退货单列表 | 新增销售退货单 |
+|:---:|:---:|
+| ![销售退货单列表](docs/screenshots/销售退货单列表.png) | ![新增销售退货单](docs/screenshots/新增销售退货单.png) |
+
+### 库存
+| 库存查询 | 盘点单列表 | 新增盘点单 |
+|:---:|:---:|:---:|
+| ![库存查询](docs/screenshots/库存查询.png) | ![盘点单列表](docs/screenshots/盘点单列表.png) | ![新增盘点单](docs/screenshots/新增盘点单.png) |
+
+### 资金
+| 收款列表 | 新增收款单 | 付款单列表 |
+|:---:|:---:|:---:|
+| ![收款列表](docs/screenshots/收款列表.png) | ![新增收款单](docs/screenshots/新增收款单.png) | ![付款单列表](docs/screenshots/付款单列表.png) |
+
+| 新增付款单 | 账号概览 |
+|:---:|:---:|
+| ![新增付款单](docs/screenshots/新增付款单.png) | ![账号概览](docs/screenshots/账号概览.png) |
+
+### 设置
+| 门店管理 | 员工管理 | 角色权限 | 新增角色 |
+|:---:|:---:|:---:|:---:|
+| ![门店管理](docs/screenshots/门店管理.png) | ![员工管理](docs/screenshots/员工管理.png) | ![角色权限](docs/screenshots/角色权限.png) | ![新增角色](docs/screenshots/新增角色.png) |
+
+| 商户信息 |
+|:---:|
+| ![商户信息](docs/screenshots/商户信息.png) |
 
 ## 许可证
 
