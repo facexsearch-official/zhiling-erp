@@ -54,6 +54,8 @@ func main() {
 	r.Static("/js", "./web/js")
 	r.Static("/lib", "./web/lib")
 	r.Static("/uploads", "./web/uploads")
+	r.StaticFile("/favicon.svg", "./web/favicon.svg")
+	r.StaticFile("/favicon.ico", "./web/favicon.svg")
 	r.StaticFile("/login.html", "./web/login.html")
 	r.StaticFile("/", "./web/index.html")
 	r.StaticFile("/index.html", "./web/index.html")
