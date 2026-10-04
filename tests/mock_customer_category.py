@@ -20,10 +20,8 @@ try:
 except ImportError:
     sys.exit("缺少依赖 pymysql，请先执行: pip install pymysql")
 
-import os
-DB = dict(host=os.environ.get("PISA_DB_HOST", "127.0.0.1"), port=int(os.environ.get("PISA_DB_PORT", "3306")),
-          user=os.environ.get("PISA_DB_USER", "root"), password=os.environ.get("PISA_DB_PASS", ""),
-          database=os.environ.get("PISA_DB_NAME", "pisa"), charset="utf8mb4", autocommit=True)
+DB = dict(host="127.0.0.1", port=3306, user="root", password="12345678",
+          database="pisa", charset="utf8mb4", autocommit=True)
 
 TEST_TENANT_ID = 7000000000000000001
 

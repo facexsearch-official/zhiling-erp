@@ -47,7 +47,7 @@ def load_dsn():
     with open(os.path.join(ROOT, "config.yaml"), "r", encoding="utf-8") as f:
         txt = f.read()
     m = re.search(r'dsn:\s*"([^"]+)"', txt)
-    return m.group(1) if m else "root:@tcp(127.0.0.1:3306)/pisa"
+    return m.group(1) if m else "root:12345678@tcp(127.0.0.1:3306)/pisa"
 
 
 def b64(b):

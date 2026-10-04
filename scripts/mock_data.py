@@ -70,8 +70,7 @@ def read_dsn():
             return m.group(1)
     except OSError:
         pass
-    # 未找到 config.yaml 时使用无密码的本地默认（可通过 PISA_DSN 覆盖）
-    return "root:@tcp(127.0.0.1:3306)/pisa?charset=utf8mb4&parseTime=True&loc=Local"
+    return "root:12345678@tcp(127.0.0.1:3306)/pisa?charset=utf8mb4&parseTime=True&loc=Local"
 
 
 def parse_dsn(dsn):
