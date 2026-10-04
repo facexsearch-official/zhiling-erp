@@ -316,6 +316,27 @@
     var m = byId('topbarSetMenu'); if(m) m.style.display = 'none';
     document.removeEventListener('click', topbarSetDocHandler);
   };
+  window.pisaContactDeveloper = function(){
+    var old = byId('pisaContactModal'); if(old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'pisaContactModal';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:4000';
+    ov.innerHTML = '<div style="width:320px;max-width:92vw;background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden;text-align:center">'
+      + '<div style="padding:16px 20px;border-bottom:1px solid #F1F5F9;font-size:16px;font-weight:600;color:#1F2937">联系开发者</div>'
+      + '<div style="padding:20px 24px">'
+      +   '<img src="https://www.facexsearch.com/weixin.jpg" alt="微信二维码" style="width:220px;height:220px;object-fit:contain;border:1px solid #F1F5F9;border-radius:8px"'
+      +     ' onerror="this.style.display=\'none\';var f=this.nextElementSibling;if(f)f.style.display=\'flex\'">'
+      +   '<div style="display:none;width:220px;height:220px;margin:0 auto;align-items:center;justify-content:center;color:#94A3B8;border:1px dashed #E2E8F0;border-radius:8px;font-size:13px">二维码加载失败</div>'
+      +   '<div style="margin-top:14px;font-size:14px;color:#374151">微信号：<b style="color:#059669">fs900800700</b></div>'
+      +   '<div style="margin-top:6px;font-size:13px;color:#94A3B8">微信扫一扫二维码添加</div>'
+      + '</div>'
+      + '<div style="padding:14px;border-top:1px solid #F1F5F9">'
+      +   '<button style="height:38px;padding:0 22px;border-radius:8px;border:none;background:#059669;color:#fff;font-size:14px;cursor:pointer">关闭</button>'
+      + '</div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('button').onclick = function(){ ov.remove(); };
+    ov.addEventListener('click', function(ev){ if(ev.target === ov) ov.remove(); });
+  };
   window.pisaTopbarSettings = function(e){
     if(e) e.stopPropagation();
     var m = byId('topbarSetMenu'); if(!m) return;
@@ -325,6 +346,7 @@
       return '<div class="um-item" onclick="pisaHideTopbarSettings();if(window.PisaShell)PisaShell.navGo(\'' + it.key + '\')">' + esc(it.label) + '</div>';
     }).join('')
       + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaChangePassword()">修改密码</div>'
+      + '<div class="um-item" onclick="pisaHideTopbarSettings();pisaContactDeveloper()">联系开发者</div>'
       + '<div class="um-item um-danger" onclick="pisaHideTopbarSettings();pisaLogout()">退出</div>';
     m.style.display = 'block';
     var r = e.currentTarget.getBoundingClientRect();
