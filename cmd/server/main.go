@@ -34,7 +34,6 @@ func main() {
 	tokenManager := jwtpkg.NewTokenManager(cfg.JWT.Secret, cfg.JWT.ExpireHours)
 
 	var database *gorm.DB
-	var limitChecker *middleware.LimitChecker
 	database, err := db.Connect(cfg.Database)
 	if err != nil {
 		log.Printf("db init warning (continuing without DB): %v", err)
@@ -42,7 +41,6 @@ func main() {
 		db.AutoCreateTables(database)
 		db.Seed(database)
 		db.MockIfRequested(database)
-		limitChecker = middleware.NewLimitChecker(database)
 	}
 
 	r := gin.Default()
@@ -151,7 +149,7 @@ func main() {
 			shopGroup.DELETE("/supplier-category/:id", supplierCategoryHandler.Delete)
 
 			shopGroup.GET("/staff/users", staffHandler.ListUsers)
-			shopGroup.POST("/staff/users", middleware.PlanLimitMiddleware(limitChecker, "staff"), staffHandler.CreateUser)
+			shopGroup.POST("/staff/users", staffHandler.CreateUser)
 			shopGroup.PUT("/staff/users/:id", staffHandler.UpdateUser)
 			shopGroup.DELETE("/staff/users/:id", staffHandler.DeleteUser)
 			shopGroup.GET("/salesmen", staffHandler.ListSalesmen)
@@ -159,7 +157,7 @@ func main() {
 			shopGroup.PUT("/salesmen/:id", staffHandler.UpdateSalesman)
 			shopGroup.DELETE("/salesmen/:id", staffHandler.DeleteSalesman)
 			shopGroup.GET("/shops", staffHandler.ListShops)
-			shopGroup.POST("/shops", middleware.PlanLimitMiddleware(limitChecker, "shop"), staffHandler.CreateShop)
+			shopGroup.POST("/shops", staffHandler.CreateShop)
 			shopGroup.PUT("/shops/:id", staffHandler.UpdateShop)
 			shopGroup.DELETE("/shops/:id", staffHandler.DeleteShop)
 
@@ -222,7 +220,7 @@ func main() {
 			shopGroup.GET("/goods/brands", goodsHandler.Brands)
 			shopGroup.GET("/goods/origins", goodsHandler.Origins)
 			shopGroup.GET("/goods/:id", goodsHandler.GetByID)
-			shopGroup.POST("/goods", middleware.PlanLimitMiddleware(limitChecker, "goods"), goodsHandler.Create)
+			shopGroup.POST("/goods", goodsHandler.Create)
 			shopGroup.POST("/goods/batch", goodsHandler.BatchUpdate)
 			shopGroup.PUT("/goods/:id", goodsHandler.Update)
 			shopGroup.PUT("/goods/:id/stock", goodsHandler.AdjustStock)
@@ -416,10 +414,6 @@ func main() {
 			shopGroup.GET("/analysis/profit", analysisHandler.ProfitSummary)
 			shopGroup.GET("/analysis/surplus-detail", analysisHandler.SurplusDetail)
 			shopGroup.GET("/analysis/loss-detail", analysisHandler.LossDetail)
-		}
-
-		if limitChecker != nil {
-			shopGroup.POST("/sales", middleware.PlanLimitMiddleware(limitChecker, "order"))
 		}
 	}
 

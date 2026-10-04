@@ -215,8 +215,7 @@ const SET = {
   '计量单位':{query:'输入单位名称查询',cols:['单位名称','操作'],rows:[['个'],['箱'],['件'],['公斤']]},
   '结算账户':{query:'输入账户名称查询',cols:['账户名称','账户类型','当前余额','排序','状态','操作'],
     rows:[['现金账户','现金','¥3,420.00','1','启用'],['工商银行','银行','¥128,600.00','2','启用'],['微信账户','在线支付','¥15,180.00','3','启用']]},
-  '商户信息':{query:'',cols:['项目','内容'],rows:[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']]},
-  '套餐订阅':{query:'',cols:['项目','套餐限额','已使用','状态'],rows:[['商品数','2,000','128','正常'],['员工账号','10','3','正常'],['门店数','1','1','已满'],['本月单据','不限','1,240','正常']]},
+  '商户信息':{query:'',cols:['项目','内容'],rows:[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号','张三'],['商户状态','正常']]},
   '系统参数':{query:'',cols:['参数项','当前值','说明','操作'],
     rows:[['店铺名称','智领进销存体验店','显示在单据与系统标题'],['金额小数位数','2','金额保留两位小数'],['允许负库存','否','否：库存不足时禁止出库'],['单据审核','开启','开启后单据需审核才生效'],['成本核算方法','加权平均','可切换为先进先出']]},
   '用户管理':{query:'输入用户名或姓名查询',cols:['登录账号','姓名','角色','状态','操作'],
@@ -352,7 +351,6 @@ function placeholderHTML(label){
 }
 
 function pageHTML(key,label){
-  if(key==='settings:shop')return tenantInfoHTML();
   let cfg=null, showNew=false, showExport=false, tabList=null, query='', newLabel='新增';
 
   if(key.indexOf('analysis:')===0){
@@ -397,24 +395,6 @@ function pageHTML(key,label){
   h+='</tbody></table><div class="pagination"><span>共 '+(cfg.total||cfg.rows.length)+' 条记录，第 1 / 1 页</span>'+
     '<div class="pagination-btns"><button class="page-btn" disabled>上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页</button></div></div></div>';
   return h;
-}
-
-function tenantInfoHTML(){
-  const rows=[['商户名称','张三五金店'],['商户类型','个体户'],['联系人','张三'],['联系电话','138-0000-0000'],['主账号（老板）','张三'],['当前套餐','单店版'],['套餐到期','2026-12-31'],['商户状态','正常']];
-  return '<div class="page-head"><div class="page-title">商户信息</div><div><button class="btn btn-secondary">编辑</button></div></div>'+
-    '<div class="card" style="max-width:640px"><div style="display:grid;grid-template-columns:130px 1fr">'+
-    rows.map(r=>'<div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-500)">'+r[0]+'</div><div style="padding:12px 0;border-bottom:1px solid var(--gray-100);font-size:14px;color:var(--gray-800)">'+r[1]+'</div>').join('')+
-    '</div></div>';
-}
-
-function planHTML(){
-  const usage=[['商品数','2,000','128',6],['员工账号','10','3',30],['门店数','1','1',100],['本月单据','不限','1,240',8]];
-  const usageHtml=usage.map(u=>'<div class="usage-row"><span class="usage-label">'+u[0]+'</span><span class="usage-bar"><i class="'+(u[3]>=100?'full':'')+'" style="width:'+(u[3]||8)+'%"></i></span><span class="usage-val">'+u[2]+' / '+u[1]+'</span></div>').join('');
-  const plans=[['免费版','¥0','100 商品 · 1 员工 · 1 门店 · 100 单/月',0],['开单版','¥398','500 商品 · 3 员工 · 1 门店 · 不限单据',0],['单店版','¥998','2000 商品 · 10 员工 · 1 门店 · 不限单据',1],['多店版','¥1998','商品/员工/门店不限 · 不限单据',0]];
-  const planHtml=plans.map(p=>'<div class="plan-card'+(p[3]?' current':'')+'">'+(p[3]?'<span class="cur-tag">当前套餐</span>':'')+'<div class="pname">'+p[0]+'</div><div class="pprice">'+p[1]+'<small> /年</small></div><ul><li>'+p[2].split(' · ').join('</li><li>')+'</li></ul><button class="btn '+(p[3]?'btn-secondary':'btn-primary')+'" style="width:100%;justify-content:center;margin-top:10px">'+(p[3]?'续费':'升级')+'</button></div>').join('');
-  return '<div class="page-head"><div class="page-title">套餐订阅</div><div style="font-size:14px;color:var(--gray-400)">当前套餐：单店版 · 到期 2026-12-31</div></div>'+
-    '<div class="card"><div class="card-title">套餐用量</div>'+usageHtml+'</div>'+
-    '<div class="card"><div class="card-title">套餐选择</div><div class="plan-cards">'+planHtml+'</div></div>';
 }
 
 /* ═══════════ Dynamic pages (API-backed) ═══════════ */

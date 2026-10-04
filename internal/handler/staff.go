@@ -38,21 +38,13 @@ func (h *StaffHandler) ListUsers(c *gin.Context) {
 	for i := range rows {
 		rows[i].IsCurrent = rows[i].UserID == uid
 	}
-	tenantID := context.GetTenantID(ctx)
 	used := len(rows)
-	maxStaff := 0
-	if t, err := h.repo.GetTenant(ctx, tenantID); err == nil {
-		maxStaff = t.MaxStaff
-	}
-	remaining := maxStaff - used
-	if maxStaff <= 0 {
-		remaining = -1 // 不限
-	}
+	// 开源版：不限员工数量
 	response.OK(c, gin.H{
 		"list":      rows,
-		"max_staff": maxStaff,
+		"max_staff": 0,
 		"used":      used,
-		"remaining": remaining,
+		"remaining": -1,
 	})
 }
 
