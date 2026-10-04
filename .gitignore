@@ -55,3 +55,6 @@ web/uploads/*
 
 # 企业版内部文档（不提交）
 docs/enterprise-*.md
+
+# 宣传文稿（不入库）
+docs/知乎*.md

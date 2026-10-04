@@ -15,6 +15,7 @@ func AutoCreateTables(db *gorm.DB) {
 		&model.Tenant{},
 		&model.User{},
 		&model.UserTenant{},
+		&model.Device{},
 		&model.Shop{},
 		&model.Salesman{},
 		&model.Role{},

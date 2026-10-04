@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"pisa_server/internal/model"
 	"pisa_server/internal/pkg/jwt"
 	"pisa_server/internal/pkg/perm"
@@ -26,9 +27,11 @@ func NewAuthHandler(db *gorm.DB, token *jwt.TokenManager) *AuthHandler {
 }
 
 type LoginRequest struct {
-	Phone    string `json:"phone" binding:"required"`
-	Password string `json:"password"`
-	Code     string `json:"code"`
+	Phone       string `json:"phone" binding:"required"`
+	Password    string `json:"password"`
+	Code        string `json:"code"`
+	DeviceID    string `json:"device_id"`
+	Fingerprint string `json:"fingerprint"`
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -112,6 +115,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		}
 	}
 
+	// 记录登录设备（用于统计每日新增设备码）
+	if req.DeviceID != "" && firstTenantID > 0 {
+		h.saveDevice(firstTenantID, user, c.ClientIP(), c.Request.UserAgent(), req.DeviceID, req.Fingerprint)
+	}
+
 	// Generate token for first tenant
 	var shopID int64
 	if firstTenantID > 0 {
@@ -142,6 +150,45 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"tenants":        tenants,
 		"permissions":    perm.Load(h.db, user.ID, firstTenantID).Raw(),
 		"sensitive_data": perm.LoadSensitive(h.db, user.ID, firstTenantID).Raw(),
+	})
+}
+
+func cutStr(s string, n int) string {
+	if len(s) > n {
+		return s[:n]
+	}
+	return s
+}
+
+// saveDevice 登录成功时登记设备；首次出现记为当日新增设备。
+func (h *AuthHandler) saveDevice(tenantID int64, user model.User, ip, ua, deviceID, fingerprint string) {
+	now := time.Now()
+	today := now.Format("2006-01-02")
+	var dev model.Device
+	err := h.db.Table("devices").Where("tenant_id = ? AND device_id = ?", tenantID, deviceID).First(&dev).Error
+	if err == gorm.ErrRecordNotFound {
+		dev = model.Device{
+			ID: snowflake.GenID(), TenantID: tenantID, DeviceID: deviceID,
+			Fingerprint: cutStr(fingerprint, 128), UserID: user.ID, Phone: user.Phone,
+			IP: cutStr(ip, 64), UserAgent: cutStr(ua, 255), Platform: "web",
+			FirstSeen: today, LastSeen: now, LoginCount: 1, CreatedAt: now,
+		}
+		if e := h.db.Table("devices").Create(&dev).Error; e != nil {
+			log.Printf("save device error: %v", e)
+		}
+		return
+	}
+	if err != nil {
+		return
+	}
+	h.db.Table("devices").Where("id = ?", dev.ID).Updates(map[string]interface{}{
+		"last_seen":   now,
+		"login_count": gorm.Expr("login_count + ?", 1),
+		"user_id":     user.ID,
+		"phone":       user.Phone,
+		"ip":          cutStr(ip, 64),
+		"user_agent":  cutStr(ua, 255),
+		"fingerprint": cutStr(fingerprint, 128),
 	})
 }
 

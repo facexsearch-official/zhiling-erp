@@ -147,6 +147,30 @@ function sendSMS() {
   showToast('验证码已发送（开发模式：任意6位数字）');
 }
 
+// ── 设备码（本地持久化 UUID + 简单指纹），用于统计每日新增设备 ──
+function pisaGenUuid(){
+  try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(ch){
+    var r = Math.random()*16|0, v = ch==='x' ? r : (r&0x3|0x8); return v.toString(16);
+  });
+}
+function pisaDeviceId(){
+  try{
+    var k='pisa_device_id', v=localStorage.getItem(k);
+    if(!v){ v=pisaGenUuid(); localStorage.setItem(k, v); }
+    return v;
+  }catch(e){ return ''; }
+}
+function pisaFingerprint(){
+  try{
+    var s=[navigator.userAgent, navigator.platform||'', (screen.width||0)+'x'+(screen.height||0),
+           (screen.colorDepth||0), (Intl.DateTimeFormat().resolvedOptions().timeZone||''),
+           navigator.language||''].join('|');
+    var h=5381; for(var i=0;i<s.length;i++){ h=((h<<5)+h+s.charCodeAt(i))>>>0; }
+    return 'fp'+h.toString(16);
+  }catch(e){ return ''; }
+}
+
 async function handleLogin(e) {
   e.preventDefault();
   const phone = document.getElementById('phone').value.trim();
@@ -158,14 +182,15 @@ async function handleLogin(e) {
 
   try {
     let body;
+    const devId = pisaDeviceId(), fp = pisaFingerprint();
     if (loginMode === 'sms') {
       const code = document.getElementById('smsCode').value.trim();
       if (!code) { showToast('请输入验证码'); loginBtn.disabled=false; loginBtn.textContent='登 录'; return false; }
-      body = { phone, code };
+      body = { phone, code, device_id: devId, fingerprint: fp };
     } else {
       const pwd = document.getElementById('password').value;
       if (!pwd) { showToast('请输入密码'); loginBtn.disabled=false; loginBtn.textContent='登 录'; return false; }
-      body = { phone, password: pwd };
+      body = { phone, password: pwd, device_id: devId, fingerprint: fp };
     }
 
     const res = await fetch('/api/auth/login', {
