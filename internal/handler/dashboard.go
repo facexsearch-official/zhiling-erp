@@ -46,11 +46,11 @@ func (h *DashboardHandler) Summary(c *gin.Context) {
 		Joins("JOIN sales s ON s.id = si.sale_id").
 		Joins("JOIN goods g ON g.id = si.goods_id").
 		Where("s.tenant_id = ? AND s.status <> 9 AND s.bill_date >= ?", tenantID, monthStart).
-		Select("COALESCE(SUM(si.quantity * g.purchase_price),0)").Scan(&mc)
+		Select("COALESCE(SUM(si.quantity * g.purchase_price),0) AS cost").Scan(&mc)
 
 	var sv struct{ Value float64 }
 	h.db.Table("goods").Where("tenant_id = ?", tenantID).
-		Select("COALESCE(SUM(current_stock * purchase_price),0)").Scan(&sv)
+		Select("COALESCE(SUM(current_stock * purchase_price),0) AS value").Scan(&sv)
 
 	var cc int64
 	h.db.Table("customers").Where("tenant_id = ?", tenantID).Count(&cc)
