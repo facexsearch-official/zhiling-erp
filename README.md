@@ -142,6 +142,13 @@ python3 tests/test_business.py     # 业务接口
 |:---:|
 | ![商户信息](docs/screenshots/merchant-info.png) |
 
+## 联系开发者
+
+- 微信号：**fs900800700**
+- 微信扫码：
+
+  <img src="https://www.facexsearch.com/weixin.jpg" alt="微信二维码" width="200">
+
 ## 许可证
 
 本项目基于 [MIT](./LICENSE) 许可证开源。
